@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.ijbrown</groupId>
+    <artifactId>refactored-home-3d</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+  <repositories>
+    <repository>
+      <!-- DO NOT set id to "local" because it is reserved by Maven -->
+      <id>myrepo</id>
+      <url>file://${project.basedir}/mvnrepo</url>
+    </repository>
+  </repositories>
+    
+    <properties>
+        <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <release>10</release>
+                    <source>1.10</source>
+                    <target>1.10</target>
+                    <compilerArgs>
+                        <arg>--add-modules=java.jnlp,java.desktop</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.freehep</groupId>
+            <artifactId>freehep-graphicsio-svg</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.media</groupId>
+            <artifactId>jmf</artifactId>
+            <version>2.1.1e</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jogamp.jogl</groupId>
+            <artifactId>jogl-all-main</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jogamp.gluegen</groupId>
+            <artifactId>gluegen-rt-main</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.vecmath</groupId>
+            <artifactId>vecmath</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>net.ijbrown</groupId>
+            <artifactId>j3dcore</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.ijbrown</groupId>
+            <artifactId>j3dutils</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.ijbrown</groupId>
+            <artifactId>jeksparser-calculator</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.ijbrown</groupId>
+            <artifactId>apple-java-extensions</artifactId>
+            <version>1.0</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.massisframework.sunflow</groupId>
+            <artifactId>sunflow</artifactId>
+            <version>0.07.3i</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>2.1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-parser</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>abbot</groupId>
+            <artifactId>abbot</artifactId>
+            <version>1.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jdepend</groupId>
+            <artifactId>jdepend</artifactId>
+            <version>2.9.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

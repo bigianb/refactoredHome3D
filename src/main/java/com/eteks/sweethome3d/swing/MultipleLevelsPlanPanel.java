@@ -132,14 +132,12 @@ public class MultipleLevelsPlanPanel extends JPanel implements PlanView, Printab
     }
     
     createTabs(home, preferences);
-    final ChangeListener changeListener = new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          Component selectedComponent = multipleLevelsTabbedPane.getSelectedComponent();
-          if (selectedComponent instanceof LevelLabel) {
-            controller.setSelectedLevel(((LevelLabel)selectedComponent).getLevel());
-          }
-        }
-      };
+    final ChangeListener changeListener = ev -> {
+      Component selectedComponent = multipleLevelsTabbedPane.getSelectedComponent();
+      if (selectedComponent instanceof LevelLabel) {
+        controller.setSelectedLevel(((LevelLabel)selectedComponent).getLevel());
+      }
+    };
     this.multipleLevelsTabbedPane.addChangeListener(changeListener);
     // Add a mouse listener that will give focus to plan component only if a change in tabbed pane comes from the mouse
     // and will add a level only if user clicks on the last tab 
@@ -152,13 +150,11 @@ public class MultipleLevelsPlanPanel extends JPanel implements PlanView, Printab
               controller.addLevel();
             }
             final Level oldSelectedLevel = home.getSelectedLevel();
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  if (oldSelectedLevel == home.getSelectedLevel()) {
-                    planComponent.requestFocusInWindow();
-                  }
-                }
-              });
+            EventQueue.invokeLater(() -> {
+              if (oldSelectedLevel == home.getSelectedLevel()) {
+                planComponent.requestFocusInWindow();
+              }
+            });
           } else if (indexAtLocation != -1) {
             if (multipleLevelsTabbedPane.getSelectedIndex() == multipleLevelsTabbedPane.getTabCount() - 1) {
               // May happen with a row of tabs is full
@@ -170,62 +166,52 @@ public class MultipleLevelsPlanPanel extends JPanel implements PlanView, Printab
       });
 
      // Add listeners to levels to maintain tabs name and order
-    final PropertyChangeListener levelChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (Level.Property.NAME.name().equals(ev.getPropertyName())) {
-            int index = home.getLevels().indexOf(ev.getSource());
-            multipleLevelsTabbedPane.setTitleAt(index, (String)ev.getNewValue());
-            updateTabComponent(home, index);
-          } else if (Level.Property.VIEWABLE.name().equals(ev.getPropertyName())) {
-            updateTabComponent(home, home.getLevels().indexOf(ev.getSource()));
-          } else if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())
-              || Level.Property.ELEVATION_INDEX.name().equals(ev.getPropertyName())) {
-            multipleLevelsTabbedPane.removeChangeListener(changeListener);
-            multipleLevelsTabbedPane.removeAll();
-            createTabs(home, preferences);
-            updateSelectedTab(home);
-            multipleLevelsTabbedPane.addChangeListener(changeListener);
-          }
-        }
-      };
-    for (Level level : levels) {
-      level.addPropertyChangeListener(levelChangeListener);
-    }
-    home.addLevelsListener(new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          multipleLevelsTabbedPane.removeChangeListener(changeListener);
-          switch (ev.getType()) {
-            case ADD:
-              multipleLevelsTabbedPane.insertTab(ev.getItem().getName(), null, new LevelLabel(ev.getItem()), null, ev.getIndex());
-              updateTabComponent(home, ev.getIndex());
-              ev.getItem().addPropertyChangeListener(levelChangeListener);
-              break;
-            case DELETE:
-              ev.getItem().removePropertyChangeListener(levelChangeListener);
-              multipleLevelsTabbedPane.remove(ev.getIndex());
-              break;
-          }
-          updateLayout(home);
-          multipleLevelsTabbedPane.addChangeListener(changeListener);
-        }
-      });
-    
-    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent ev) {
+    final PropertyChangeListener levelChangeListener = ev -> {
+      if (Level.Property.NAME.name().equals(ev.getPropertyName())) {
+        int index = home.getLevels().indexOf(ev.getSource());
+        multipleLevelsTabbedPane.setTitleAt(index, (String)ev.getNewValue());
+        updateTabComponent(home, index);
+      } else if (Level.Property.VIEWABLE.name().equals(ev.getPropertyName())) {
+        updateTabComponent(home, home.getLevels().indexOf(ev.getSource()));
+      } else if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())
+          || Level.Property.ELEVATION_INDEX.name().equals(ev.getPropertyName())) {
         multipleLevelsTabbedPane.removeChangeListener(changeListener);
+        multipleLevelsTabbedPane.removeAll();
+        createTabs(home, preferences);
         updateSelectedTab(home);
         multipleLevelsTabbedPane.addChangeListener(changeListener);
       }
+    };
+    for (Level level : levels) {
+      level.addPropertyChangeListener(levelChangeListener);
+    }
+    home.addLevelsListener(ev -> {
+      multipleLevelsTabbedPane.removeChangeListener(changeListener);
+      switch (ev.getType()) {
+        case ADD:
+          multipleLevelsTabbedPane.insertTab(ev.getItem().getName(), null, new LevelLabel(ev.getItem()), null, ev.getIndex());
+          updateTabComponent(home, ev.getIndex());
+          ev.getItem().addPropertyChangeListener(levelChangeListener);
+          break;
+        case DELETE:
+          ev.getItem().removePropertyChangeListener(levelChangeListener);
+          multipleLevelsTabbedPane.remove(ev.getIndex());
+          break;
+      }
+      updateLayout(home);
+      multipleLevelsTabbedPane.addChangeListener(changeListener);
+    });
+    
+    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, ev -> {
+      multipleLevelsTabbedPane.removeChangeListener(changeListener);
+      updateSelectedTab(home);
+      multipleLevelsTabbedPane.addChangeListener(changeListener);
     });
     
     this.oneLevelPanel = new JPanel(new BorderLayout());
     
     if (OperatingSystem.isJavaVersionGreaterOrEqual("1.6")) {
-      home.addPropertyChangeListener(Home.Property.ALL_LEVELS_SELECTION, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            multipleLevelsTabbedPane.repaint();
-          }
-        });
+      home.addPropertyChangeListener(Home.Property.ALL_LEVELS_SELECTION, ev -> multipleLevelsTabbedPane.repaint());
     }
     
     preferences.addPropertyChangeListener(UserPreferences.Property.LANGUAGE, 

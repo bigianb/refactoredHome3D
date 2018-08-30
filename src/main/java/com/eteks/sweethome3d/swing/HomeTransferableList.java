@@ -46,7 +46,7 @@ public class HomeTransferableList implements Transferable {
     }
   }
   
-  // Stores a copy of the transfered items
+  // Stores a copy of the transferred items
   private final List<Selectable> transferedItems;
 
   /**

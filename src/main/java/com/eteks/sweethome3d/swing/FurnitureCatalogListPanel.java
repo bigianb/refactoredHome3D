@@ -237,7 +237,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
     
     this.categoryFilterLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         FurnitureCatalogListPanel.class, "categoryFilterLabel.text"));    
-    List<FurnitureCategory> categories = new ArrayList<FurnitureCategory>();
+    List<FurnitureCategory> categories = new ArrayList<>();
     categories.add(null);
     categories.addAll(catalog.getCategories());
     this.categoryFilterComboBox = new JComboBox(new DefaultComboBoxModel(categories.toArray())) {
@@ -260,12 +260,10 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
           }
         }
       });
-    this.categoryFilterComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          catalogListModel.setFilterCategory((FurnitureCategory)categoryFilterComboBox.getSelectedItem());
-          catalogFurnitureList.clearSelection();
-        }
-      });
+    this.categoryFilterComboBox.addItemListener(ev -> {
+      catalogListModel.setFilterCategory((FurnitureCategory)categoryFilterComboBox.getSelectedItem());
+      catalogFurnitureList.clearSelection();
+    });
     
     this.searchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         FurnitureCatalogListPanel.class, "searchLabel.text"));
@@ -313,7 +311,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
     private final WeakReference<FurnitureCatalogListPanel> furnitureCatalogPanel;
 
     public PreferencesChangeListener(FurnitureCatalogListPanel furnitureCatalogPanel) {
-      this.furnitureCatalogPanel = new WeakReference<FurnitureCatalogListPanel>(furnitureCatalogPanel);
+      this.furnitureCatalogPanel = new WeakReference<>(furnitureCatalogPanel);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -420,15 +418,13 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
         @Override
         public void mouseMoved(MouseEvent ev) {
           final URL url = getURLAt(ev.getPoint(), catalogFurnitureList);
-          EventQueue.invokeLater(new Runnable() {                  
-              public void run() {
-                if (url != null) {
-                  setCursor(handCursor);
-                } else {
-                  setCursor(Cursor.getDefaultCursor());
-                }
-              }
-            });
+          EventQueue.invokeLater(() -> {
+            if (url != null) {
+              setCursor(handCursor);
+            } else {
+              setCursor(Cursor.getDefaultCursor());
+            }
+          });
         }
 
         private URL getURLAt(Point point, JList list) {
@@ -529,11 +525,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
     if (OperatingSystem.isMacOSXHighSierraOrSuperior()
         && !OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {
       // Add missing repaint calls on viewport when scroll bar is moved 
-      listScrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-          public void adjustmentValueChanged(AdjustmentEvent ev) {
-            listScrollPane.getViewport().repaint();
-          }
-        });
+      listScrollPane.getVerticalScrollBar().addAdjustmentListener(ev -> listScrollPane.getViewport().repaint());
     }
     listScrollPane.setPreferredSize(new Dimension(250, 250));
     listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -546,11 +538,9 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
     setFocusTraversalPolicy(new LayoutFocusTraversalPolicy() {
         @Override
         public Component getDefaultComponent(Container aContainer) {
-            EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                // Return furniture list only at the first request  
-                setFocusTraversalPolicyProvider(false);
-              }
+            EventQueue.invokeLater(() -> {
+              // Return furniture list only at the first request
+              setFocusTraversalPolicyProvider(false);
             });
           return catalogFurnitureList;
         }
@@ -591,19 +581,13 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
    */
   private void addSelectionListeners(final FurnitureCatalog catalog, 
                                      final FurnitureCatalogController controller) {
-    final SelectionListener modelSelectionListener = new SelectionListener() {
-        public void selectionChanged(SelectionEvent selectionEvent) {
-          updateListSelectedFurniture(catalog, controller);        
-        }
-      };
-    this.listSelectionListener = new ListSelectionListener() {
-        public void valueChanged(ListSelectionEvent ev) {          
-          // Updates selected furniture in catalog from selected nodes in tree.
-          controller.removeSelectionListener(modelSelectionListener);
-          controller.setSelectedFurniture(getSelectedFurniture());
-          controller.addSelectionListener(modelSelectionListener);
-        }
-      };
+    final SelectionListener modelSelectionListener = selectionEvent -> updateListSelectedFurniture(catalog, controller);
+    this.listSelectionListener = ev -> {
+      // Updates selected furniture in catalog from selected nodes in tree.
+      controller.removeSelectionListener(modelSelectionListener);
+      controller.setSelectedFurniture(getSelectedFurniture());
+      controller.addSelectionListener(modelSelectionListener);
+    };
       
     controller.addSelectionListener(modelSelectionListener);
     this.catalogFurnitureList.getSelectionModel().addListSelectionListener(this.listSelectionListener);
@@ -622,7 +606,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
     List<CatalogPieceOfFurniture> selectedFurniture = controller.getSelectedFurniture();
     if (selectedFurniture.size() > 0) {
       ListModel model = this.catalogFurnitureList.getModel();
-      List<Integer> selectedIndices = new ArrayList<Integer>();
+      List<Integer> selectedIndices = new ArrayList<>();
       for (CatalogPieceOfFurniture piece : selectedFurniture) {
         for (int i = 0, n = model.getSize(); i < n; i++) {
           if (piece == model.getElementAt(i)) {
@@ -840,7 +824,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
 
     private void checkFurnitureList() {
       if (this.furniture == null) {
-        this.furniture = new ArrayList<CatalogPieceOfFurniture>();
+        this.furniture = new ArrayList<>();
         this.furniture.clear();
         for (FurnitureCategory category : this.catalog.getCategories()) {
           for (CatalogPieceOfFurniture piece : category.getFurniture()) {
@@ -863,7 +847,7 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
       private WeakReference<FurnitureCatalogListModel>  listModel;
 
       public FurnitureCatalogListener(FurnitureCatalogListModel catalogListModel) {
-        this.listModel = new WeakReference<FurnitureCatalogListModel>(catalogListModel);
+        this.listModel = new WeakReference<>(catalogListModel);
       }
       
       public void collectionChanged(CollectionEvent<CatalogPieceOfFurniture> ev) {

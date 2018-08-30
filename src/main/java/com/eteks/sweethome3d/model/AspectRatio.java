@@ -34,7 +34,7 @@ public enum AspectRatio {
   
   private final Float value;
   
-  private AspectRatio(Float value) {
+  AspectRatio(Float value) {
     this.value = value;
   }    
   

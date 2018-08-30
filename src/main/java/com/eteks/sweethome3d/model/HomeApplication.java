@@ -28,9 +28,9 @@ import java.util.List;
  * @author Emmanuel Puybaret
  */
 public abstract class HomeApplication {
-  private List<Home> homes = new ArrayList<Home>();
-  private final CollectionChangeSupport<Home> homesChangeSupport = 
-                             new CollectionChangeSupport<Home>(this);
+  private List<Home> homes = new ArrayList<>();
+  private final CollectionChangeSupport<Home> homesChangeSupport =
+          new CollectionChangeSupport<>(this);
 
   /**
    * Adds the home <code>listener</code> in parameter to this application.
@@ -71,7 +71,7 @@ public abstract class HomeApplication {
    * equal to {@link CollectionEvent.Type#ADD ADD}. 
    */
   public void addHome(Home home) {
-    this.homes = new ArrayList<Home>(this.homes);
+    this.homes = new ArrayList<>(this.homes);
     this.homes.add(home);
     this.homesChangeSupport.fireCollectionChanged(home, this.homes.size() - 1, CollectionEvent.Type.ADD);
   }
@@ -87,7 +87,7 @@ public abstract class HomeApplication {
   public void deleteHome(Home home) {
     int index = this.homes.indexOf(home);
     if (index != -1) {
-      this.homes = new ArrayList<Home>(this.homes);
+      this.homes = new ArrayList<>(this.homes);
       this.homes.remove(index);
       this.homesChangeSupport.fireCollectionChanged(home, index, CollectionEvent.Type.DELETE);
     }

@@ -50,7 +50,7 @@ public class CatalogTexture implements TextureImage, CatalogItem, Comparable<Cat
   static {
     COMPARATOR = Collator.getInstance();
     COMPARATOR.setStrength(Collator.PRIMARY); 
-    recentFilters = new WeakHashMap<String, byte[][]>();
+    recentFilters = new WeakHashMap<>();
   }
 
   /**
@@ -233,8 +233,8 @@ public class CatalogTexture implements TextureImage, CatalogItem, Comparable<Cat
     int checkedCriteria = 0;
     if (filterCriteriaCollationKeys.length > 0) {
       byte [] furnitureCollationKey = getTextureCollationKey();
-      for (int i = 0; i < filterCriteriaCollationKeys.length; i++) {
-        if (isSubCollationKey(furnitureCollationKey, filterCriteriaCollationKeys [i], 0)) {
+      for (byte[] filterCriteriaCollationKey : filterCriteriaCollationKeys) {
+        if (isSubCollationKey(furnitureCollationKey, filterCriteriaCollationKey, 0)) {
           checkedCriteria++;
         } else {
           break;
@@ -255,7 +255,7 @@ public class CatalogTexture implements TextureImage, CatalogItem, Comparable<Cat
     if (filterCollationKeys == null) {
       // Each substring in filter is a search criterion that must be verified 
       String [] filterCriteria = filter.split("\\s|\\p{Punct}|\\|");
-      List<byte []> filterCriteriaCollationKeys = new ArrayList<byte []>(filterCriteria.length);
+      List<byte []> filterCriteriaCollationKeys = new ArrayList<>(filterCriteria.length);
       for (String criterion : filterCriteria) {
         if (criterion.length() > 0) {
           filterCriteriaCollationKeys.add(COMPARATOR.getCollationKey(criterion).toByteArray());

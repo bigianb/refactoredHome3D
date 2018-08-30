@@ -19,22 +19,17 @@
  */
 package com.eteks.sweethome3d;
 
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Frame;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
+import com.eteks.sweethome3d.model.*;
+import com.eteks.sweethome3d.swing.SwingTools;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.ContentManager;
+import com.eteks.sweethome3d.viewcontroller.HomeController;
+import com.eteks.sweethome3d.viewcontroller.HomeView;
+import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -42,24 +37,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JRootPane;
-import javax.swing.Timer;
-
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeApplication;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.swing.SwingTools;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.ContentManager;
-import com.eteks.sweethome3d.viewcontroller.HomeController;
-import com.eteks.sweethome3d.viewcontroller.HomeView;
-import com.eteks.sweethome3d.viewcontroller.View;
 
 /**
  * A pane that displays a 
@@ -110,7 +87,7 @@ public class HomeFramePane extends JRootPane implements View {
       }
     };
     // Update frame image and title 
-    List<Image> frameImages = new ArrayList<Image>(3);
+    List<Image> frameImages = new ArrayList<>(3);
     frameImages.add(new ImageIcon(HomeFramePane.class.getResource("resources/frameIcon.png")).getImage());
     frameImages.add(new ImageIcon(HomeFramePane.class.getResource("resources/frameIcon32x32.png")).getImage());
     if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
@@ -147,15 +124,13 @@ public class HomeFramePane extends JRootPane implements View {
     addListeners(this.home, this.application, this.controller.getHomeController(), homeFrame);
     
     homeFrame.setVisible(true);
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          // Add state listener to frame once it's visible to avoid some undesired events during first showing    
-          addWindowStateListener(home, application, controller.getHomeController(), homeFrame);
-          // Request the frame to go to front again because closing waiting dialog meanwhile  
-          // could put in front the already opened frame  
-          homeFrame.toFront();
-        }
-      });
+    EventQueue.invokeLater(() -> {
+      // Add state listener to frame once it's visible to avoid some undesired events during first showing
+      addWindowStateListener(home, application, controller.getHomeController(), homeFrame);
+      // Request the frame to go to front again because closing waiting dialog meanwhile
+      // could put in front the already opened frame
+      homeFrame.toFront();
+    });
   }
   
   /**
@@ -217,11 +192,7 @@ public class HomeFramePane extends JRootPane implements View {
           // Java 3D 1.5 bug : let's request focus in window for the most recent focus owner when
           // this frame is reactivated
           if (this.mostRecentFocusOwner != null) {
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  mostRecentFocusOwner.requestFocusInWindow();
-                }
-              });
+            EventQueue.invokeLater(() -> mostRecentFocusOwner.requestFocusInWindow());
           }
         } 
       };
@@ -230,24 +201,22 @@ public class HomeFramePane extends JRootPane implements View {
     application.getUserPreferences().addPropertyChangeListener(UserPreferences.Property.LANGUAGE, 
         new LanguageChangeListener(frame, this));
     // Dispose window when a home is deleted 
-    application.addHomesListener(new CollectionListener<Home>() {
-        public void collectionChanged(CollectionEvent<Home> ev) {
-          if (ev.getItem() == home
-              && ev.getType() == CollectionEvent.Type.DELETE) {
-            application.removeHomesListener(this);
-            frame.dispose();
-            frame.removeWindowListener(windowListener);
-            frame.removeComponentListener(componentListener);
-          }
-        };
-      });
+    application.addHomesListener(new CollectionListener<>()
+    {
+      public void collectionChanged(CollectionEvent<Home> ev)
+      {
+        if (ev.getItem() == home
+                && ev.getType() == CollectionEvent.Type.DELETE) {
+          application.removeHomesListener(this);
+          frame.dispose();
+          frame.removeWindowListener(windowListener);
+          frame.removeComponentListener(componentListener);
+        }
+      }
+    });
     
     // Update title when the name or the modified state of home changes
-    PropertyChangeListener frameTitleChangeListener = new PropertyChangeListener () {
-        public void propertyChange(PropertyChangeEvent ev) {
-          updateFrameTitle(frame, home, application);
-        }
-      };
+    PropertyChangeListener frameTitleChangeListener = ev -> updateFrameTitle(frame, home, application);
     home.addPropertyChangeListener(Home.Property.NAME, frameTitleChangeListener);
     home.addPropertyChangeListener(Home.Property.MODIFIED, frameTitleChangeListener);
     home.addPropertyChangeListener(Home.Property.RECOVERED, frameTitleChangeListener);
@@ -263,8 +232,8 @@ public class HomeFramePane extends JRootPane implements View {
     private WeakReference<HomeFramePane> homeFramePane;
 
     public LanguageChangeListener(JFrame frame, HomeFramePane homeFramePane) {
-      this.frame = new WeakReference<JFrame>(frame);
-      this.homeFramePane = new WeakReference<HomeFramePane>(homeFramePane);
+      this.frame = new WeakReference<>(frame);
+      this.homeFramePane = new WeakReference<>(homeFramePane);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -289,23 +258,21 @@ public class HomeFramePane extends JRootPane implements View {
                                       final HomeController controller,
                                       final JFrame frame) {
     // Control frame closing and activation 
-    final WindowStateListener windowStateListener = new WindowStateListener () {
-        public void windowStateChanged(WindowEvent ev) {
-          controller.setHomeProperty(FRAME_MAXIMIZED_VISUAL_PROPERTY, 
-              String.valueOf((frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH));
-        }
-      };
+    final WindowStateListener windowStateListener = ev -> controller.setHomeProperty(FRAME_MAXIMIZED_VISUAL_PROPERTY,
+        String.valueOf((frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH));
     frame.addWindowStateListener(windowStateListener);    
     // Dispose window when a home is deleted 
-    application.addHomesListener(new CollectionListener<Home>() {
-        public void collectionChanged(CollectionEvent<Home> ev) {
-          if (ev.getItem() == home
-              && ev.getType() == CollectionEvent.Type.DELETE) {
-            application.removeHomesListener(this);
-            frame.removeWindowStateListener(windowStateListener);
-          }
-        };
-      });
+    application.addHomesListener(new CollectionListener<>()
+    {
+      public void collectionChanged(CollectionEvent<Home> ev)
+      {
+        if (ev.getItem() == home
+                && ev.getType() == CollectionEvent.Type.DELETE) {
+          application.removeHomesListener(this);
+          frame.removeWindowStateListener(windowStateListener);
+        }
+      }
+    });
   }
 
   /**
@@ -337,11 +304,9 @@ public class HomeFramePane extends JRootPane implements View {
           frame.setSize(screenSize.width + insets.left + insets.right, 
               screenSize.height + insets.bottom);
         } else if (OperatingSystem.isLinux()) {
-          EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              // Under Linux, maximize frame once it's displayed
-              frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            }
+          EventQueue.invokeLater(() -> {
+            // Under Linux, maximize frame once it's displayed
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
           });
         } else {
           frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -357,14 +322,12 @@ public class HomeFramePane extends JRootPane implements View {
                   && ev.getNewState() == JFrame.NORMAL) {
                 if (OperatingSystem.isMacOSXLionOrSuperior()) {
                   // Set back frame size later once frame reduce animation is finished 
-                  new Timer(20, new ActionListener() {
-                      public void actionPerformed(ActionEvent ev) {
-                        if (frame.getHeight() < 40) {
-                          ((Timer)ev.getSource()).stop();
-                          frame.setBounds(frameBounds);
-                        }
-                      }
-                    }).start();
+                  new Timer(20, ev1 -> {
+                    if (frame.getHeight() < 40) {
+                      ((Timer) ev1.getSource()).stop();
+                      frame.setBounds(frameBounds);
+                    }
+                  }).start();
                 } else {
                   frame.setBounds(frameBounds);
                 }
@@ -461,7 +424,7 @@ public class HomeFramePane extends JRootPane implements View {
     String title = homeDisplayedName;
     if (OperatingSystem.isMacOSX()) {
       // Use black indicator in close icon for a modified home 
-      Boolean homeModified = Boolean.valueOf(home.isModified() || home.isRecovered());
+      Boolean homeModified = home.isModified() || home.isRecovered();
       // Set Mac OS X 10.4 property for backward compatibility
       putClientProperty("windowModified", homeModified);
       

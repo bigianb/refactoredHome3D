@@ -50,16 +50,14 @@ public class Home implements Serializable, Cloneable {
 
   private static final boolean KEEP_BACKWARD_COMPATIBLITY = true;
 
-  private static final Comparator<Level> LEVEL_ELEVATION_COMPARATOR = new Comparator<Level>() {
-      public int compare(Level level1, Level level2) {
-        int elevationComparison = Float.compare(level1.getElevation(), level2.getElevation());
-        if (elevationComparison != 0) {
-          return elevationComparison;
-        } else {
-          return level1.getElevationIndex() - level2.getElevationIndex();
-        }
-      }
-    };
+  private static final Comparator<Level> LEVEL_ELEVATION_COMPARATOR = (level1, level2) -> {
+    int elevationComparison = Float.compare(level1.getElevation(), level2.getElevation());
+    if (elevationComparison != 0) {
+      return elevationComparison;
+    } else {
+      return level1.getElevationIndex() - level2.getElevationIndex();
+    }
+  };
 
   /**
    * The properties of a home that may change. <code>PropertyChangeListener</code>s added
@@ -138,7 +136,7 @@ public class Home implements Serializable, Cloneable {
    * @param wallHeight default height for home walls
    */
   public Home(float wallHeight) {
-    this(new ArrayList<HomePieceOfFurniture>(), wallHeight);
+    this(new ArrayList<>(), wallHeight);
   }
 
   /**
@@ -150,15 +148,14 @@ public class Home implements Serializable, Cloneable {
   }
 
   private Home(List<HomePieceOfFurniture> furniture, float wallHeight) {
-    this.furniture = new ArrayList<HomePieceOfFurniture>(furniture);
-    this.walls = new ArrayList<Wall>();
+    this.furniture = new ArrayList<>(furniture);
+    this.walls = new ArrayList<>();
     this.wallHeight = wallHeight;
-    this.furnitureVisibleProperties = Arrays.asList(new HomePieceOfFurniture.SortableProperty [] {
-        HomePieceOfFurniture.SortableProperty.NAME,
-        HomePieceOfFurniture.SortableProperty.WIDTH,
-        HomePieceOfFurniture.SortableProperty.DEPTH,
-        HomePieceOfFurniture.SortableProperty.HEIGHT,
-        HomePieceOfFurniture.SortableProperty.VISIBLE});
+    this.furnitureVisibleProperties = Arrays.asList(HomePieceOfFurniture.SortableProperty.NAME,
+            HomePieceOfFurniture.SortableProperty.WIDTH,
+            HomePieceOfFurniture.SortableProperty.DEPTH,
+            HomePieceOfFurniture.SortableProperty.HEIGHT,
+            HomePieceOfFurniture.SortableProperty.VISIBLE);
     // Init transient lists and other fields
     init(true);
     addModelListeners();
@@ -197,7 +194,7 @@ public class Home implements Serializable, Cloneable {
       }
       // Restore furnitureVisibleProperties from furnitureVisiblePropertyNames
       if (this.furnitureVisiblePropertyNames != null) {
-        this.furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
+        this.furnitureVisibleProperties = new ArrayList<>();
         for (String furnitureVisiblePropertyName : this.furnitureVisiblePropertyNames) {
           try {
             this.furnitureVisibleProperties.add(
@@ -308,20 +305,19 @@ public class Home implements Serializable, Cloneable {
 
   private void init(boolean newHome) {
     // Initialize transient lists
-    this.selectedItems = new ArrayList<Selectable>();
+    this.selectedItems = new ArrayList<>();
     initListenersSupport(this);
 
     if (this.furnitureVisibleProperties == null) {
       // Set the furniture properties that were visible before version 0.19
-      this.furnitureVisibleProperties = Arrays.asList(new HomePieceOfFurniture.SortableProperty [] {
-          HomePieceOfFurniture.SortableProperty.NAME,
-          HomePieceOfFurniture.SortableProperty.WIDTH,
-          HomePieceOfFurniture.SortableProperty.DEPTH,
-          HomePieceOfFurniture.SortableProperty.HEIGHT,
-          HomePieceOfFurniture.SortableProperty.COLOR,
-          HomePieceOfFurniture.SortableProperty.MOVABLE,
-          HomePieceOfFurniture.SortableProperty.DOOR_OR_WINDOW,
-          HomePieceOfFurniture.SortableProperty.VISIBLE});
+      this.furnitureVisibleProperties = Arrays.asList(HomePieceOfFurniture.SortableProperty.NAME,
+              HomePieceOfFurniture.SortableProperty.WIDTH,
+              HomePieceOfFurniture.SortableProperty.DEPTH,
+              HomePieceOfFurniture.SortableProperty.HEIGHT,
+              HomePieceOfFurniture.SortableProperty.COLOR,
+              HomePieceOfFurniture.SortableProperty.MOVABLE,
+              HomePieceOfFurniture.SortableProperty.DOOR_OR_WINDOW,
+              HomePieceOfFurniture.SortableProperty.VISIBLE);
     }
     // Create a default top camera that matches default point of view
     this.topCamera = new Camera(50, 1050, 1010,
@@ -332,29 +328,29 @@ public class Home implements Serializable, Cloneable {
     this.storedCameras = Collections.emptyList();
     // Initialize new fields
     this.environment = new HomeEnvironment();
-    this.rooms = new ArrayList<Room>();
-    this.polylines = new ArrayList<Polyline>();
-    this.dimensionLines = new ArrayList<DimensionLine>();
-    this.labels = new ArrayList<Label>();
+    this.rooms = new ArrayList<>();
+    this.polylines = new ArrayList<>();
+    this.dimensionLines = new ArrayList<>();
+    this.labels = new ArrayList<>();
     this.compass = new Compass(-100, 50, 100);
-    this.levels = new ArrayList<Level>();
+    this.levels = new ArrayList<>();
     // Let compass be visible only on new homes
     this.compass.setVisible(newHome);
-    this.visualProperties = new HashMap<String, Object>();
-    this.properties = new HashMap<String, String>();
+    this.visualProperties = new HashMap<>();
+    this.properties = new HashMap<>();
 
     this.version = CURRENT_VERSION;
   }
 
   private static void initListenersSupport(Home home) {
-    home.furnitureChangeSupport = new CollectionChangeSupport<HomePieceOfFurniture>(home);
-    home.selectionListeners = new ArrayList<SelectionListener>();
-    home.levelsChangeSupport = new CollectionChangeSupport<Level>(home);
-    home.wallsChangeSupport = new CollectionChangeSupport<Wall>(home);
-    home.roomsChangeSupport = new CollectionChangeSupport<Room>(home);
-    home.polylinesChangeSupport = new CollectionChangeSupport<Polyline>(home);
-    home.dimensionLinesChangeSupport = new CollectionChangeSupport<DimensionLine>(home);
-    home.labelsChangeSupport = new CollectionChangeSupport<Label>(home);
+    home.furnitureChangeSupport = new CollectionChangeSupport<>(home);
+    home.selectionListeners = new ArrayList<>();
+    home.levelsChangeSupport = new CollectionChangeSupport<>(home);
+    home.wallsChangeSupport = new CollectionChangeSupport<>(home);
+    home.roomsChangeSupport = new CollectionChangeSupport<>(home);
+    home.polylinesChangeSupport = new CollectionChangeSupport<>(home);
+    home.dimensionLinesChangeSupport = new CollectionChangeSupport<>(home);
+    home.labelsChangeSupport = new CollectionChangeSupport<>(home);
     home.propertyChangeSupport = new PropertyChangeSupport(home);
   }
 
@@ -363,30 +359,26 @@ public class Home implements Serializable, Cloneable {
    */
   private void addModelListeners() {
     // Add listeners to levels to maintain its elevation order
-    final PropertyChangeListener levelElevationChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())
-              || Level.Property.ELEVATION_INDEX.name().equals(ev.getPropertyName())) {
-            Home.this.levels = new ArrayList<Level>(Home.this.levels);
-            Collections.sort(Home.this.levels, LEVEL_ELEVATION_COMPARATOR);
-          }
-        }
-      };
+    final PropertyChangeListener levelElevationChangeListener = ev -> {
+      if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())
+          || Level.Property.ELEVATION_INDEX.name().equals(ev.getPropertyName())) {
+        Home.this.levels = new ArrayList<>(Home.this.levels);
+        Collections.sort(Home.this.levels, LEVEL_ELEVATION_COMPARATOR);
+      }
+    };
     for (Level level : this.levels) {
       level.addPropertyChangeListener(levelElevationChangeListener);
     }
-    addLevelsListener(new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          switch (ev.getType()) {
-            case ADD :
-              ev.getItem().addPropertyChangeListener(levelElevationChangeListener);
-              break;
-            case DELETE :
-              ev.getItem().removePropertyChangeListener(levelElevationChangeListener);
-              break;
-          }
-        }
-      });
+    addLevelsListener(ev -> {
+      switch (ev.getType()) {
+        case ADD :
+          ev.getItem().addPropertyChangeListener(levelElevationChangeListener);
+          break;
+        case DELETE :
+          ev.getItem().removePropertyChangeListener(levelElevationChangeListener);
+          break;
+      }
+    });
   }
 
   /**
@@ -409,9 +401,9 @@ public class Home implements Serializable, Cloneable {
           }
         }
 
-        this.furnitureVisiblePropertyNames = new ArrayList<String>();
+        this.furnitureVisiblePropertyNames = new ArrayList<>();
         // Store in furnitureVisibleProperties only backward compatible properties
-        this.furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
+        this.furnitureVisibleProperties = new ArrayList<>();
         for (HomePieceOfFurniture.SortableProperty visibleProperty : homeFurnitureVisibleProperties) {
           this.furnitureVisiblePropertyNames.add(visibleProperty.name());
           if (isFurnitureSortedPropertyBackwardCompatible(visibleProperty)) {
@@ -425,9 +417,9 @@ public class Home implements Serializable, Cloneable {
         // Serialize a furnitureWithDoorsAndWindows field that contains only
         // HomePieceOfFurniture, HomeDoorOrWindow and HomeLight instances
         // for backward compatibility reasons (version < 1.7)
-        this.furnitureWithDoorsAndWindows = new ArrayList<HomePieceOfFurniture>(this.furniture.size());
+        this.furnitureWithDoorsAndWindows = new ArrayList<>(this.furniture.size());
         // Serialize a furniture field that contains only HomePieceOfFurniture instances
-        this.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture.size());
+        this.furniture = new ArrayList<>(this.furniture.size());
         for (HomePieceOfFurniture piece : this.furnitureWithGroups) {
           if (piece.getClass() == HomePieceOfFurniture.class) {
             this.furnitureWithDoorsAndWindows.add(piece);
@@ -506,7 +498,7 @@ public class Home implements Serializable, Cloneable {
    * Returns all the pieces of the given <code>furnitureGroup</code>.
    */
   private List<HomePieceOfFurniture> getGroupFurniture(HomeFurnitureGroup furnitureGroup) {
-    List<HomePieceOfFurniture> groupFurniture = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> groupFurniture = new ArrayList<>();
     for (HomePieceOfFurniture piece : furnitureGroup.getFurniture()) {
       if (piece instanceof HomeFurnitureGroup) {
         groupFurniture.addAll(getGroupFurniture((HomeFurnitureGroup)piece));
@@ -566,7 +558,7 @@ public class Home implements Serializable, Cloneable {
       level.setElevationIndex(elevationIndex);
     }
     // Make a copy of the list to avoid conflicts in the list returned by getLevels
-    this.levels = new ArrayList<Level>(this.levels);
+    this.levels = new ArrayList<>(this.levels);
     // Search at which index should be inserted the new level
     int index = Collections.binarySearch(this.levels, level, LEVEL_ELEVATION_COMPARATOR);
     int levelIndex;
@@ -631,7 +623,7 @@ public class Home implements Serializable, Cloneable {
         }
       }
       // Make a copy of the list to avoid conflicts in the list returned by getLevels
-      this.levels = new ArrayList<Level>(this.levels);
+      this.levels = new ArrayList<>(this.levels);
       this.levels.remove(index);
       this.levelsChangeSupport.fireCollectionChanged(level, index, CollectionEvent.Type.DELETE);
     }
@@ -722,7 +714,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addPieceOfFurniture(HomePieceOfFurniture piece, int index) {
     // Make a copy of the list to avoid conflicts in the list returned by getFurniture
-    this.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture);
+    this.furniture = new ArrayList<>(this.furniture);
     piece.setLevel(this.selectedLevel);
     this.furniture.add(index, piece);
     this.furnitureChangeSupport.fireCollectionChanged(piece, index, CollectionEvent.Type.ADD);
@@ -762,7 +754,7 @@ public class Home implements Serializable, Cloneable {
         || group != null) {
       piece.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getFurniture
-      this.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture);
+      this.furniture = new ArrayList<>(this.furniture);
       if (group != null) {
         group.deletePieceOfFurniture(piece);
         this.furnitureChangeSupport.fireCollectionChanged(piece, CollectionEvent.Type.DELETE);
@@ -823,7 +815,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void setSelectedItems(List<? extends Selectable> selectedItems) {
     // Make a copy of the list to avoid conflicts in the list returned by getSelectedItems
-    this.selectedItems = new ArrayList<Selectable>(selectedItems);
+    this.selectedItems = new ArrayList<>(selectedItems);
     if (!this.selectionListeners.isEmpty()) {
       SelectionEvent selectionEvent = new SelectionEvent(this, getSelectedItems());
       // Work on a copy of selectionListeners to ensure a listener
@@ -844,7 +836,7 @@ public class Home implements Serializable, Cloneable {
   public void deselectItem(Selectable item) {
     int pieceSelectionIndex = this.selectedItems.indexOf(item);
     if (pieceSelectionIndex != -1) {
-      List<Selectable> selectedItems = new ArrayList<Selectable>(getSelectedItems());
+      List<Selectable> selectedItems = new ArrayList<>(getSelectedItems());
       selectedItems.remove(pieceSelectionIndex);
       setSelectedItems(selectedItems);
     }
@@ -896,7 +888,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addRoom(Room room, int index) {
     // Make a copy of the list to avoid conflicts in the list returned by getRooms
-    this.rooms = new ArrayList<Room>(this.rooms);
+    this.rooms = new ArrayList<>(this.rooms);
     this.rooms.add(index, room);
     room.setLevel(this.selectedLevel);
     this.roomsChangeSupport.fireCollectionChanged(room, index, CollectionEvent.Type.ADD);
@@ -917,7 +909,7 @@ public class Home implements Serializable, Cloneable {
     if (index != -1) {
       room.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getRooms
-      this.rooms = new ArrayList<Room>(this.rooms);
+      this.rooms = new ArrayList<>(this.rooms);
       this.rooms.remove(index);
       this.roomsChangeSupport.fireCollectionChanged(room, index, CollectionEvent.Type.DELETE);
     }
@@ -956,7 +948,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addWall(Wall wall) {
     // Make a copy of the list to avoid conflicts in the list returned by getWalls
-    this.walls = new ArrayList<Wall>(this.walls);
+    this.walls = new ArrayList<>(this.walls);
     this.walls.add(wall);
     wall.setLevel(this.selectedLevel);
     this.wallsChangeSupport.fireCollectionChanged(wall, CollectionEvent.Type.ADD);
@@ -986,7 +978,7 @@ public class Home implements Serializable, Cloneable {
     if (index != -1) {
       wall.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getWalls
-      this.walls = new ArrayList<Wall>(this.walls);
+      this.walls = new ArrayList<>(this.walls);
       this.walls.remove(index);
       this.wallsChangeSupport.fireCollectionChanged(wall, CollectionEvent.Type.DELETE);
     }
@@ -1043,7 +1035,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addPolyline(Polyline polyline, int index) {
     // Make a copy of the list to avoid conflicts in the list returned by getPolylines
-    this.polylines = new ArrayList<Polyline>(this.polylines);
+    this.polylines = new ArrayList<>(this.polylines);
     this.polylines.add(index, polyline);
     polyline.setLevel(this.selectedLevel);
     this.polylinesChangeSupport.fireCollectionChanged(polyline, CollectionEvent.Type.ADD);
@@ -1065,7 +1057,7 @@ public class Home implements Serializable, Cloneable {
     if (index != -1) {
       polyline.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getPolylines
-      this.polylines = new ArrayList<Polyline>(this.polylines);
+      this.polylines = new ArrayList<>(this.polylines);
       this.polylines.remove(index);
       this.polylinesChangeSupport.fireCollectionChanged(polyline, CollectionEvent.Type.DELETE);
     }
@@ -1105,7 +1097,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addDimensionLine(DimensionLine dimensionLine) {
     // Make a copy of the list to avoid conflicts in the list returned by getDimensionLines
-    this.dimensionLines = new ArrayList<DimensionLine>(this.dimensionLines);
+    this.dimensionLines = new ArrayList<>(this.dimensionLines);
     this.dimensionLines.add(dimensionLine);
     dimensionLine.setLevel(this.selectedLevel);
     this.dimensionLinesChangeSupport.fireCollectionChanged(dimensionLine, CollectionEvent.Type.ADD);
@@ -1127,7 +1119,7 @@ public class Home implements Serializable, Cloneable {
     if (index != -1) {
       dimensionLine.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getDimensionLines
-      this.dimensionLines = new ArrayList<DimensionLine>(this.dimensionLines);
+      this.dimensionLines = new ArrayList<>(this.dimensionLines);
       this.dimensionLines.remove(index);
       this.dimensionLinesChangeSupport.fireCollectionChanged(dimensionLine, CollectionEvent.Type.DELETE);
     }
@@ -1167,7 +1159,7 @@ public class Home implements Serializable, Cloneable {
    */
   public void addLabel(Label label) {
     // Make a copy of the list to avoid conflicts in the list returned by getLabels
-    this.labels = new ArrayList<Label>(this.labels);
+    this.labels = new ArrayList<>(this.labels);
     this.labels.add(label);
     label.setLevel(this.selectedLevel);
     this.labelsChangeSupport.fireCollectionChanged(label, CollectionEvent.Type.ADD);
@@ -1188,7 +1180,7 @@ public class Home implements Serializable, Cloneable {
     if (index != -1) {
       label.setLevel(null);
       // Make a copy of the list to avoid conflicts in the list returned by getLabels
-      this.labels = new ArrayList<Label>(this.labels);
+      this.labels = new ArrayList<>(this.labels);
       this.labels.remove(index);
       this.labelsChangeSupport.fireCollectionChanged(label, CollectionEvent.Type.DELETE);
     }
@@ -1200,7 +1192,7 @@ public class Home implements Serializable, Cloneable {
    * @since 5.0
    */
   public List<Selectable> getSelectableViewableItems() {
-    List<Selectable> homeItems = new ArrayList<Selectable>();
+    List<Selectable> homeItems = new ArrayList<>();
     addViewableItems(this.walls, homeItems);
     addViewableItems(this.rooms, homeItems);
     addViewableItems(this.dimensionLines, homeItems);
@@ -1416,7 +1408,7 @@ public class Home implements Serializable, Cloneable {
     if (furnitureVisibleProperties != this.furnitureVisibleProperties
         && (furnitureVisibleProperties == null || !furnitureVisibleProperties.equals(this.furnitureVisibleProperties))) {
       List<HomePieceOfFurniture.SortableProperty> oldFurnitureVisibleProperties = this.furnitureVisibleProperties;
-      this.furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>(furnitureVisibleProperties);
+      this.furnitureVisibleProperties = new ArrayList<>(furnitureVisibleProperties);
       this.propertyChangeSupport.firePropertyChange(
           Property.FURNITURE_VISIBLE_PROPERTIES.name(),
           Collections.unmodifiableList(oldFurnitureVisibleProperties),
@@ -1494,7 +1486,7 @@ public class Home implements Serializable, Cloneable {
       if (storedCameras == null) {
         this.storedCameras = Collections.emptyList();
       } else {
-        this.storedCameras = new ArrayList<Camera>(storedCameras);
+        this.storedCameras = new ArrayList<>(storedCameras);
       }
       this.propertyChangeSupport.firePropertyChange(
           Property.STORED_CAMERAS.name(), Collections.unmodifiableList(oldStoredCameras), Collections.unmodifiableList(storedCameras));
@@ -1583,7 +1575,7 @@ public class Home implements Serializable, Cloneable {
     String value = this.properties.get(name);
     if (value != null) {
       try {
-        return new Long (value);
+        return Long.valueOf(value);
       } catch (NumberFormatException ex) {
         try {
           return new Double (value);
@@ -1702,7 +1694,7 @@ public class Home implements Serializable, Cloneable {
     destination.furnitureSortedProperty = source.furnitureSortedProperty;
 
     // Deep copy selectable items
-    destination.selectedItems = new ArrayList<Selectable>(source.selectedItems.size());
+    destination.selectedItems = new ArrayList<>(source.selectedItems.size());
     destination.furniture = cloneSelectableItems(
         source.furniture, source.selectedItems, destination.selectedItems);
     for (int i = 0; i < source.furniture.size(); i++) {
@@ -1727,7 +1719,7 @@ public class Home implements Serializable, Cloneable {
       }
     }
     // Clone levels and set the level of cloned objects
-    destination.levels = new ArrayList<Level>();
+    destination.levels = new ArrayList<>();
     if (source.levels.size() > 0) {
       for (Level level : source.levels) {
         destination.levels.add(level.clone());
@@ -1786,17 +1778,17 @@ public class Home implements Serializable, Cloneable {
     } else {
       destination.camera = destination.topCamera;
     }
-    destination.storedCameras = new ArrayList<Camera>(source.storedCameras.size());
+    destination.storedCameras = new ArrayList<>(source.storedCameras.size());
     for (Camera camera : source.storedCameras) {
       destination.storedCameras.add(camera.clone());
     }
     // Copy other mutable objects
     destination.environment = source.environment.clone();
     destination.compass = source.compass.clone();
-    destination.furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>(
-        source.furnitureVisibleProperties);
-    destination.visualProperties = new HashMap<String, Object>(source.visualProperties);
-    destination.properties = new HashMap<String, String>(source.properties);
+    destination.furnitureVisibleProperties = new ArrayList<>(
+            source.furnitureVisibleProperties);
+    destination.visualProperties = new HashMap<>(source.visualProperties);
+    destination.properties = new HashMap<>(source.properties);
   }
 
   /**
@@ -1808,7 +1800,7 @@ public class Home implements Serializable, Cloneable {
   private static <T extends Selectable> List<T> cloneSelectableItems(List<T> source,
                                                                      List<Selectable> sourceSelectedItems,
                                                                      List<Selectable> destinationSelectedItems) {
-    List<T> destination = new ArrayList<T>(source.size());
+    List<T> destination = new ArrayList<>(source.size());
     for (T item : source) {
       T clone = (T)item.clone();
       destination.add(clone);
@@ -1837,7 +1829,7 @@ public class Home implements Serializable, Cloneable {
    * @param items  the items to duplicate
    */
   public static List<Selectable> duplicate(List<? extends Selectable> items) {
-    List<Selectable> list = new ArrayList<Selectable>();
+    List<Selectable> list = new ArrayList<>();
     for (Selectable item : items) {
       if (!(item instanceof Wall)         // Walls are copied further
           && !(item instanceof Camera)    // Cameras and compass can't be duplicated
@@ -1908,7 +1900,7 @@ public class Home implements Serializable, Cloneable {
   @SuppressWarnings("unchecked")
   public static <T> List<T> getSubList(List<? extends Selectable> items,
                                        Class<T> subListClass) {
-    List<T> subList = new ArrayList<T>();
+    List<T> subList = new ArrayList<>();
     for (Selectable item : items) {
       if (subListClass.isInstance(item)) {
         subList.add((T)item);

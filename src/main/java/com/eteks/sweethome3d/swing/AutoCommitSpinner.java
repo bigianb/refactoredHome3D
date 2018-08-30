@@ -89,7 +89,7 @@ public class AutoCommitSpinner extends JSpinner {
                     public void keyTyped(KeyEvent ev) {
                       // keyTyped isn't called for UP and DOWN keys of text field input map
                       keepFocusedTextUnchanged = true;
-                    };
+                    }
                   };
                 textField.addFocusListener(new FocusAdapter() {
                     public void focusGained(FocusEvent ev) {
@@ -98,7 +98,7 @@ public class AutoCommitSpinner extends JSpinner {
 
                     public void focusLost(FocusEvent ev) {
                       textField.removeKeyListener(keyListener);
-                    };
+                    }
                   });
               }
 

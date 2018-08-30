@@ -37,7 +37,7 @@ public class CollectionChangeSupport<T> {
    */
   public CollectionChangeSupport(Object source) {
     this.source = source;
-    this.collectionListeners = new ArrayList<CollectionListener<T>>(5);
+    this.collectionListeners = new ArrayList<>(5);
   }
   
   /**
@@ -75,7 +75,7 @@ public class CollectionChangeSupport<T> {
   public void fireCollectionChanged(T item, int index, 
                                     CollectionEvent.Type eventType) {
     if (!this.collectionListeners.isEmpty()) {
-      CollectionEvent<T> event = new CollectionEvent<T>(this.source, item, index, eventType);
+      CollectionEvent<T> event = new CollectionEvent<>(this.source, item, index, eventType);
       // Work on a copy of collectionListeners to ensure a listener 
       // can modify safely listeners list
       CollectionListener<T> [] listeners = this.collectionListeners.

@@ -28,10 +28,10 @@ public interface Elevatable {
   /**
    * Returns the level of this object.
    */
-  public abstract Level getLevel();
+  Level getLevel();
   
   /**
    * Returns <code>true</code> if this object can be viewed at the given level.
    */
-  public abstract boolean isAtLevel(Level level);
+  boolean isAtLevel(Level level);
 }

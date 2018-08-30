@@ -19,17 +19,21 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import com.eteks.sweethome3d.model.*;
+import com.eteks.sweethome3d.viewcontroller.FurnitureCatalogController;
+import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.dnd.DnDConstants;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
@@ -39,43 +43,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JScrollPane;
-import javax.swing.JToolTip;
-import javax.swing.JTree;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.Element;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
-
-import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.FurnitureCatalog;
-import com.eteks.sweethome3d.model.FurnitureCategory;
-import com.eteks.sweethome3d.model.SelectionEvent;
-import com.eteks.sweethome3d.model.SelectionListener;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.viewcontroller.FurnitureCatalogController;
-import com.eteks.sweethome3d.viewcontroller.View;
 
 /**
  * A tree displaying furniture catalog by category.
@@ -165,19 +132,13 @@ public class FurnitureCatalogTree extends JTree implements View {
    */
   private void addSelectionListeners(final FurnitureCatalog catalog, 
                                      final FurnitureCatalogController controller) {
-    final SelectionListener modelSelectionListener = new SelectionListener() {
-        public void selectionChanged(SelectionEvent selectionEvent) {
-          updateTreeSelectedFurniture(catalog, controller);        
-        }
-      };
-    this.treeSelectionListener = new TreeSelectionListener () {
-        public void valueChanged(TreeSelectionEvent ev) {
-          // Updates selected furniture in catalog from selected nodes in tree. 
-          controller.removeSelectionListener(modelSelectionListener);
-          controller.setSelectedFurniture(getSelectedFurniture());
-          controller.addSelectionListener(modelSelectionListener);
-        }
-      };
+    final SelectionListener modelSelectionListener = selectionEvent -> updateTreeSelectedFurniture(catalog, controller);
+    this.treeSelectionListener = ev -> {
+      // Updates selected furniture in catalog from selected nodes in tree.
+      controller.removeSelectionListener(modelSelectionListener);
+      controller.setSelectedFurniture(getSelectedFurniture());
+      controller.addSelectionListener(modelSelectionListener);
+    };
       
     controller.addSelectionListener(modelSelectionListener);
     getSelectionModel().addTreeSelectionListener(this.treeSelectionListener);
@@ -209,7 +170,7 @@ public class FurnitureCatalogTree extends JTree implements View {
    */
   private List<CatalogPieceOfFurniture> getSelectedFurniture() {
     // Build the list of selected furniture
-    List<CatalogPieceOfFurniture> selectedFurniture = new ArrayList<CatalogPieceOfFurniture>();
+    List<CatalogPieceOfFurniture> selectedFurniture = new ArrayList<>();
     TreePath [] selectionPaths = getSelectionPaths(); 
     if (selectionPaths != null) {
       for (TreePath path : selectionPaths) {
@@ -249,15 +210,13 @@ public class FurnitureCatalogTree extends JTree implements View {
         @Override
         public void mouseMoved(MouseEvent ev) {
           final URL url = getURLAt(ev.getPoint(), (JTree)ev.getSource());
-          EventQueue.invokeLater(new Runnable() {                  
-              public void run() {
-                if (url != null) {
-                  setCursor(handCursor);
-                } else {
-                  setCursor(Cursor.getDefaultCursor());
-                }
-              }
-            });
+          EventQueue.invokeLater(() -> {
+            if (url != null) {
+              setCursor(handCursor);
+            } else {
+              setCursor(Cursor.getDefaultCursor());
+            }
+          });
         }
 
         private URL getURLAt(Point point, JTree tree) {
@@ -315,7 +274,7 @@ public class FurnitureCatalogTree extends JTree implements View {
         public void ancestorAdded(AncestorEvent ev) {
           Container parent = getParent();
           if (parent instanceof JViewport) {
-            JScrollPane scrollPane = (JScrollPane)((JViewport)parent).getParent();
+            JScrollPane scrollPane = (JScrollPane) parent.getParent();
             this.adjustmentListener = SwingTools.createAdjustmentListenerUpdatingScrollPaneViewToolTip(scrollPane);
             scrollPane.getVerticalScrollBar().addAdjustmentListener(this.adjustmentListener);
           }
@@ -323,7 +282,7 @@ public class FurnitureCatalogTree extends JTree implements View {
         
         public void ancestorRemoved(AncestorEvent event) {
           if (this.adjustmentListener != null) {
-            ((JScrollPane)((JViewport)getParent()).getParent()).getVerticalScrollBar().
+            ((JScrollPane) getParent().getParent()).getVerticalScrollBar().
                 removeAdjustmentListener(this.adjustmentListener);
             this.adjustmentListener = null;
           }
@@ -496,7 +455,7 @@ public class FurnitureCatalogTree extends JTree implements View {
     
     public CatalogTreeModel(FurnitureCatalog catalog) {
       this.catalog = catalog;
-      this.listeners = new ArrayList<TreeModelListener>(2);
+      this.listeners = new ArrayList<>(2);
       catalog.addFurnitureListener(new CatalogFurnitureListener(this));
     }
 
@@ -552,7 +511,7 @@ public class FurnitureCatalogTree extends JTree implements View {
       // Work on a copy of listeners to ensure a listener 
       // can modify safely listeners list
       TreeModelListener [] listeners = this.listeners.
-          toArray(new TreeModelListener [this.listeners.size()]);
+          toArray(new TreeModelListener[0]);
       for (TreeModelListener listener : listeners) {
         listener.treeNodesInserted(treeModelEvent);
       }
@@ -562,7 +521,7 @@ public class FurnitureCatalogTree extends JTree implements View {
       // Work on a copy of listeners to ensure a listener 
       // can modify safely listeners list
       TreeModelListener [] listeners = this.listeners.
-          toArray(new TreeModelListener [this.listeners.size()]);
+          toArray(new TreeModelListener[0]);
       for (TreeModelListener listener : listeners) {
         listener.treeNodesRemoved(treeModelEvent);
       }
@@ -576,7 +535,7 @@ public class FurnitureCatalogTree extends JTree implements View {
       private WeakReference<CatalogTreeModel>  catalogTreeModel;
 
       public CatalogFurnitureListener(CatalogTreeModel catalogTreeModel) {
-        this.catalogTreeModel = new WeakReference<CatalogTreeModel>(catalogTreeModel);
+        this.catalogTreeModel = new WeakReference<>(catalogTreeModel);
       }
       
       public void collectionChanged(CollectionEvent<CatalogPieceOfFurniture> ev) {

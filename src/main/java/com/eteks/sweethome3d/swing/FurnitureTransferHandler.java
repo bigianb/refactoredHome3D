@@ -80,16 +80,14 @@ public class FurnitureTransferHandler extends LocatedTransferHandler {
     if (source instanceof TransferableView) {
       this.copiedCSV = null;
       // Retrieve the text that describes selected furniture in CSV format
-      this.homeController.createTransferData(new TransferableView.TransferObserver() {
-            public void dataReady(Object [] data) {
-              for (Object transferedData : data) {
-                if (transferedData instanceof String) {
-                  copiedCSV = transferedData;
-                  break;
-                }
-              }
-            }
-          }, TransferableView.DataType.FURNITURE_LIST);
+      this.homeController.createTransferData(data -> {
+        for (Object transferedData : data) {
+          if (transferedData instanceof String) {
+            copiedCSV = transferedData;
+            break;
+          }
+        }
+      }, TransferableView.DataType.FURNITURE_LIST);
       // Create a transferable that contains copied furniture and its CSV description 
       return new Transferable () {
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
@@ -101,10 +99,10 @@ public class FurnitureTransferHandler extends LocatedTransferHandler {
         }
 
         public DataFlavor [] getTransferDataFlavors() {
-          ArrayList<DataFlavor> dataFlavors = 
-              new ArrayList<DataFlavor>(Arrays.asList(transferable.getTransferDataFlavors()));
+          ArrayList<DataFlavor> dataFlavors =
+                  new ArrayList<>(Arrays.asList(transferable.getTransferDataFlavors()));
           dataFlavors.add(DataFlavor.stringFlavor);
-          return dataFlavors.toArray(new DataFlavor [dataFlavors.size()]);
+          return dataFlavors.toArray(new DataFlavor[0]);
         }
 
         public boolean isDataFlavorSupported(DataFlavor flavor) {
@@ -165,11 +163,7 @@ public class FurnitureTransferHandler extends LocatedTransferHandler {
         } else {
           List<File> files = (List<File>)transferable.getTransferData(DataFlavor.javaFileListFlavor);
           final List<String> importableModels = getModelContents(files, this.contentManager);
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                homeController.dropFiles(importableModels, 0, 0);          
-              }
-            });
+          EventQueue.invokeLater(() -> homeController.dropFiles(importableModels, 0, 0));
           return !importableModels.isEmpty();
         }
       } catch (UnsupportedFlavorException ex) {

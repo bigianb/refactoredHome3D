@@ -50,7 +50,7 @@ public class NullableCheckBox extends JComponent {
   private JCheckBox    checkBox;
   private Boolean      value = Boolean.FALSE;
   private boolean      nullable;
-  private List<ChangeListener> changeListeners = new ArrayList<ChangeListener>(1);
+  private List<ChangeListener> changeListeners = new ArrayList<>(1);
   
   /**
    * Creates a nullable check box.
@@ -220,7 +220,7 @@ public class NullableCheckBox extends JComponent {
       // Work on a copy of changeListeners to ensure a listener 
       // can modify safely listeners list
       ChangeListener [] listeners = this.changeListeners.
-        toArray(new ChangeListener [this.changeListeners.size()]);
+        toArray(new ChangeListener[0]);
       for (ChangeListener listener : listeners) {
         listener.stateChanged(changeEvent);
       }

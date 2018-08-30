@@ -19,21 +19,21 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.DefaultFocusTraversalPolicy;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.HelpController;
+import com.eteks.sweethome3d.viewcontroller.HelpView;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.*;
+import javax.swing.text.html.BlockView;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.HTMLEditorKit.HTMLFactory;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.beans.PropertyChangeEvent;
@@ -43,43 +43,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Locale;
-
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Element;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Position;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.View;
-import javax.swing.text.ViewFactory;
-import javax.swing.text.html.BlockView;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.HTMLEditorKit.HTMLFactory;
-
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.HelpController;
-import com.eteks.sweethome3d.viewcontroller.HelpView;
 
 /**
  * A pane displaying Sweet Home 3D help.
@@ -108,19 +71,13 @@ public class HelpPane extends JRootPane implements HelpView {
     }
     
     setPage(controller.getHelpPage());
-    controller.addPropertyChangeListener(HelpController.Property.HELP_PAGE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setPage(controller.getHelpPage());
-            highlightText(controller.getHighlightedText());
-          }
-        });
-    controller.addPropertyChangeListener(HelpController.Property.BROWSER_PAGE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            SwingTools.showDocumentInBrowser(controller.getBrowserPage());
-          }
-        });
+    controller.addPropertyChangeListener(HelpController.Property.HELP_PAGE,
+            ev -> {
+              setPage(controller.getHelpPage());
+              highlightText(controller.getHighlightedText());
+            });
+    controller.addPropertyChangeListener(HelpController.Property.BROWSER_PAGE,
+            ev -> SwingTools.showDocumentInBrowser(controller.getBrowserPage()));
   }
 
   /** 
@@ -133,23 +90,15 @@ public class HelpPane extends JRootPane implements HelpView {
       final ControllerAction showPreviousAction = new ControllerAction(
           preferences, HelpPane.class, ActionType.SHOW_PREVIOUS.name(), controller, "showPrevious");
       showPreviousAction.setEnabled(controller.isPreviousPageEnabled());
-      controller.addPropertyChangeListener(HelpController.Property.PREVIOUS_PAGE_ENABLED, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              showPreviousAction.setEnabled(controller.isPreviousPageEnabled());
-            }
-          });
+      controller.addPropertyChangeListener(HelpController.Property.PREVIOUS_PAGE_ENABLED,
+              ev -> showPreviousAction.setEnabled(controller.isPreviousPageEnabled()));
       actions.put(ActionType.SHOW_PREVIOUS, showPreviousAction);
       
       final ControllerAction showNextAction = new ControllerAction(
           preferences, HelpPane.class, ActionType.SHOW_NEXT.name(), controller, "showNext");
       showNextAction.setEnabled(controller.isNextPageEnabled());
-      controller.addPropertyChangeListener(HelpController.Property.NEXT_PAGE_ENABLED, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              showNextAction.setEnabled(controller.isNextPageEnabled());
-            }
-          });
+      controller.addPropertyChangeListener(HelpController.Property.NEXT_PAGE_ENABLED,
+              ev -> showNextAction.setEnabled(controller.isNextPageEnabled()));
       actions.put(ActionType.SHOW_NEXT, showNextAction);
       
       actions.put(ActionType.SEARCH, new ResourceAction(preferences, HelpPane.class, ActionType.SEARCH.name()) {
@@ -196,7 +145,7 @@ public class HelpPane extends JRootPane implements HelpView {
     private WeakReference<HelpPane> helpPane;
 
     public LanguageChangeListener(HelpPane helpPane) {
-      this.helpPane = new WeakReference<HelpPane>(helpPane);
+      this.helpPane = new WeakReference<>(helpPane);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -255,11 +204,7 @@ public class HelpPane extends JRootPane implements HelpView {
     this.helpEditorPane.setContentType("text/html");
     this.helpEditorPane.putClientProperty(JEditorPane.W3C_LENGTH_UNITS, Boolean.TRUE);
     this.helpEditorPane.setHighlighter(new DefaultHighlighter());
-    PropertyChangeListener highlightingTextListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          highlightText(controller.getHighlightedText());
-        }
-      };
+    PropertyChangeListener highlightingTextListener = ev -> highlightText(controller.getHighlightedText());
     controller.addPropertyChangeListener(HelpController.Property.HIGHLIGHTED_TEXT, highlightingTextListener);
     this.helpEditorPane.addPropertyChangeListener("page", highlightingTextListener);
     final float resolutionScale = SwingTools.getResolutionScale();
@@ -352,14 +297,14 @@ public class HelpPane extends JRootPane implements HelpView {
         new DefaultHighlighter.DefaultHighlightPainter(new Color(255, 204, 51));
     this.helpEditorPane.getHighlighter().removeAllHighlights();
     if (highlightedText != null) {
-      ArrayList<String> highlightedWords = new ArrayList<String>();
+      ArrayList<String> highlightedWords = new ArrayList<>();
       for (String highlightedWord : highlightedText.split("\\s")) {
         if (highlightedWord.length() > 0) {
           highlightedWords.add(highlightedWord);
         }
       }                            
       highlightWords(this.helpEditorPane.getDocument().getDefaultRootElement(), 
-          highlightedWords.toArray(new String [highlightedWords.size()]), highlightPainter);
+          highlightedWords.toArray(new String[0]), highlightPainter);
     } 
   }
 
@@ -412,12 +357,8 @@ public class HelpPane extends JRootPane implements HelpView {
     toolBar.add(previousButton);
     toolBar.add(nextButton);
     layoutToolBarButtons(toolBar, previousButton, nextButton);
-    toolBar.addPropertyChangeListener("componentOrientation", 
-        new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent evt) {
-            layoutToolBarButtons(toolBar, previousButton, nextButton);
-          }
-        });
+    toolBar.addPropertyChangeListener("componentOrientation",
+            evt -> layoutToolBarButtons(toolBar, previousButton, nextButton));
     toolBar.add(new JLabel(),
         new GridBagConstraints(2, 0, 1, 1, 1, 0, GridBagConstraints.CENTER, 
             GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
@@ -493,13 +434,11 @@ public class HelpPane extends JRootPane implements HelpView {
    * Adds an hyperlink listener on the editor pane displayed by this pane.
    */
   private void addHyperlinkListener(final HelpController controller) {
-    this.helpEditorPane.addHyperlinkListener(new HyperlinkListener() {
-        public void hyperlinkUpdate(HyperlinkEvent ev) {
-          if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            controller.showPage(ev.getURL());
-          }
-        }
-      });
+    this.helpEditorPane.addHyperlinkListener(ev -> {
+      if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        controller.showPage(ev.getURL());
+      }
+    });
   }
 
   /**

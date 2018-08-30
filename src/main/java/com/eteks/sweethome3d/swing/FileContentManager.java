@@ -19,57 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.FileDialog;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.UserPreferences;
@@ -77,6 +26,25 @@ import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.tree.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Content manager for files with Swing file choosers.
@@ -348,10 +316,10 @@ public class FileContentManager implements ContentManager {
     this.furnitureLibraryFileExtension = preferences.getLocalizedString(FileContentManager.class, "furnitureLibraryExtension");
     this.texturesLibraryFileExtension = preferences.getLocalizedString(FileContentManager.class, "texturesLibraryExtension");
     this.pluginFileExtension = preferences.getLocalizedString(FileContentManager.class, "pluginExtension");
-    this.lastDirectories = new HashMap<ContentManager.ContentType, File>();
+    this.lastDirectories = new HashMap<>();
 
     // Fill file filters map
-    this.fileFilters = new HashMap<ContentType, FileFilter[]>();
+    this.fileFilters = new HashMap<>();
     this.fileFilters.put(ContentType.MODEL, MODEL_FILTERS);
     this.fileFilters.put(ContentType.IMAGE, IMAGE_FILTERS);
     this.fileFilters.put(ContentType.MOV, MOV_FILTER);
@@ -454,7 +422,7 @@ public class FileContentManager implements ContentManager {
       });
 
     // Fill file default extension map
-    this.fileExtensions = new HashMap<ContentType, String []>();
+    this.fileExtensions = new HashMap<>();
     String [] sweetHome3DFileExtensions = this.sweetHome3DFileExtension2 != null
         ? new String [] {this.sweetHome3DFileExtension, this.sweetHome3DFileExtension2}
         : new String [] {this.sweetHome3DFileExtension};
@@ -659,11 +627,7 @@ public class FileContentManager implements ContentManager {
       fileDialog.setFile(new File(path).getName());
     }
     // Set supported files filter
-    fileDialog.setFilenameFilter(new FilenameFilter() {
-        public boolean accept(File dir, String name) {
-          return isAcceptable(new File(dir, name).toString(), contentType);
-        }
-      });
+    fileDialog.setFilenameFilter((dir, name) -> isAcceptable(new File(dir, name).toString(), contentType));
 
     // Update directory
     File directory = getLastDirectory(contentType);
@@ -758,54 +722,46 @@ public class FileContentManager implements ContentManager {
         // Add a preview component when the file chooser is used to select an image
         final ScaledImageComponent previewLabel = new ScaledImageComponent();
         final ExecutorService previewImageLoader = Executors.newSingleThreadExecutor();
-        final AtomicReference<File> selectedImageFile = new AtomicReference<File>();
+        final AtomicReference<File> selectedImageFile = new AtomicReference<>();
         fileChooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY,
-            new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                final File file = (File)ev.getNewValue();
-                previewLabel.setImage(null);
-                if (file != null
-                    && !file.isDirectory()
-                    && isAcceptable(file.getPath(), ContentType.IMAGE)) {
-                  fileChooser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                  selectedImageFile.set(file);
-                  previewImageLoader.execute(new Runnable() {
-                      public void run() {
+                ev -> {
+                  final File file = (File)ev.getNewValue();
+                  previewLabel.setImage(null);
+                  if (file != null
+                      && !file.isDirectory()
+                      && isAcceptable(file.getPath(), ContentType.IMAGE)) {
+                    fileChooser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    selectedImageFile.set(file);
+                    previewImageLoader.execute(() -> {
                         BufferedImage image = null;
                         try {
-                          // Check the file is the selected image file
-                          if (selectedImageFile.get() == file) {
-                            image = ImageIO.read(file);
-                          }
+                            // Check the file is the selected image file
+                            if (selectedImageFile.get() == file) {
+                                image = ImageIO.read(file);
+                            }
                         } catch (IOException ex) {
-                          // Image couldn't be loaded
+                            // Image couldn't be loaded
                         } finally {
-                          final BufferedImage previewedImage = image;
-                          EventQueue.invokeLater(new Runnable() {
-                              public void run() {
+                            final BufferedImage previewedImage = image;
+                            EventQueue.invokeLater(() -> {
                                 if (selectedImageFile.get() == file) {
-                                  previewLabel.setImage(previewedImage);
-                                  fileChooser.setCursor(Cursor.getDefaultCursor());
+                                    previewLabel.setImage(previewedImage);
+                                    fileChooser.setCursor(Cursor.getDefaultCursor());
                                 }
-                              }
                             });
                         }
-                      }
                     });
-                } else {
+                  } else {
+                    selectedImageFile.set(null);
+                    fileChooser.setCursor(Cursor.getDefaultCursor());
+                  }
+                });
+        fileChooser.addPropertyChangeListener(JFileChooser.DIRECTORY_CHANGED_PROPERTY,
+                ev -> {
+                  previewLabel.setImage(null);
                   selectedImageFile.set(null);
                   fileChooser.setCursor(Cursor.getDefaultCursor());
-                }
-              }
-            });
-        fileChooser.addPropertyChangeListener(JFileChooser.DIRECTORY_CHANGED_PROPERTY,
-            new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                previewLabel.setImage(null);
-                selectedImageFile.set(null);
-                fileChooser.setCursor(Cursor.getDefaultCursor());
-              }
-            });
+                });
         previewLabel.addAncestorListener(new AncestorListener() {
             public void ancestorRemoved(AncestorEvent event) {
               previewImageLoader.shutdownNow();
@@ -944,22 +900,16 @@ public class FileContentManager implements ContentManager {
             return this;
           }
         });
-      this.treeSelectionListener = new TreeSelectionListener() {
-          public void valueChanged(TreeSelectionEvent ev) {
-            TreePath selectionPath = DirectoryChooser.this.directoriesTree.getSelectionPath();
-            if (selectionPath != null) {
-              DirectoryNode selectedNode = (DirectoryNode)selectionPath.getLastPathComponent();
-              setSelectedFile((File)selectedNode.getUserObject());
-            }
-          }
-        };
+      this.treeSelectionListener = ev -> {
+        TreePath selectionPath = DirectoryChooser.this.directoriesTree.getSelectionPath();
+        if (selectionPath != null) {
+          DirectoryNode selectedNode = (DirectoryNode)selectionPath.getLastPathComponent();
+          setSelectedFile((File)selectedNode.getUserObject());
+        }
+      };
       this.directoriesTree.addTreeSelectionListener(this.treeSelectionListener);
 
-      this.selectedFileListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            showSelectedFile();
-          }
-        };
+      this.selectedFileListener = ev -> showSelectedFile();
       addPropertyChangeListener(SELECTED_FILE_CHANGED_PROPERTY, this.selectedFileListener);
 
       this.directoriesTree.addTreeExpansionListener(new TreeExpansionListener() {
@@ -1034,87 +984,77 @@ public class FileContentManager implements ContentManager {
       final File selectedFile = getSelectedFile();
       if (selectedFile != null) {
         final DirectoryNode rootNode = (DirectoryNode)this.directoriesTree.getModel().getRoot();
-        this.fileSystemViewExecutor.execute(new Runnable() {
-            public void run() {
-              try {
-                EventQueue.invokeAndWait(new Runnable() {
-                    public void run() {
-                      DirectoryChooser.this.createDirectoryAction.setEnabled(false);
-                      if (DirectoryChooser.this.directoriesTree.isShowing()) {
-                        DirectoryChooser.this.directoriesTree.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                      }
-                    }
-                  });
-                File cononicalFile = selectedFile.getCanonicalFile();
-                // Search parents of the selected file
-                List<File> parentsAndFile = new ArrayList<File>();
-                for (File file = cononicalFile;
-                    file != null;
-                    file = getFileSystemView().getParentDirectory(file)) {
-                  parentsAndFile.add(0, file);
+        this.fileSystemViewExecutor.execute(() -> {
+          try {
+            EventQueue.invokeAndWait(() -> {
+                DirectoryChooser.this.createDirectoryAction.setEnabled(false);
+                if (DirectoryChooser.this.directoriesTree.isShowing()) {
+                    DirectoryChooser.this.directoriesTree.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 }
-                // Build path of tree nodes
-                final List<DirectoryNode> pathToFileNode = new ArrayList<DirectoryNode>();
-                DirectoryNode node = rootNode;
-                pathToFileNode.add(node);
-                for (final File file : parentsAndFile) {
-                  final File [] childDirectories = node.isLoaded()
-                      ? null
-                      : node.getChildDirectories();
-                  // Search in a child of the node has a user object equal to file
-                  final DirectoryNode currentNode = node;
-                  EventQueue.invokeAndWait(new Runnable() {
-                      public void run() {
-                        if (!currentNode.isLoaded()) {
-                          currentNode.updateChildren(childDirectories);
-                          ((DefaultTreeModel)DirectoryChooser.this.directoriesTree.getModel()).nodeStructureChanged(currentNode);
-                        }
-                        for (int i = 0, n = currentNode.getChildCount(); i < n; i++) {
-                          DirectoryNode child = (DirectoryNode)currentNode.getChildAt(i);
-                          if (file.equals(child.getUserObject())) {
-                            pathToFileNode.add(child);
-                            break;
-                          }
-                        }
-                      }
-                    });
-                  node = pathToFileNode.get(pathToFileNode.size() - 1);
-                  if (currentNode == node) {
-                    // Give up since file wasn't found
-                    break;
+            });
+            File cononicalFile = selectedFile.getCanonicalFile();
+            // Search parents of the selected file
+            List<File> parentsAndFile = new ArrayList<>();
+            for (File file = cononicalFile;
+                file != null;
+                file = getFileSystemView().getParentDirectory(file)) {
+              parentsAndFile.add(0, file);
+            }
+            // Build path of tree nodes
+            final List<DirectoryNode> pathToFileNode = new ArrayList<>();
+            DirectoryNode node = rootNode;
+            pathToFileNode.add(node);
+            for (final File file : parentsAndFile) {
+              final File [] childDirectories = node.isLoaded()
+                  ? null
+                  : node.getChildDirectories();
+              // Search in a child of the node has a user object equal to file
+              final DirectoryNode currentNode = node;
+              EventQueue.invokeAndWait(() -> {
+                  if (!currentNode.isLoaded()) {
+                      currentNode.updateChildren(childDirectories);
+                      ((DefaultTreeModel) DirectoryChooser.this.directoriesTree.getModel()).nodeStructureChanged(currentNode);
                   }
-                }
-
-                if (pathToFileNode.size() > 1) {
-                  final TreePath path = new TreePath(pathToFileNode.toArray(new TreeNode [pathToFileNode.size()]));
-                  EventQueue.invokeAndWait(new Runnable() {
-                      public void run() {
-                        DirectoryChooser.this.directoriesTree.removeTreeSelectionListener(DirectoryChooser.this.treeSelectionListener);
-                        DirectoryChooser.this.directoriesTree.expandPath(path);
-                        DirectoryChooser.this.directoriesTree.setSelectionPath(path);
-                        DirectoryChooser.this.directoriesTree.scrollRowToVisible(DirectoryChooser.this.directoriesTree.getRowForPath(path));
-                        DirectoryChooser.this.directoriesTree.addTreeSelectionListener(DirectoryChooser.this.treeSelectionListener);
+                  for (int i = 0, n = currentNode.getChildCount(); i < n; i++) {
+                      DirectoryNode child = (DirectoryNode) currentNode.getChildAt(i);
+                      if (file.equals(child.getUserObject())) {
+                          pathToFileNode.add(child);
+                          break;
                       }
-                    });
-                }
-
-              } catch (IOException ex) {
-                // Ignore directories that can't be found
-              } catch (InterruptedException ex) {
-                // Give up if interrupted
-              } catch (InvocationTargetException ex) {
-                ex.printStackTrace();
-              } finally {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                      DirectoryChooser.this.createDirectoryAction.setEnabled(DirectoryChooser.this.directoriesTree.getSelectionCount() > 0
-                          && ((DirectoryNode)DirectoryChooser.this.directoriesTree.getSelectionPath().getLastPathComponent()).isWritable());
-                      DirectoryChooser.this.directoriesTree.setCursor(Cursor.getDefaultCursor());
-                    }
-                  });
+                  }
+              });
+              node = pathToFileNode.get(pathToFileNode.size() - 1);
+              if (currentNode == node) {
+                // Give up since file wasn't found
+                break;
               }
             }
-          });
+
+            if (pathToFileNode.size() > 1) {
+              final TreePath path = new TreePath(pathToFileNode.toArray(new TreeNode[0]));
+              EventQueue.invokeAndWait(() -> {
+                  DirectoryChooser.this.directoriesTree.removeTreeSelectionListener(DirectoryChooser.this.treeSelectionListener);
+                  DirectoryChooser.this.directoriesTree.expandPath(path);
+                  DirectoryChooser.this.directoriesTree.setSelectionPath(path);
+                  DirectoryChooser.this.directoriesTree.scrollRowToVisible(DirectoryChooser.this.directoriesTree.getRowForPath(path));
+                  DirectoryChooser.this.directoriesTree.addTreeSelectionListener(DirectoryChooser.this.treeSelectionListener);
+              });
+            }
+
+          } catch (IOException ex) {
+            // Ignore directories that can't be found
+          } catch (InterruptedException ex) {
+            // Give up if interrupted
+          } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+          } finally {
+            EventQueue.invokeLater(() -> {
+                DirectoryChooser.this.createDirectoryAction.setEnabled(DirectoryChooser.this.directoriesTree.getSelectionCount() > 0
+                        && ((DirectoryNode) DirectoryChooser.this.directoriesTree.getSelectionPath().getLastPathComponent()).isWritable());
+                DirectoryChooser.this.directoriesTree.setCursor(Cursor.getDefaultCursor());
+            });
+          }
+        });
       }
     }
 
@@ -1141,21 +1081,17 @@ public class FileContentManager implements ContentManager {
         approveButton.setEnabled(validDirectory);
         this.createDirectoryAction.setEnabled(validDirectory);
       }
-      this.directoriesTree.addTreeSelectionListener(new TreeSelectionListener() {
-          public void valueChanged(TreeSelectionEvent ev) {
-            TreePath selectedPath = ev.getPath();
-            boolean validDirectory = selectedPath != null
-                && ((DirectoryNode)ev.getPath().getLastPathComponent()).isWritable();
-            approveButton.setEnabled(validDirectory);
-            DirectoryChooser.this.createDirectoryAction.setEnabled(validDirectory);
-          }
-        });
-      approveButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            optionPane.setValue(approveButtonText);
-            dialog.setVisible(false);
-          }
-        });
+      this.directoriesTree.addTreeSelectionListener(ev -> {
+        TreePath selectedPath = ev.getPath();
+        boolean validDirectory = selectedPath != null
+            && ((DirectoryNode)ev.getPath().getLastPathComponent()).isWritable();
+        approveButton.setEnabled(validDirectory);
+        DirectoryChooser.this.createDirectoryAction.setEnabled(validDirectory);
+      });
+      approveButton.addActionListener(ev -> {
+        optionPane.setValue(approveButtonText);
+        dialog.setVisible(false);
+      });
       dialog.setMinimumSize(dialog.getPreferredSize());
       dialog.setVisible(true);
       dialog.dispose();
@@ -1201,13 +1137,13 @@ public class FileContentManager implements ContentManager {
             ? getFileSystemView().getRoots()
             : getFileSystemView().getFiles((File)getUserObject(), true);
         if (childFiles != null) {
-          List<File> childDirectories = new ArrayList<File>(childFiles.length);
+          List<File> childDirectories = new ArrayList<>(childFiles.length);
           for (File childFile : childFiles) {
             if (isTraversable(childFile)) {
               childDirectories.add(childFile);
             }
           }
-          return childDirectories.toArray(new File [childDirectories.size()]);
+          return childDirectories.toArray(new File[0]);
         } else {
           return new File [0];
         }
@@ -1219,7 +1155,7 @@ public class FileContentManager implements ContentManager {
 
       public int updateChildren(File [] childDirectories) {
         if (this.children == null) {
-          this.children = new Vector<TreeNode>(childDirectories.length);
+          this.children = new Vector<>(childDirectories.length);
         }
         synchronized (this.children) {
           removeAllChildren();

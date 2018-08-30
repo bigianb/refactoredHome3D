@@ -40,7 +40,7 @@ public class FurnitureCategory implements Comparable<FurnitureCategory> {
    */
   public FurnitureCategory(String name) {
     this.name = name;
-    this.furniture = new ArrayList<CatalogPieceOfFurniture>();
+    this.furniture = new ArrayList<>();
   }
 
   /**
@@ -105,7 +105,7 @@ public class FurnitureCategory implements Comparable<FurnitureCategory> {
           this.name + " doesn't contain piece " + piece.getName());
     }
     //  Make a copy of the list to avoid conflicts in the list returned by getFurniture
-    this.furniture = new ArrayList<CatalogPieceOfFurniture>(this.furniture);
+    this.furniture = new ArrayList<>(this.furniture);
     this.furniture.remove(pieceIndex);
   }
   

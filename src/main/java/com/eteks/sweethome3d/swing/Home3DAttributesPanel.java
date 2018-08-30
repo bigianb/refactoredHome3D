@@ -19,29 +19,14 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSlider;
-import javax.swing.KeyStroke;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.Home3DAttributesController;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Home 3D attributes editing panel.
@@ -89,44 +74,28 @@ public class Home3DAttributesPanel extends JPanel implements DialogView {
     // Ground color and texture buttons bound to ground controller properties
     this.groundColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         Home3DAttributesPanel.class, "groundColorRadioButton.text"));
-    this.groundColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (groundColorRadioButton.isSelected()) {
-            controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.GROUND_PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateGroundRadioButtons(controller);
-          }
-        });
+    this.groundColorRadioButton.addChangeListener(ev -> {
+      if (groundColorRadioButton.isSelected()) {
+        controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.GROUND_PAINT,
+            ev -> updateGroundRadioButtons(controller));
   
     this.groundColorButton = new ColorButton(preferences);
     this.groundColorButton.setColorDialogTitle(preferences.getLocalizedString(
         Home3DAttributesPanel.class, "groundColorDialog.title"));
     this.groundColorButton.setColor(controller.getGroundColor());
-    this.groundColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setGroundColor(groundColorButton.getColor());
-          }
-        });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.GROUND_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            groundColorButton.setColor(controller.getGroundColor());
-          }
-        });
+    this.groundColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> controller.setGroundColor(groundColorButton.getColor()));
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.GROUND_COLOR,
+            ev -> groundColorButton.setColor(controller.getGroundColor()));
     
     this.groundTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         Home3DAttributesPanel.class, "groundTextureRadioButton.text"));
-    this.groundTextureRadioButton.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent ev) {
-        if (groundTextureRadioButton.isSelected()) {
-          controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
-        }
+    this.groundTextureRadioButton.addChangeListener(ev -> {
+      if (groundTextureRadioButton.isSelected()) {
+        controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
       }
     });
     
@@ -140,44 +109,28 @@ public class Home3DAttributesPanel extends JPanel implements DialogView {
     // Sky color and texture buttons bound to sky controller properties
     this.skyColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         Home3DAttributesPanel.class, "skyColorRadioButton.text"));
-    this.skyColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (skyColorRadioButton.isSelected()) {
-            controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.SKY_PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateSkyRadioButtons(controller);
-          }
-        });
+    this.skyColorRadioButton.addChangeListener(ev -> {
+      if (skyColorRadioButton.isSelected()) {
+        controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.SKY_PAINT,
+            ev -> updateSkyRadioButtons(controller));
   
     this.skyColorButton = new ColorButton(preferences);
     this.skyColorButton.setColorDialogTitle(preferences.getLocalizedString(
         Home3DAttributesPanel.class, "skyColorDialog.title"));
     this.skyColorButton.setColor(controller.getSkyColor());
-    this.skyColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setSkyColor(skyColorButton.getColor());
-          }
-        });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.SKY_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            skyColorButton.setColor(controller.getSkyColor());
-          }
-        });
+    this.skyColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> controller.setSkyColor(skyColorButton.getColor()));
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.SKY_COLOR,
+            ev -> skyColorButton.setColor(controller.getSkyColor()));
     
     this.skyTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         Home3DAttributesPanel.class, "skyTextureRadioButton.text"));
-    this.skyTextureRadioButton.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent ev) {
-        if (skyTextureRadioButton.isSelected()) {
-          controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
-        }
+    this.skyTextureRadioButton.addChangeListener(ev -> {
+      if (skyTextureRadioButton.isSelected()) {
+        controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
       }
     });
     
@@ -199,18 +152,12 @@ public class Home3DAttributesPanel extends JPanel implements DialogView {
     this.brightnessSlider.setPaintTicks(true);
     this.brightnessSlider.setMajorTickSpacing(17);
     this.brightnessSlider.setValue(controller.getLightColor() & 0xFF);
-    this.brightnessSlider.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          int brightness = brightnessSlider.getValue();
-          controller.setLightColor((brightness << 16) + (brightness << 8) + brightness);
-        }
-      });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.LIGHT_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            brightnessSlider.setValue(controller.getLightColor() & 0xFF);
-          }
-        });
+    this.brightnessSlider.addChangeListener(ev -> {
+      int brightness = brightnessSlider.getValue();
+      controller.setLightColor((brightness << 16) + (brightness << 8) + brightness);
+    });
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.LIGHT_COLOR,
+            ev -> brightnessSlider.setValue(controller.getLightColor() & 0xFF));
     
     // Walls transparency label and slider bound to WALLS_ALPHA controller property
     this.wallsTransparencyLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -223,17 +170,9 @@ public class Home3DAttributesPanel extends JPanel implements DialogView {
     this.wallsTransparencySlider.setPaintTicks(true);
     this.wallsTransparencySlider.setMajorTickSpacing(17);
     this.wallsTransparencySlider.setValue((int)(controller.getWallsAlpha() * 255));
-    this.wallsTransparencySlider.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setWallsAlpha(wallsTransparencySlider.getValue() / 255f);
-        }
-      });
-    controller.addPropertyChangeListener(Home3DAttributesController.Property.WALLS_ALPHA, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            wallsTransparencySlider.setValue((int)(controller.getWallsAlpha() * 255));
-          }
-        });
+    this.wallsTransparencySlider.addChangeListener(ev -> controller.setWallsAlpha(wallsTransparencySlider.getValue() / 255f));
+    controller.addPropertyChangeListener(Home3DAttributesController.Property.WALLS_ALPHA,
+            ev -> wallsTransparencySlider.setValue((int)(controller.getWallsAlpha() * 255)));
     
     this.dialogTitle = preferences.getLocalizedString(
         Home3DAttributesPanel.class, "home3DAttributes.title");

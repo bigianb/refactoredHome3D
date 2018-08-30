@@ -29,19 +29,19 @@ public interface DoorOrWindow extends PieceOfFurniture {
    * Returns the default thickness of the wall in which this door or window should be placed.
    * @return a value in percentage of the depth of this door or window.
    */
-  public abstract float getWallThickness();
+  float getWallThickness();
   
   /**
    * Returns the default distance that should lie outside of this door or window.
    * @return a distance in percentage of the depth of this door or the window.
    */
-  public abstract float getWallDistance();
+  float getWallDistance();
   
   /**
    * Returns a copy of the sashes attached to this door or window.
    * If no sash is defined an empty array is returned. 
    */
-  public abstract Sash [] getSashes();
+  Sash [] getSashes();
 
   /**
    * Returns the shape used to cut out walls that intersect this new door or window.
@@ -51,14 +51,14 @@ public interface DoorOrWindow extends PieceOfFurniture {
    * scaled afterwards to the real size of this door or window. 
    * @since 4.2
    */
-  public abstract String getCutOutShape();
+  String getCutOutShape();
   
   /**
    * Returns <code>true</code> if this door or window should cut out the both sides
    * of the walls it intersects, even if its front or back side are within the wall thickness. 
    * @since 5.5 
    */
-  public abstract boolean isWallCutOutOnBothSides();
+  boolean isWallCutOutOnBothSides();
 
   /**
    * Returns <code>false</code> if the width and depth of the new door or window may 
@@ -67,5 +67,5 @@ public interface DoorOrWindow extends PieceOfFurniture {
    * {@link #isBoundToWall() bouldToWall} flag is <code>true</code>.
    * @since 5.5
    */
-  public abstract boolean isWidthDepthDeformable();
+  boolean isWidthDepthDeformable();
 }

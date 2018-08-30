@@ -23,7 +23,6 @@ import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,17 +38,16 @@ import com.eteks.sweethome3d.tools.ExtensionsClassLoader;
  * @author Emmanuel Puybaret
  */
 public class SweetHome3DBootstrap {
-  public static void main(String [] args) throws MalformedURLException, IllegalAccessException,
+  public static void main(String [] args) throws IllegalAccessException,
         InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
     Class sweetHome3DBootstrapClass = SweetHome3DBootstrap.class;
-    List<String> extensionJarsAndDlls = new ArrayList<String>(Arrays.asList(new String [] {
-        "batik-svgpathparser-1.7.jar",
-        "jeksparser-calculator.jar",
-        "iText-2.1.7.jar", // Jars included in Sweet Home 3D executable jar file
-        "freehep-vectorgraphics-svg-2.1.1b.jar",
-        "sunflow-0.07.3i.jar",
-        "jmf.jar",
-        "jnlp.jar"}));
+    List<String> extensionJarsAndDlls = new ArrayList<>(Arrays.asList("batik-svgpathparser-1.7.jar",
+            "jeksparser-calculator.jar",
+            "iText-2.1.7.jar", // Jars included in Sweet Home 3D executable jar file
+            "freehep-vectorgraphics-svg-2.1.1b.jar",
+            "sunflow-0.07.3i.jar",
+            "jmf.jar",
+            "jnlp.jar"));
 
     String operatingSystemName = System.getProperty("os.name");
     String javaVersion = System.getProperty("java.version");
@@ -71,16 +69,15 @@ public class SweetHome3DBootstrap {
         System.exit(1);
       } else if (javaVersion.startsWith("1.5")
           || javaVersion.startsWith("1.6")) {
-        extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-            "j3dcore.jar", // Main Java 3D jars
-            "vecmath.jar",
-            "j3dutils.jar",
-            "macosx/gluegen-rt.jar", // Mac OS X jars and DLLs for Java 5 or 6
-            "macosx/jogl.jar",
-            "macosx/libgluegen-rt.jnilib",
-            "macosx/libjogl.jnilib",
-            "macosx/libjogl_awt.jnilib",
-            "macosx/libjogl_cg.jnilib"}));
+        extensionJarsAndDlls.addAll(Arrays.asList("j3dcore.jar", // Main Java 3D jars
+                "vecmath.jar",
+                "j3dutils.jar",
+                "macosx/gluegen-rt.jar", // Mac OS X jars and DLLs for Java 5 or 6
+                "macosx/jogl.jar",
+                "macosx/libgluegen-rt.jnilib",
+                "macosx/libjogl.jnilib",
+                "macosx/libjogl_awt.jnilib",
+                "macosx/libjogl_cg.jnilib"));
       } else if (javaVersion.startsWith(java7Prefix)
           && javaVersion.length() >= java7Prefix.length() + 1
           && Character.isDigit(javaVersion.charAt(java7Prefix.length()))
@@ -100,68 +97,61 @@ public class SweetHome3DBootstrap {
         JOptionPane.showMessageDialog(null, message);
         System.exit(1);
       } else { // Java >= 1.7.0_40
-        extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-            "java3d-1.6/j3dcore.jar", // Mac OS X Java 3D 1.6 jars and DLLs
-            "java3d-1.6/vecmath.jar",
-            "java3d-1.6/j3dutils.jar",
-            "java3d-1.6/gluegen-rt.jar",
-            "java3d-1.6/jogl-java3d.jar",
-            "java3d-1.6/macosx/libgluegen-rt.jnilib",
-            "java3d-1.6/macosx/libjogl_desktop.jnilib",
-            "java3d-1.6/macosx/libnativewindow_awt.jnilib",
-            "java3d-1.6/macosx/libnativewindow_macosx.jnilib"}));
+        extensionJarsAndDlls.addAll(Arrays.asList("java3d-1.6/j3dcore.jar", // Mac OS X Java 3D 1.6 jars and DLLs
+                "java3d-1.6/vecmath.jar",
+                "java3d-1.6/j3dutils.jar",
+                "java3d-1.6/gluegen-rt.jar",
+                "java3d-1.6/jogl-java3d.jar",
+                "java3d-1.6/macosx/libgluegen-rt.jnilib",
+                "java3d-1.6/macosx/libjogl_desktop.jnilib",
+                "java3d-1.6/macosx/libnativewindow_awt.jnilib",
+                "java3d-1.6/macosx/libnativewindow_macosx.jnilib"));
         // Disable JOGL library loader
         System.setProperty("jogamp.gluegen.UseTempJarCache", "false");
       }
     } else { // Other OS
       if ("1.5.2".equals(System.getProperty("com.eteks.sweethome3d.j3d.version", "1.6"))
           || "d3d".equals(System.getProperty("j3d.rend", "jogl"))) {
-        extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-            "j3dcore.jar", // Main Java 3D jars
-            "vecmath.jar",
-            "j3dutils.jar"}));
+        extensionJarsAndDlls.addAll(Arrays.asList("j3dcore.jar", // Main Java 3D jars
+                "vecmath.jar",
+                "j3dutils.jar"));
         if ("64".equals(System.getProperty("sun.arch.data.model"))) {
-          extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-              "linux/x64/libj3dcore-ogl.so",    // Linux 64 bits DLL for Java 3D 1.5.2
-              "windows/x64/j3dcore-ogl.dll"})); // Windows 64 bits DLL for Java 3D 1.5.2
+          extensionJarsAndDlls.addAll(Arrays.asList("linux/x64/libj3dcore-ogl.so",    // Linux 64 bits DLL for Java 3D 1.5.2
+                  "windows/x64/j3dcore-ogl.dll")); // Windows 64 bits DLL for Java 3D 1.5.2
         } else {
-          extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-              "linux/i386/libj3dcore-ogl.so", // Linux 32 bits DLLs
-              "linux/i386/libj3dcore-ogl-cg.so",
-              "windows/i386/j3dcore-d3d.dll", // Windows 32 bits DLLs
-              "windows/i386/j3dcore-ogl.dll",
-              "windows/i386/j3dcore-ogl-cg.dll",
-              "windows/i386/j3dcore-ogl-chk.dll"}));
+          extensionJarsAndDlls.addAll(Arrays.asList("linux/i386/libj3dcore-ogl.so", // Linux 32 bits DLLs
+                  "linux/i386/libj3dcore-ogl-cg.so",
+                  "windows/i386/j3dcore-d3d.dll", // Windows 32 bits DLLs
+                  "windows/i386/j3dcore-ogl.dll",
+                  "windows/i386/j3dcore-ogl-cg.dll",
+                  "windows/i386/j3dcore-ogl-chk.dll"));
         }
       } else {
-        extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-            "java3d-1.6/j3dcore.jar", // Java 3D 1.6 jars
-            "java3d-1.6/vecmath.jar",
-            "java3d-1.6/j3dutils.jar",
-            "java3d-1.6/gluegen-rt.jar",
-            "java3d-1.6/jogl-java3d.jar"}));
+        extensionJarsAndDlls.addAll(Arrays.asList("java3d-1.6/j3dcore.jar", // Java 3D 1.6 jars
+                "java3d-1.6/vecmath.jar",
+                "java3d-1.6/j3dutils.jar",
+                "java3d-1.6/gluegen-rt.jar",
+                "java3d-1.6/jogl-java3d.jar"));
         // Disable JOGL library loader
         System.setProperty("jogamp.gluegen.UseTempJarCache", "false");
         if ("64".equals(System.getProperty("sun.arch.data.model"))) {
-          extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-              "java3d-1.6/linux/amd64/libgluegen-rt.so", // Linux 64 bits DLLs for Java 3D 1.6
-              "java3d-1.6/linux/amd64/libjogl_desktop.so",
-              "java3d-1.6/linux/amd64/libnativewindow_awt.so",
-              "java3d-1.6/linux/amd64/libnativewindow_x11.so",
-              "java3d-1.6/windows/amd64/gluegen-rt.dll", // Windows 64 bits DLLs for Java 3D 1.6
-              "java3d-1.6/windows/amd64/jogl_desktop.dll",
-              "java3d-1.6/windows/amd64/nativewindow_awt.dll",
-              "java3d-1.6/windows/amd64/nativewindow_win32.dll"}));
+          extensionJarsAndDlls.addAll(Arrays.asList("java3d-1.6/linux/amd64/libgluegen-rt.so", // Linux 64 bits DLLs for Java 3D 1.6
+                  "java3d-1.6/linux/amd64/libjogl_desktop.so",
+                  "java3d-1.6/linux/amd64/libnativewindow_awt.so",
+                  "java3d-1.6/linux/amd64/libnativewindow_x11.so",
+                  "java3d-1.6/windows/amd64/gluegen-rt.dll", // Windows 64 bits DLLs for Java 3D 1.6
+                  "java3d-1.6/windows/amd64/jogl_desktop.dll",
+                  "java3d-1.6/windows/amd64/nativewindow_awt.dll",
+                  "java3d-1.6/windows/amd64/nativewindow_win32.dll"));
         } else {
-          extensionJarsAndDlls.addAll(Arrays.asList(new String [] {
-              "java3d-1.6/linux/i586/libgluegen-rt.so", // Linux 32 bits DLLs for Java 3D 1.6
-              "java3d-1.6/linux/i586/libjogl_desktop.so",
-              "java3d-1.6/linux/i586/libnativewindow_awt.so",
-              "java3d-1.6/linux/i586/libnativewindow_x11.so",
-              "java3d-1.6/windows/i586/gluegen-rt.dll", // Windows 32 bits DLLs for Java 3D 1.6
-              "java3d-1.6/windows/i586/jogl_desktop.dll",
-              "java3d-1.6/windows/i586/nativewindow_awt.dll",
-              "java3d-1.6/windows/i586/nativewindow_win32.dll"}));
+          extensionJarsAndDlls.addAll(Arrays.asList("java3d-1.6/linux/i586/libgluegen-rt.so", // Linux 32 bits DLLs for Java 3D 1.6
+                  "java3d-1.6/linux/i586/libjogl_desktop.so",
+                  "java3d-1.6/linux/i586/libnativewindow_awt.so",
+                  "java3d-1.6/linux/i586/libnativewindow_x11.so",
+                  "java3d-1.6/windows/i586/gluegen-rt.dll", // Windows 32 bits DLLs for Java 3D 1.6
+                  "java3d-1.6/windows/i586/jogl_desktop.dll",
+                  "java3d-1.6/windows/i586/nativewindow_awt.dll",
+                  "java3d-1.6/windows/i586/nativewindow_win32.dll"));
         }
       }
     }

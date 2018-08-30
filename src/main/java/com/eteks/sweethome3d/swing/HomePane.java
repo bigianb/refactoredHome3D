@@ -649,7 +649,7 @@ public class HomePane extends JRootPane implements HomeView {
    * Creates the Swing actions matching each actions available in <code>plugins</code>.
    */
   private void createPluginActions(List<Plugin> plugins) {
-    this.pluginActions = new ArrayList<Action>();
+    this.pluginActions = new ArrayList<>();
     if (plugins != null) {
       for (Plugin plugin : plugins) {
         for (final PluginAction pluginAction : plugin.getActions()) {
@@ -680,12 +680,10 @@ public class HomePane extends JRootPane implements HomeView {
    */
   private void addHomeListener(final Home home) {
     home.addPropertyChangeListener(Home.Property.CAMERA,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setToggleButtonModelSelected(ActionType.VIEW_FROM_TOP, home.getCamera() == home.getTopCamera());
-            setToggleButtonModelSelected(ActionType.VIEW_FROM_OBSERVER, home.getCamera() == home.getObserverCamera());
-          }
-        });
+            ev -> {
+              setToggleButtonModelSelected(ActionType.VIEW_FROM_TOP, home.getCamera() == home.getTopCamera());
+              setToggleButtonModelSelected(ActionType.VIEW_FROM_OBSERVER, home.getCamera() == home.getObserverCamera());
+            });
   }
 
   /**
@@ -703,13 +701,11 @@ public class HomePane extends JRootPane implements HomeView {
    */
   private void addLevelVisibilityListener(final Home home) {
     home.getEnvironment().addPropertyChangeListener(HomeEnvironment.Property.ALL_LEVELS_VISIBLE,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            boolean allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
-            setToggleButtonModelSelected(ActionType.DISPLAY_ALL_LEVELS, allLevelsVisible);
-            setToggleButtonModelSelected(ActionType.DISPLAY_SELECTED_LEVEL, !allLevelsVisible);
-          }
-        });
+            ev -> {
+              boolean allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
+              setToggleButtonModelSelected(ActionType.DISPLAY_ALL_LEVELS, allLevelsVisible);
+              setToggleButtonModelSelected(ActionType.DISPLAY_SELECTED_LEVEL, !allLevelsVisible);
+            });
   }
 
   /**
@@ -731,7 +727,7 @@ public class HomePane extends JRootPane implements HomeView {
     private WeakReference<HomePane> homePane;
 
     public UserPreferencesChangeListener(HomePane homePane) {
-      this.homePane = new WeakReference<HomePane>(homePane);
+      this.homePane = new WeakReference<>(homePane);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -787,18 +783,16 @@ public class HomePane extends JRootPane implements HomeView {
    */
   private void addPlanControllerListener(final PlanController planController) {
     planController.addPropertyChangeListener(PlanController.Property.MODE,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Mode mode = planController.getMode();
-            setToggleButtonModelSelected(ActionType.SELECT, mode == PlanController.Mode.SELECTION);
-            setToggleButtonModelSelected(ActionType.PAN, mode == PlanController.Mode.PANNING);
-            setToggleButtonModelSelected(ActionType.CREATE_WALLS, mode == PlanController.Mode.WALL_CREATION);
-            setToggleButtonModelSelected(ActionType.CREATE_ROOMS, mode == PlanController.Mode.ROOM_CREATION);
-            setToggleButtonModelSelected(ActionType.CREATE_POLYLINES, mode == PlanController.Mode.POLYLINE_CREATION);
-            setToggleButtonModelSelected(ActionType.CREATE_DIMENSION_LINES, mode == PlanController.Mode.DIMENSION_LINE_CREATION);
-            setToggleButtonModelSelected(ActionType.CREATE_LABELS, mode == PlanController.Mode.LABEL_CREATION);
-          }
-        });
+            ev -> {
+              Mode mode = planController.getMode();
+              setToggleButtonModelSelected(ActionType.SELECT, mode == Mode.SELECTION);
+              setToggleButtonModelSelected(ActionType.PAN, mode == Mode.PANNING);
+              setToggleButtonModelSelected(ActionType.CREATE_WALLS, mode == Mode.WALL_CREATION);
+              setToggleButtonModelSelected(ActionType.CREATE_ROOMS, mode == Mode.ROOM_CREATION);
+              setToggleButtonModelSelected(ActionType.CREATE_POLYLINES, mode == Mode.POLYLINE_CREATION);
+              setToggleButtonModelSelected(ActionType.CREATE_DIMENSION_LINES, mode == Mode.DIMENSION_LINE_CREATION);
+              setToggleButtonModelSelected(ActionType.CREATE_LABELS, mode == Mode.LABEL_CREATION);
+            });
   }
 
   /**
@@ -818,7 +812,7 @@ public class HomePane extends JRootPane implements HomeView {
     private PropertyChangeListener  focusChangeListener;
 
     public FocusCycleRootChangeListener(HomePane homePane) {
-      this.homePane = new WeakReference<HomePane>(homePane);
+      this.homePane = new WeakReference<>(homePane);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -849,7 +843,7 @@ public class HomePane extends JRootPane implements HomeView {
     private WeakReference<HomePane> homePane;
 
     private FocusOwnerChangeListener(HomePane homePane) {
-      this.homePane = new WeakReference<HomePane>(homePane);
+      this.homePane = new WeakReference<>(homePane);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -947,7 +941,7 @@ public class HomePane extends JRootPane implements HomeView {
           if (!Boolean.getBoolean("apple.laf.useScreenMenuBar")
               && Boolean.getBoolean("sweethome3d.bundle")) {
             // Manage preferences accelerator only for bundle applications without screen menu bar
-            specialKeyActions = new ArrayList<Action>(specialKeyActions);
+            specialKeyActions = new ArrayList<>(specialKeyActions);
             specialKeyActions.add(actionMap.get(ActionType.PREFERENCES));
           }
           int modifiersMask = KeyEvent.ALT_MASK | KeyEvent.CTRL_MASK | KeyEvent.META_MASK;
@@ -1381,7 +1375,7 @@ public class HomePane extends JRootPane implements HomeView {
     JMenu sortMenu = new JMenu(this.menuActionMap.get(MenuActionType.SORT_HOME_FURNITURE_MENU));
     // Map sort furniture properties to sort actions
     Map<HomePieceOfFurniture.SortableProperty, Action> sortActions =
-        new LinkedHashMap<HomePieceOfFurniture.SortableProperty, Action>();
+            new LinkedHashMap<>();
     addActionToMap(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID,
         sortActions, HomePieceOfFurniture.SortableProperty.CATALOG_ID);
     addActionToMap(ActionType.SORT_HOME_FURNITURE_BY_NAME,
@@ -1442,17 +1436,15 @@ public class HomePane extends JRootPane implements HomeView {
       // Configure check box menu item action after setting its model to avoid losing its mnemonic
       final Action menuItemAction = new ResourceAction.MenuItemAction(sortAction);
       // Add listener on action visibility to update menu item and furniture sort
-      sortAction.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
-              Boolean visible = (Boolean)ev.getNewValue();
-              sortMenuItem.setVisible(visible);
-              if (furnitureProperty == home.getFurnitureSortedProperty()) {
-                menuItemAction.actionPerformed(null);
-              }
-            }
+      sortAction.addPropertyChangeListener(ev -> {
+        if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
+          Boolean visible = (Boolean)ev.getNewValue();
+          sortMenuItem.setVisible(visible);
+          if (furnitureProperty == home.getFurnitureSortedProperty()) {
+            menuItemAction.actionPerformed(null);
           }
-        });
+        }
+      });
       sortMenuItem.setAction(menuItemAction);
       sortMenu.add(sortMenuItem);
       sortButtonGroup.add(sortMenuItem);
@@ -1496,7 +1488,7 @@ public class HomePane extends JRootPane implements HomeView {
         this.menuActionMap.get(MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU));
     // Map displayProperty furniture properties to displayProperty actions
     Map<HomePieceOfFurniture.SortableProperty, Action> displayPropertyActions =
-        new LinkedHashMap<HomePieceOfFurniture.SortableProperty, Action>();
+            new LinkedHashMap<>();
     addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID,
         displayPropertyActions, HomePieceOfFurniture.SortableProperty.CATALOG_ID);
     addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_NAME,
@@ -1556,18 +1548,16 @@ public class HomePane extends JRootPane implements HomeView {
       // Configure check box menu item action after setting its model to avoid losing its mnemonic
       displayPropertyMenuItem.setAction(displayPropertyAction);
       // Add listener on action visibility to update menu item and furniture property visibility
-      displayPropertyAction.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
-              Boolean visible = (Boolean)ev.getNewValue();
-              displayPropertyMenuItem.setVisible(visible);
-              if (!visible
-                  && home.getFurnitureVisibleProperties().contains(furnitureProperty)) {
-                displayPropertyAction.actionPerformed(null);
-              }
-            }
+      displayPropertyAction.addPropertyChangeListener(ev -> {
+        if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
+          Boolean visible = (Boolean)ev.getNewValue();
+          displayPropertyMenuItem.setVisible(visible);
+          if (!visible
+              && home.getFurnitureVisibleProperties().contains(furnitureProperty)) {
+            displayPropertyAction.actionPerformed(null);
           }
-        });
+        }
+      });
       displayPropertyMenu.add(displayPropertyMenuItem);
     }
     return displayPropertyMenu;
@@ -1589,12 +1579,8 @@ public class HomePane extends JRootPane implements HomeView {
       // Add a listener to home on basePlanLocked property change to
       // switch action according to basePlanLocked change
       home.addPropertyChangeListener(Home.Property.BASE_PLAN_LOCKED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              lockUnlockBasePlanMenuItem.setAction(
-                  createLockUnlockBasePlanAction(home, popup));
-            }
-          });
+              ev -> lockUnlockBasePlanMenuItem.setAction(
+                  createLockUnlockBasePlanAction(home, popup)));
       return lockUnlockBasePlanMenuItem;
     } else {
       return null;
@@ -1634,14 +1620,10 @@ public class HomePane extends JRootPane implements HomeView {
       // Add a listener to home on basePlanLocked property change to
       // switch action according to basePlanLocked change
       home.addPropertyChangeListener(Home.Property.BASE_PLAN_LOCKED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              lockUnlockBasePlanButton.setAction(
+              ev -> lockUnlockBasePlanButton.setAction(
                   new ResourceAction.ToolBarAction(home.isBasePlanLocked()
                       ? unlockBasePlanAction
-                      : lockBasePlanAction));
-            }
-          });
+                      : lockBasePlanAction)));
       return lockUnlockBasePlanButton;
     } else {
       return null;
@@ -1672,11 +1654,7 @@ public class HomePane extends JRootPane implements HomeView {
                                                                      final UserPreferences preferences) {
     return new JToggleButton.ToggleButtonModel() {
       {
-        home.addSelectionListener(new SelectionListener() {
-          public void selectionChanged(SelectionEvent ev) {
-            fireStateChanged();
-          }
-        });
+        home.addSelectionListener(ev -> fireStateChanged());
       }
 
       @Override
@@ -1729,11 +1707,7 @@ public class HomePane extends JRootPane implements HomeView {
                                                                        final UserPreferences preferences) {
     return new JToggleButton.ToggleButtonModel() {
       {
-        home.addSelectionListener(new SelectionListener() {
-          public void selectionChanged(SelectionEvent ev) {
-            fireStateChanged();
-          }
-        });
+        home.addSelectionListener(ev -> fireStateChanged());
       }
 
       @Override
@@ -1792,12 +1766,8 @@ public class HomePane extends JRootPane implements HomeView {
           createImportModifyBackgroundImageAction(home, popup));
       // Add a listener to home and levels on backgroundImage property change to
       // switch action according to backgroundImage change
-      addBackgroundImageChangeListener(home, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            importModifyBackgroundImageMenuItem.setAction(
-                createImportModifyBackgroundImageAction(home, popup));
-          }
-        });
+      addBackgroundImageChangeListener(home, ev -> importModifyBackgroundImageMenuItem.setAction(
+          createImportModifyBackgroundImageAction(home, popup)));
       return importModifyBackgroundImageMenuItem;
     } else {
       return null;
@@ -1810,28 +1780,24 @@ public class HomePane extends JRootPane implements HomeView {
   private void addBackgroundImageChangeListener(final Home home, final PropertyChangeListener listener) {
     home.addPropertyChangeListener(Home.Property.BACKGROUND_IMAGE, listener);
     home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, listener);
-    final PropertyChangeListener levelChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (Level.Property.BACKGROUND_IMAGE.name().equals(ev.getPropertyName())) {
-            listener.propertyChange(ev);
-          }
-        }
-      };
+    final PropertyChangeListener levelChangeListener = ev -> {
+      if (Level.Property.BACKGROUND_IMAGE.name().equals(ev.getPropertyName())) {
+        listener.propertyChange(ev);
+      }
+    };
     for (Level level : this.home.getLevels()) {
       level.addPropertyChangeListener(levelChangeListener);
     }
-    this.home.addLevelsListener(new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          switch (ev.getType()) {
-            case ADD :
-              ev.getItem().addPropertyChangeListener(levelChangeListener);
-              break;
-            case DELETE :
-              ev.getItem().removePropertyChangeListener(levelChangeListener);
-              break;
-          }
-        }
-      });
+    this.home.addLevelsListener(ev -> {
+      switch (ev.getType()) {
+        case ADD:
+          ev.getItem().addPropertyChangeListener(levelChangeListener);
+          break;
+        case DELETE:
+          ev.getItem().removePropertyChangeListener(levelChangeListener);
+          break;
+      }
+    });
   }
 
   /**
@@ -1865,12 +1831,8 @@ public class HomePane extends JRootPane implements HomeView {
           createHideShowBackgroundImageAction(home, popup));
       // Add a listener to home and levels on backgroundImage property change to
       // switch action according to backgroundImage change
-      addBackgroundImageChangeListener(home, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            hideShowBackgroundImageMenuItem.setAction(
-                createHideShowBackgroundImageAction(home, popup));
-          }
-        });
+      addBackgroundImageChangeListener(home, ev -> hideShowBackgroundImageMenuItem.setAction(
+          createHideShowBackgroundImageAction(home, popup)));
       return hideShowBackgroundImageMenuItem;
     } else {
       return null;
@@ -1907,29 +1869,23 @@ public class HomePane extends JRootPane implements HomeView {
       final JMenuItem makeLevelUnviewableViewableMenuItem = new JMenuItem(
           createMakeLevelUnviewableViewableAction(home, popup));
       // Add a listener to home and selected level on viewable property change to switch action
-      final PropertyChangeListener viewabilityChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            makeLevelUnviewableViewableMenuItem.setAction(
-                createMakeLevelUnviewableViewableAction(home, popup));
-          }
-        };
+      final PropertyChangeListener viewabilityChangeListener = ev -> makeLevelUnviewableViewableMenuItem.setAction(
+          createMakeLevelUnviewableViewableAction(home, popup));
       Level selectedLevel = home.getSelectedLevel();
       if (selectedLevel != null) {
         selectedLevel.addPropertyChangeListener(viewabilityChangeListener);
       }
       home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              makeLevelUnviewableViewableMenuItem.setAction(
-                  createMakeLevelUnviewableViewableAction(home, popup));
-              if (ev.getOldValue() != null) {
-                ((Level)ev.getOldValue()).removePropertyChangeListener(viewabilityChangeListener);
-              }
-              if (ev.getNewValue() != null) {
-                ((Level)ev.getNewValue()).addPropertyChangeListener(viewabilityChangeListener);
-              }
-            }
-          });
+              ev -> {
+                makeLevelUnviewableViewableMenuItem.setAction(
+                    createMakeLevelUnviewableViewableAction(home, popup));
+                if (ev.getOldValue() != null) {
+                  ((Level)ev.getOldValue()).removePropertyChangeListener(viewabilityChangeListener);
+                }
+                if (ev.getNewValue() != null) {
+                  ((Level)ev.getNewValue()).addPropertyChangeListener(viewabilityChangeListener);
+                }
+              });
       return makeLevelUnviewableViewableMenuItem;
     } else {
       return null;
@@ -1961,11 +1917,7 @@ public class HomePane extends JRootPane implements HomeView {
       final JMenu goToPointOfViewMenu = new JMenu(goToPointOfViewAction);
       updateGoToPointOfViewMenu(goToPointOfViewMenu, home, controller);
       home.addPropertyChangeListener(Home.Property.STORED_CAMERAS,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              updateGoToPointOfViewMenu(goToPointOfViewMenu, home, controller);
-            }
-          });
+              ev -> updateGoToPointOfViewMenu(goToPointOfViewMenu, home, controller));
       return goToPointOfViewMenu;
     } else {
       return null;
@@ -2378,7 +2330,7 @@ public class HomePane extends JRootPane implements HomeView {
             // Force selection again
             List<CatalogPieceOfFurniture> emptyList = Collections.emptyList();
             controller.getFurnitureCatalogController().setSelectedFurniture(emptyList);
-            controller.getFurnitureCatalogController().setSelectedFurniture(Arrays.asList(new CatalogPieceOfFurniture [] {this.selectedPiece}));
+            controller.getFurnitureCatalogController().setSelectedFurniture(Arrays.asList(this.selectedPiece));
 
             Level selectedLevel = home.getSelectedLevel();
             if (selectedLevel == null || selectedLevel.isViewable()) {
@@ -2544,18 +2496,16 @@ public class HomePane extends JRootPane implements HomeView {
       splitPane.setBorder(null);
     }
     // Add a listener to the divider that will keep invisible components hidden when the split pane is resized
-    final PropertyChangeListener resizeWeightUpdater = new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent ev) {
-        if (splitPane.getDividerLocation() <= 0) {
-          splitPane.setResizeWeight(0);
-        } else if (splitPane.getDividerLocation() + splitPane.getDividerSize() >=
-            (splitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT
-                ? splitPane.getWidth() - splitPane.getInsets().left
-                : splitPane.getHeight() - splitPane.getInsets().top)) {
-          splitPane.setResizeWeight(1);
-        } else {
-          splitPane.setResizeWeight(defaultResizeWeight);
-        }
+    final PropertyChangeListener resizeWeightUpdater = ev -> {
+      if (splitPane.getDividerLocation() <= 0) {
+        splitPane.setResizeWeight(0);
+      } else if (splitPane.getDividerLocation() + splitPane.getDividerSize() >=
+          (splitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT
+              ? splitPane.getWidth() - splitPane.getInsets().left
+              : splitPane.getHeight() - splitPane.getInsets().top)) {
+        splitPane.setResizeWeight(1);
+      } else {
+        splitPane.setResizeWeight(defaultResizeWeight);
       }
     };
     splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, resizeWeightUpdater);
@@ -2583,26 +2533,20 @@ public class HomePane extends JRootPane implements HomeView {
       });
     }
     splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY,
-        new PropertyChangeListener() {
-          public void propertyChange(final PropertyChangeEvent ev) {
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-                  if (focusOwner != null && isChildComponentInvisible(splitPane, focusOwner)) {
-                    FocusTraversalPolicy focusTraversalPolicy = getFocusTraversalPolicy();
-                    Component focusedComponent = focusTraversalPolicy.getComponentAfter(HomePane.this, focusOwner);
-                    if (focusedComponent == null) {
-                      focusedComponent = focusTraversalPolicy.getComponentBefore(HomePane.this, focusOwner);
-                    }
-                    if (focusedComponent != null) {
-                      focusedComponent.requestFocusInWindow();
-                    }
-                  }
-                  controller.setHomeProperty(dividerLocationProperty, String.valueOf(ev.getNewValue()));
+            ev -> EventQueue.invokeLater(() -> {
+              Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+              if (focusOwner != null && isChildComponentInvisible(splitPane, focusOwner)) {
+                FocusTraversalPolicy focusTraversalPolicy = getFocusTraversalPolicy();
+                Component focusedComponent = focusTraversalPolicy.getComponentAfter(HomePane.this, focusOwner);
+                if (focusedComponent == null) {
+                  focusedComponent = focusTraversalPolicy.getComponentBefore(HomePane.this, focusOwner);
                 }
-              });
-          }
-        });
+                if (focusedComponent != null) {
+                  focusedComponent.requestFocusInWindow();
+                }
+              }
+              controller.setHomeProperty(dividerLocationProperty, String.valueOf(ev.getNewValue()));
+            }));
   }
 
   /**
@@ -2687,21 +2631,13 @@ public class HomePane extends JRootPane implements HomeView {
         if (viewportY != null) {
           viewport.setViewPosition(new Point(0, viewportY.intValue()));
         }
-        viewport.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              controller.setHomeProperty(FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY, String.valueOf(viewport.getViewPosition().y));
-            }
-          });
+        viewport.addChangeListener(ev -> controller.setHomeProperty(FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY, String.valueOf(viewport.getViewPosition().y)));
         ((JViewport)furnitureView.getParent()).setComponentPopupMenu(furnitureViewPopup);
 
         if (OperatingSystem.isMacOSXHighSierraOrSuperior()
             && !OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {
           // Add missing repaint calls on viewport when scroll bar is moved
-          furnitureScrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-              public void adjustmentValueChanged(AdjustmentEvent ev) {
-                viewport.repaint();
-              }
-            });
+          furnitureScrollPane.getVerticalScrollBar().addAdjustmentListener(ev -> viewport.repaint());
         }
         furnitureView = furnitureScrollPane;
       }
@@ -2732,8 +2668,8 @@ public class HomePane extends JRootPane implements HomeView {
     private WeakReference<JComponent> furnitureCatalogView;
 
     public FurnitureCatalogViewChangeListener(HomePane homePane, JComponent furnitureCatalogView) {
-      this.homePane = new WeakReference<HomePane>(homePane);
-      this.furnitureCatalogView = new WeakReference<JComponent>(furnitureCatalogView);
+      this.homePane = new WeakReference<>(homePane);
+      this.furnitureCatalogView = new WeakReference<>(furnitureCatalogView);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -2759,7 +2695,7 @@ public class HomePane extends JRootPane implements HomeView {
           }
           ((JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, oldFurnitureCatalogView)).
               setTopComponent(splitPaneTopComponent);
-          this.furnitureCatalogView = new WeakReference<JComponent>(newFurnitureCatalogView);
+          this.furnitureCatalogView = new WeakReference<>(newFurnitureCatalogView);
         }
       }
     }
@@ -2791,14 +2727,12 @@ public class HomePane extends JRootPane implements HomeView {
         Action toggleObjectSelectionAction = this.menuActionMap.get(MenuActionType.TOGGLE_SELECTION_MENU);
         if (toggleObjectSelectionAction.getValue(Action.NAME) != null) {
           // Change "Select object" menu to "Toggle object selection" when shift key is pressed
-          final KeyEventDispatcher shiftKeyListener = new KeyEventDispatcher() {
-              public boolean dispatchKeyEvent(KeyEvent ev) {
-                selectObjectMenu.setAction(menuActionMap.get(ev.isShiftDown()
-                    ? MenuActionType.TOGGLE_SELECTION_MENU
-                    : MenuActionType.SELECT_OBJECT_MENU));
-                return false;
-              }
-            };
+          final KeyEventDispatcher shiftKeyListener = ev -> {
+            selectObjectMenu.setAction(menuActionMap.get(ev.isShiftDown()
+                ? MenuActionType.TOGGLE_SELECTION_MENU
+                : MenuActionType.SELECT_OBJECT_MENU));
+            return false;
+          };
           addAncestorListener(new AncestorListener() {
               public void ancestorAdded(AncestorEvent event) {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(shiftKeyListener);
@@ -2899,11 +2833,9 @@ public class HomePane extends JRootPane implements HomeView {
           final JComponent lockUnlockBasePlanButton = createLockUnlockBasePlanButton(home);
           if (lockUnlockBasePlanButton != null) {
             planScrollPane.setCorner(JScrollPane.UPPER_LEADING_CORNER, lockUnlockBasePlanButton);
-            planScrollPane.addPropertyChangeListener("componentOrientation", new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                if (lockUnlockBasePlanButton.getParent() != null) {
-                  planScrollPane.setCorner(JScrollPane.UPPER_LEADING_CORNER, lockUnlockBasePlanButton);
-                }
+            planScrollPane.addPropertyChangeListener("componentOrientation", ev -> {
+              if (lockUnlockBasePlanButton.getParent() != null) {
+                planScrollPane.setCorner(JScrollPane.UPPER_LEADING_CORNER, lockUnlockBasePlanButton);
               }
             });
           }
@@ -2918,13 +2850,11 @@ public class HomePane extends JRootPane implements HomeView {
         if (viewportX != null && viewportY != null) {
           viewport.setViewPosition(new Point(viewportX.intValue(), viewportY.intValue()));
         }
-        viewport.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              Point viewportPosition = viewport.getViewPosition();
-              controller.setHomeProperty(PLAN_VIEWPORT_X_VISUAL_PROPERTY, String.valueOf(viewportPosition.x));
-              controller.setHomeProperty(PLAN_VIEWPORT_Y_VISUAL_PROPERTY, String.valueOf(viewportPosition.y));
-            }
-          });
+        viewport.addChangeListener(ev -> {
+          Point viewportPosition = viewport.getViewPosition();
+          controller.setHomeProperty(PLAN_VIEWPORT_X_VISUAL_PROPERTY, String.valueOf(viewportPosition.x));
+          controller.setHomeProperty(PLAN_VIEWPORT_Y_VISUAL_PROPERTY, String.valueOf(viewportPosition.y));
+        });
       }
     }
 
@@ -2991,12 +2921,10 @@ public class HomePane extends JRootPane implements HomeView {
                 if (planView3DSplitPane.getRightComponent().getHeight() == 0) {
                   // If the 3D view is invisible, make it appear during a while
                   planView3DSplitPane.setDividerLocation(dividerLocation.intValue() - 2);
-                  new Timer(1000, new ActionListener() {
-                      public void actionPerformed(ActionEvent ev) {
-                        ((Timer)ev.getSource()).stop();
-                        planView3DSplitPane.setDividerLocation(dividerLocation.intValue());
-                      }
-                    }).start();
+                  new Timer(1000, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    planView3DSplitPane.setDividerLocation(dividerLocation.intValue());
+                  }).start();
                 }
               }
 
@@ -3020,27 +2948,25 @@ public class HomePane extends JRootPane implements HomeView {
         final Number dialogWidth = home.getNumericProperty(view3D.getClass().getName() + DETACHED_VIEW_WIDTH_VISUAL_PROPERTY);
         final Number dialogHeight = home.getNumericProperty(view3D.getClass().getName() + DETACHED_VIEW_HEIGHT_VISUAL_PROPERTY);
         if (dialogX != null && dialogY != null && dialogWidth != null && dialogHeight != null) {
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                View view3D = controller.getHomeController3D().getView();
-                // Check 3D view can be viewed in one of the available screens
-                if (getActionMap().get(ActionType.DETACH_3D_VIEW).isEnabled()
-                    && SwingTools.isRectangleVisibleAtScreen(new Rectangle(
-                        dialogX.intValue(), dialogY.intValue(), dialogWidth.intValue(), dialogHeight.intValue()))) {
-                  detachView(view3D, dialogX.intValue(), dialogY.intValue(), dialogWidth.intValue(), dialogHeight.intValue());
-                } else if (planView3DPane instanceof JSplitPane) {
-                  // Restore the divider location of the split pane displaying the 3D view
-                  final JSplitPane splitPane = ((JSplitPane)planView3DPane);
-                  final Number dividerLocation = home.getNumericProperty(
-                      view3D.getClass().getName() + DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
-                  if (dividerLocation != null
-                      && dividerLocation.floatValue() != -1f) {
-                    splitPane.setDividerLocation(dividerLocation.floatValue());
-                  }
-                  controller.setHomeProperty(view3D.getClass().getName() + DETACHED_VIEW_VISUAL_PROPERTY, String.valueOf(false));
-                }
+          EventQueue.invokeLater(() -> {
+            View view3D1 = controller.getHomeController3D().getView();
+            // Check 3D view can be viewed in one of the available screens
+            if (getActionMap().get(ActionType.DETACH_3D_VIEW).isEnabled()
+                && SwingTools.isRectangleVisibleAtScreen(new Rectangle(
+                    dialogX.intValue(), dialogY.intValue(), dialogWidth.intValue(), dialogHeight.intValue()))) {
+              detachView(view3D1, dialogX.intValue(), dialogY.intValue(), dialogWidth.intValue(), dialogHeight.intValue());
+            } else if (planView3DPane instanceof JSplitPane) {
+              // Restore the divider location of the split pane displaying the 3D view
+              final JSplitPane splitPane = ((JSplitPane)planView3DPane);
+              final Number dividerLocation = home.getNumericProperty(
+                  view3D1.getClass().getName() + DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
+              if (dividerLocation != null
+                  && dividerLocation.floatValue() != -1f) {
+                splitPane.setDividerLocation(dividerLocation.floatValue());
               }
-            });
+              controller.setHomeProperty(view3D1.getClass().getName() + DETACHED_VIEW_VISUAL_PROPERTY, String.valueOf(false));
+            }
+          });
           return planView3DPane;
         }
         controller.setHomeProperty(view3D.getClass().getName() + DETACHED_VIEW_X_VISUAL_PROPERTY, null);
@@ -3118,12 +3044,10 @@ public class HomePane extends JRootPane implements HomeView {
         }
 
         public void popupMenuWillBecomeInvisible(PopupMenuEvent ev) {
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                // Reset action to previous state
-                getActionMap().get(ActionType.DELETE_ROOM_POINT).setEnabled(deleteRoomPointActionEnabled);
-              }
-            });
+          EventQueue.invokeLater(() -> {
+            // Reset action to previous state
+            getActionMap().get(ActionType.DELETE_ROOM_POINT).setEnabled(deleteRoomPointActionEnabled);
+          });
         }
 
         public void popupMenuCanceled(PopupMenuEvent ev) {
@@ -3152,64 +3076,42 @@ public class HomePane extends JRootPane implements HomeView {
                   planController.getView().convertYPixelToModel(mouseLocation.y));
               // Prepare localized formatters
               Map<Class<? extends Selectable>, SelectableFormat> formatters =
-                  new HashMap<Class<? extends Selectable>, SelectableFormat>();
-              formatters.put(Compass.class, new SelectableFormat<Compass>() {
-                  public String format(Compass compass) {
-                    return preferences.getLocalizedString(HomePane.class, "selectObject.compass");
-                  }
-                });
-              formatters.put(HomePieceOfFurniture.class, new SelectableFormat<HomePieceOfFurniture>() {
-                  public String format(HomePieceOfFurniture piece) {
-                    if (piece.getName().length() > 0) {
-                      return piece.getName();
-                    } else {
-                      return preferences.getLocalizedString(HomePane.class, "selectObject.furniture");
-                    }
-                  }
-                });
-              formatters.put(Wall.class, new SelectableFormat<Wall>() {
-                  public String format(Wall wall) {
-                    return preferences.getLocalizedString(HomePane.class, "selectObject.wall",
-                        preferences.getLengthUnit().getFormatWithUnit().format(wall.getLength()));
-                  }
-                });
-              formatters.put(Room.class, new SelectableFormat<Room>() {
-                  public String format(Room room) {
-                    String roomInfo = room.getName() != null && room.getName().length() > 0
-                        ? room.getName()
-                        : (room.isAreaVisible()
-                              ? preferences.getLengthUnit().getAreaFormatWithUnit().format(room.getArea())
-                              : "");
-                    if (room.isFloorVisible() && !room.isCeilingVisible()) {
-                      return preferences.getLocalizedString(HomePane.class, "selectObject.floor", roomInfo);
-                    } else if (!room.isFloorVisible() && room.isCeilingVisible()) {
-                      return preferences.getLocalizedString(HomePane.class, "selectObject.ceiling", roomInfo);
-                    } else {
-                      return preferences.getLocalizedString(HomePane.class, "selectObject.room", roomInfo);
-                    }
-                  }
-                });
-              formatters.put(Polyline.class, new SelectableFormat<Polyline>() {
-                  public String format(Polyline polyline) {
-                    return preferences.getLocalizedString(HomePane.class, "selectObject.polyline",
-                        preferences.getLengthUnit().getFormatWithUnit().format(polyline.getLength()));
-                  }
-                });
-              formatters.put(DimensionLine.class, new SelectableFormat<DimensionLine>() {
-                  public String format(DimensionLine dimensionLine) {
-                    return preferences.getLocalizedString(HomePane.class, "selectObject.dimensionLine",
-                        preferences.getLengthUnit().getFormatWithUnit().format(dimensionLine.getLength()));
-                  }
-                });
-              formatters.put(Label.class, new SelectableFormat<Label>() {
-                  public String format(Label label) {
-                    if (label.getText().length() > 0) {
-                      return label.getText();
-                    } else {
-                      return preferences.getLocalizedString(HomePane.class, "selectObject.label");
-                    }
-                  }
-                });
+                      new HashMap<>();
+              formatters.put(Compass.class, (SelectableFormat<Compass>) compass -> preferences.getLocalizedString(HomePane.class, "selectObject.compass"));
+              formatters.put(HomePieceOfFurniture.class, (SelectableFormat<HomePieceOfFurniture>) piece -> {
+                if (piece.getName().length() > 0) {
+                  return piece.getName();
+                } else {
+                  return preferences.getLocalizedString(HomePane.class, "selectObject.furniture");
+                }
+              });
+              formatters.put(Wall.class, (SelectableFormat<Wall>) wall -> preferences.getLocalizedString(HomePane.class, "selectObject.wall",
+                  preferences.getLengthUnit().getFormatWithUnit().format(wall.getLength())));
+              formatters.put(Room.class, (SelectableFormat<Room>) room -> {
+                String roomInfo = room.getName() != null && room.getName().length() > 0
+                    ? room.getName()
+                    : (room.isAreaVisible()
+                          ? preferences.getLengthUnit().getAreaFormatWithUnit().format(room.getArea())
+                          : "");
+                if (room.isFloorVisible() && !room.isCeilingVisible()) {
+                  return preferences.getLocalizedString(HomePane.class, "selectObject.floor", roomInfo);
+                } else if (!room.isFloorVisible() && room.isCeilingVisible()) {
+                  return preferences.getLocalizedString(HomePane.class, "selectObject.ceiling", roomInfo);
+                } else {
+                  return preferences.getLocalizedString(HomePane.class, "selectObject.room", roomInfo);
+                }
+              });
+              formatters.put(Polyline.class, (SelectableFormat<Polyline>) polyline -> preferences.getLocalizedString(HomePane.class, "selectObject.polyline",
+                  preferences.getLengthUnit().getFormatWithUnit().format(polyline.getLength())));
+              formatters.put(DimensionLine.class, (SelectableFormat<DimensionLine>) dimensionLine -> preferences.getLocalizedString(HomePane.class, "selectObject.dimensionLine",
+                  preferences.getLengthUnit().getFormatWithUnit().format(dimensionLine.getLength())));
+              formatters.put(Label.class, (SelectableFormat<Label>) label -> {
+                if (label.getText().length() > 0) {
+                  return label.getText();
+                } else {
+                  return preferences.getLocalizedString(HomePane.class, "selectObject.label");
+                }
+              });
 
               for (final Selectable item : items) {
                 String format = null;
@@ -3255,9 +3157,9 @@ public class HomePane extends JRootPane implements HomeView {
     public RulersVisibilityChangeListener(HomePane homePane,
                                           JScrollPane planScrollPane,
                                           HomeController controller) {
-      this.homePane = new WeakReference<HomePane>(homePane);
-      this.planScrollPane = new WeakReference<JScrollPane>(planScrollPane);
-      this.controller = new WeakReference<HomeController>(controller);
+      this.homePane = new WeakReference<>(homePane);
+      this.planScrollPane = new WeakReference<>(planScrollPane);
+      this.controller = new WeakReference<>(controller);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -3324,13 +3226,11 @@ public class HomePane extends JRootPane implements HomeView {
        * Enables or disables the menu items of the given menu bar.
        */
       private void setMenusEnabled(final JMenuBar menuBar, final boolean enabled) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              for (int i = 0, n = menuBar.getMenuCount(); i < n; i++) {
-                setMenuItemsEnabled(menuBar.getMenu(i), enabled);
-              }
-            }
-          });
+        EventQueue.invokeLater(() -> {
+          for (int i = 0, n = menuBar.getMenuCount(); i < n; i++) {
+            setMenuItemsEnabled(menuBar.getMenu(i), enabled);
+          }
+        });
       }
 
       /**
@@ -3496,30 +3396,20 @@ public class HomePane extends JRootPane implements HomeView {
       separateWindow = separateDialog;
     }
 
-    defaultFrame.addPropertyChangeListener("title", new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (separateWindow instanceof JFrame) {
-            ((JFrame)separateWindow).setTitle((String)ev.getNewValue());
-          } else {
-            ((JDialog)separateWindow).setTitle((String)ev.getNewValue());
-          }
-        }
-      });
+    defaultFrame.addPropertyChangeListener("title", ev -> {
+      if (separateWindow instanceof JFrame) {
+        ((JFrame)separateWindow).setTitle((String)ev.getNewValue());
+      } else {
+        ((JDialog)separateWindow).setTitle((String)ev.getNewValue());
+      }
+    });
     final JRootPane separateRootPane = ((RootPaneContainer)separateWindow).getRootPane();
     if (defaultFrame instanceof RootPaneContainer) {
       // Use same document modified indicator
       if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-        ((RootPaneContainer)defaultFrame).getRootPane().addPropertyChangeListener("Window.documentModified", new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            separateRootPane.putClientProperty("Window.documentModified", ev.getNewValue());
-          }
-        });
+        ((RootPaneContainer)defaultFrame).getRootPane().addPropertyChangeListener("Window.documentModified", ev -> separateRootPane.putClientProperty("Window.documentModified", ev.getNewValue()));
       } else if (OperatingSystem.isMacOSX()) {
-        ((RootPaneContainer)defaultFrame).getRootPane().addPropertyChangeListener("windowModified", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              separateRootPane.putClientProperty("windowModified", ev.getNewValue());
-            }
-          });
+        ((RootPaneContainer)defaultFrame).getRootPane().addPropertyChangeListener("windowModified", ev -> separateRootPane.putClientProperty("windowModified", ev.getNewValue()));
       }
     }
 
@@ -4024,10 +3914,8 @@ public class HomePane extends JRootPane implements HomeView {
         }
         return;
       }
-    } catch (UnsupportedOperationException ex) {
+    } catch (UnsupportedOperationException | IllegalArgumentException ex) {
       // Environment doesn't support libraries
-    } catch (IllegalArgumentException ex) {
-      // Unknown about.close or about.libraries libraries
     }
     JOptionPane.showMessageDialog(this, messagePane, title, JOptionPane.INFORMATION_MESSAGE, icon);
   }
@@ -4043,11 +3931,9 @@ public class HomePane extends JRootPane implements HomeView {
       messagePane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
     }
     // Add a listener that displays hyperlinks content in browser
-    messagePane.addHyperlinkListener(new HyperlinkListener() {
-      public void hyperlinkUpdate(HyperlinkEvent ev) {
-        if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          SwingTools.showDocumentInBrowser(ev.getURL());
-        }
+    messagePane.addHyperlinkListener(ev -> {
+      if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        SwingTools.showDocumentInBrowser(ev.getURL());
       }
     });
     return messagePane;
@@ -4058,7 +3944,7 @@ public class HomePane extends JRootPane implements HomeView {
    */
   private void showLibrariesDialog(List<Library> libraries) {
     String title = this.preferences.getLocalizedString(HomePane.class, "libraries.title");
-    Map<String, String> librariesLabels = new LinkedHashMap<String, String>();
+    Map<String, String> librariesLabels = new LinkedHashMap<>();
     librariesLabels.put(UserPreferences.FURNITURE_LIBRARY_TYPE,
         this.preferences.getLocalizedString(HomePane.class, "libraries.furnitureLibraries"));
     librariesLabels.put(UserPreferences.TEXTURES_LIBRARY_TYPE,
@@ -4071,7 +3957,7 @@ public class HomePane extends JRootPane implements HomeView {
     JPanel messagePanel = new JPanel(new GridBagLayout());
     int row = 0;
     for (Map.Entry<String, String> librariesEntry : librariesLabels.entrySet()) {
-      final List<Library> typeLibraries = new ArrayList<Library>();
+      final List<Library> typeLibraries = new ArrayList<>();
       for (Library library : libraries) {
         if (librariesEntry.getKey().equals(library.getType())) {
           typeLibraries.add(library);
@@ -4334,18 +4220,16 @@ public class HomePane extends JRootPane implements HomeView {
     }
     printerJob.setJobName(jobName);
     if (printerJob.printDialog()) {
-      return new Callable<Void>() {
-          public Void call() throws RecorderException {
-            try {
-              printerJob.print();
-              return null;
-            } catch (InterruptedPrinterException ex) {
-              throw new InterruptedRecorderException("Print interrupted");
-            } catch (PrinterException ex) {
-              throw new RecorderException("Couldn't print", ex);
-            }
-          }
-        };
+      return () -> {
+        try {
+          printerJob.print();
+          return null;
+        } catch (InterruptedPrinterException ex) {
+          throw new InterruptedRecorderException("Print interrupted");
+        } catch (PrinterException ex) {
+          throw new RecorderException("Couldn't print", ex);
+        }
+      };
     } else {
       return null;
     }
@@ -4549,12 +4433,8 @@ public class HomePane extends JRootPane implements HomeView {
       return home.clone();
     } else {
       try {
-        final AtomicReference<Home> clonedHome = new AtomicReference<Home>();
-        EventQueue.invokeAndWait(new Runnable() {
-            public void run() {
-              clonedHome.set(home.clone());
-            }
-          });
+        final AtomicReference<Home> clonedHome = new AtomicReference<>();
+        EventQueue.invokeAndWait(() -> clonedHome.set(home.clone()));
         return clonedHome.get();
       } catch (InterruptedException ex) {
         throw new InterruptedRecorderException(ex.getMessage());
@@ -4575,13 +4455,13 @@ public class HomePane extends JRootPane implements HomeView {
       try {
         writer = new OBJWriter(objFile, header, -1);
 
-        List<Selectable> exportedItems = new ArrayList<Selectable>(exportAllToOBJ
-            ? home.getSelectableViewableItems()
-            : home.getSelectedItems());
+        List<Selectable> exportedItems = new ArrayList<>(exportAllToOBJ
+                ? home.getSelectableViewableItems()
+                : home.getSelectedItems());
         // Search furniture in groups
-        List<Selectable> furnitureInGroups = new ArrayList<Selectable>();
+        List<Selectable> furnitureInGroups = new ArrayList<>();
         for (Iterator<Selectable> it = exportedItems.iterator(); it.hasNext();) {
-          Selectable selectable = (Selectable)it.next();
+          Selectable selectable = it.next();
           if (selectable instanceof HomeFurnitureGroup) {
             it.remove();
             for (HomePieceOfFurniture piece : ((HomeFurnitureGroup)selectable).getAllFurniture()) {
@@ -4661,7 +4541,7 @@ public class HomePane extends JRootPane implements HomeView {
      * Returns all the visible pieces in the given <code>furniture</code>.
      */
     private static List<HomePieceOfFurniture> getVisibleFurniture(List<HomePieceOfFurniture> furniture) {
-      List<HomePieceOfFurniture> visibleFurniture = new ArrayList<HomePieceOfFurniture>(furniture.size());
+      List<HomePieceOfFurniture> visibleFurniture = new ArrayList<>(furniture.size());
       for (HomePieceOfFurniture piece : furniture) {
         if (piece.isVisible()
             && (piece.getLevel() == null
@@ -4771,7 +4651,7 @@ public class HomePane extends JRootPane implements HomeView {
   public List<Camera> showDeletedCamerasDialog() {
     // Build stored cameras list
     List<Camera> storedCameras = this.home.getStoredCameras();
-    final List<Camera> selectedCameras = new ArrayList<Camera>();
+    final List<Camera> selectedCameras = new ArrayList<>();
     final JList camerasList = new JList(storedCameras.toArray());
     camerasList.setCellRenderer(new ListCellRenderer() {
         private JCheckBox cameraCheckBox = new JCheckBox();
@@ -4845,11 +4725,7 @@ public class HomePane extends JRootPane implements HomeView {
   private void addClipboardListener() {
     if (!OperatingSystem.isMacOSX() || OperatingSystem.isJavaVersionGreaterOrEqual("1.8.0_60")) {
       try {
-        final FlavorListener flavorListener = new FlavorListener() {
-            public void flavorsChanged(FlavorEvent ev) {
-              checkClipboardContainsHomeItemsOrFiles();
-            }
-          };
+        final FlavorListener flavorListener = ev -> checkClipboardContainsHomeItemsOrFiles();
         flavorListener.flavorsChanged(null);
         // Bind listener after access control check and only
         // when needed to avoid permanent link to global clipboard
@@ -4928,44 +4804,42 @@ public class HomePane extends JRootPane implements HomeView {
     private ActionAdapter(PluginAction pluginAction) {
       this.pluginAction = pluginAction;
       this.propertyChangeSupport = new SwingPropertyChangeSupport(this);
-      this.pluginAction.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            String propertyName = ev.getPropertyName();
-            Object oldValue = ev.getOldValue();
-            Object newValue = ev.getNewValue();
-            if (PluginAction.Property.ENABLED.name().equals(propertyName)) {
-              propertyChangeSupport.firePropertyChange(
-                  new PropertyChangeEvent(ev.getSource(), "enabled", oldValue, newValue));
+      this.pluginAction.addPropertyChangeListener(ev -> {
+        String propertyName = ev.getPropertyName();
+        Object oldValue = ev.getOldValue();
+        Object newValue = ev.getNewValue();
+        if (PluginAction.Property.ENABLED.name().equals(propertyName)) {
+          propertyChangeSupport.firePropertyChange(
+              new PropertyChangeEvent(ev.getSource(), "enabled", oldValue, newValue));
+        } else {
+          // In case a property value changes, fire the new value decorated in subclasses
+          // unless new value is null (most Swing listeners don't check new value is null !)
+          if (newValue != null) {
+            if (PluginAction.Property.NAME.name().equals(propertyName)) {
+              propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                  Action.NAME, oldValue, newValue));
+            } else if (PluginAction.Property.SHORT_DESCRIPTION.name().equals(propertyName)) {
+              propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                  Action.SHORT_DESCRIPTION, oldValue, newValue));
+            } else if (PluginAction.Property.MNEMONIC.name().equals(propertyName)) {
+              propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                  Action.MNEMONIC_KEY,
+                  oldValue != null
+                      ? new Integer((Character)oldValue)
+                      : null, newValue));
+            } else if (PluginAction.Property.SMALL_ICON.name().equals(propertyName)) {
+              propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                  Action.SMALL_ICON,
+                  oldValue != null
+                     ? IconManager.getInstance().getIcon((Content)oldValue, DEFAULT_SMALL_ICON_HEIGHT, HomePane.this)
+                     : null, newValue));
             } else {
-              // In case a property value changes, fire the new value decorated in subclasses
-              // unless new value is null (most Swing listeners don't check new value is null !)
-              if (newValue != null) {
-                if (PluginAction.Property.NAME.name().equals(propertyName)) {
-                  propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                      Action.NAME, oldValue, newValue));
-                } else if (PluginAction.Property.SHORT_DESCRIPTION.name().equals(propertyName)) {
-                  propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                      Action.SHORT_DESCRIPTION, oldValue, newValue));
-                } else if (PluginAction.Property.MNEMONIC.name().equals(propertyName)) {
-                  propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                      Action.MNEMONIC_KEY,
-                      oldValue != null
-                          ? new Integer((Character)oldValue)
-                          : null, newValue));
-                } else if (PluginAction.Property.SMALL_ICON.name().equals(propertyName)) {
-                  propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                      Action.SMALL_ICON,
-                      oldValue != null
-                         ? IconManager.getInstance().getIcon((Content)oldValue, DEFAULT_SMALL_ICON_HEIGHT, HomePane.this)
-                         : null, newValue));
-                } else {
-                  propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                      propertyName, oldValue, newValue));
-                }
-              }
+              propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                  propertyName, oldValue, newValue));
             }
           }
-        });
+        }
+      });
     }
 
     public void actionPerformed(ActionEvent ev) {
@@ -5033,8 +4907,8 @@ public class HomePane extends JRootPane implements HomeView {
   /**
    * An object able to format a selectable item.
    */
-  private abstract interface SelectableFormat<T extends Selectable> {
-    public abstract String format(T item);
+  private interface SelectableFormat<T extends Selectable> {
+    String format(T item);
   }
 
   /**

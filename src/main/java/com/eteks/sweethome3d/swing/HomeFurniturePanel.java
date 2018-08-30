@@ -19,51 +19,23 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.math.BigDecimal;
-import java.security.AccessControlException;
-
-import javax.media.j3d.BranchGroup;
-import javax.swing.AbstractAction;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
 import com.eteks.sweethome3d.j3d.ModelManager;
 import com.eteks.sweethome3d.model.Transformation;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.DialogView;
-import com.eteks.sweethome3d.viewcontroller.HomeFurnitureController;
-import com.eteks.sweethome3d.viewcontroller.ModelMaterialsController;
-import com.eteks.sweethome3d.viewcontroller.TextureChoiceController;
-import com.eteks.sweethome3d.viewcontroller.View;
+import com.eteks.sweethome3d.viewcontroller.*;
+
+import javax.media.j3d.BranchGroup;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeListener;
+import java.math.BigDecimal;
+import java.security.AccessControlException;
 
 /**
  * Home furniture editing panel.
@@ -147,11 +119,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
         SwingTools.addAutoSelectionOnFocusGain(this.nameTextField);
       }
-      final PropertyChangeListener nameChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            nameTextField.setText(controller.getName());
-          }
-        };
+      final PropertyChangeListener nameChangeListener = ev -> nameTextField.setText(controller.getName());
       controller.addPropertyChangeListener(HomeFurnitureController.Property.NAME, nameChangeListener);
       this.nameTextField.getDocument().addDocumentListener(new DocumentListener() {
           public void changedUpdate(DocumentEvent ev) {
@@ -181,20 +149,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
           HomeFurniturePanel.class, "nameVisibleCheckBox.text"));
       this.nameVisibleCheckBox.setNullable(controller.getNameVisible() == null);
       this.nameVisibleCheckBox.setValue(controller.getNameVisible());
-      final PropertyChangeListener nameVisibleChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            nameVisibleCheckBox.setNullable(ev.getNewValue() == null);
-            nameVisibleCheckBox.setValue((Boolean)ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener nameVisibleChangeListener = ev -> {
+        nameVisibleCheckBox.setNullable(ev.getNewValue() == null);
+        nameVisibleCheckBox.setValue((Boolean)ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.NAME_VISIBLE, nameVisibleChangeListener);
-      this.nameVisibleCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.NAME_VISIBLE, nameVisibleChangeListener);
-            controller.setNameVisible(nameVisibleCheckBox.getValue());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.NAME_VISIBLE, nameVisibleChangeListener);
-          }
-        });
+      this.nameVisibleCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.NAME_VISIBLE, nameVisibleChangeListener);
+        controller.setNameVisible(nameVisibleCheckBox.getValue());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.NAME_VISIBLE, nameVisibleChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.DESCRIPTION)) {
@@ -204,11 +168,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
         SwingTools.addAutoSelectionOnFocusGain(this.descriptionTextField);
       }
-      final PropertyChangeListener descriptionChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            descriptionTextField.setText(controller.getDescription());
-          }
-        };
+      final PropertyChangeListener descriptionChangeListener = ev -> descriptionTextField.setText(controller.getDescription());
       controller.addPropertyChangeListener(HomeFurnitureController.Property.DESCRIPTION, descriptionChangeListener);
       this.descriptionTextField.getDocument().addDocumentListener(new DocumentListener() {
           public void changedUpdate(DocumentEvent ev) {
@@ -242,20 +202,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       BigDecimal price = controller.getPrice();
       priceSpinnerModel.setNullable(true);
       priceSpinnerModel.setValue(price);
-      final PropertyChangeListener priceChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            priceSpinnerModel.setNullable(ev.getNewValue() == null);
-            priceSpinnerModel.setValue(ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener priceChangeListener = ev -> {
+        priceSpinnerModel.setNullable(ev.getNewValue() == null);
+        priceSpinnerModel.setValue(ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.PRICE, priceChangeListener);
-      priceSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.PRICE, priceChangeListener);
-            controller.setPrice((BigDecimal)priceSpinnerModel.getNumber());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.PRICE, priceChangeListener);
-          }
-        });
+      priceSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.PRICE, priceChangeListener);
+        controller.setPrice((BigDecimal)priceSpinnerModel.getNumber());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.PRICE, priceChangeListener);
+      });
 
       if (controller.isPropertyEditable(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE)) {
         this.valueAddedTaxPercentageLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
@@ -271,26 +227,22 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
         } else {
           valueAddedTaxPercentageSpinnerModel.setValue(null);
         }
-        final PropertyChangeListener propertyChangeListener = new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              priceSpinnerModel.setNullable(ev.getNewValue() == null);
-              if (ev.getNewValue() != null) {
-                valueAddedTaxPercentageSpinnerModel.setValue(((BigDecimal)ev.getNewValue()).multiply(hundred));
-              } else {
-                valueAddedTaxPercentageSpinnerModel.setValue(null);
-              }
-            }
-          };
-        valueAddedTaxPercentageSpinnerModel.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              // Remove listener on controller to avoid being recalled since actual value is divided by 100
-              controller.removePropertyChangeListener(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE, propertyChangeListener);
-              controller.setValueAddedTaxPercentage(valueAddedTaxPercentageSpinnerModel.getValue() != null
-                  ? ((BigDecimal)valueAddedTaxPercentageSpinnerModel.getValue()).divide(hundred)
-                  : null);
-              controller.addPropertyChangeListener(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE, propertyChangeListener);
-            }
-          });
+        final PropertyChangeListener propertyChangeListener = ev -> {
+          priceSpinnerModel.setNullable(ev.getNewValue() == null);
+          if (ev.getNewValue() != null) {
+            valueAddedTaxPercentageSpinnerModel.setValue(((BigDecimal)ev.getNewValue()).multiply(hundred));
+          } else {
+            valueAddedTaxPercentageSpinnerModel.setValue(null);
+          }
+        };
+        valueAddedTaxPercentageSpinnerModel.addChangeListener(ev -> {
+          // Remove listener on controller to avoid being recalled since actual value is divided by 100
+          controller.removePropertyChangeListener(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE, propertyChangeListener);
+          controller.setValueAddedTaxPercentage(valueAddedTaxPercentageSpinnerModel.getValue() != null
+              ? ((BigDecimal)valueAddedTaxPercentageSpinnerModel.getValue()).divide(hundred)
+              : null);
+          controller.addPropertyChangeListener(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE, propertyChangeListener);
+        });
         controller.addPropertyChangeListener(HomeFurnitureController.Property.VALUE_ADDED_TAX_PERCENTAGE,
             propertyChangeListener);
       }
@@ -307,20 +259,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       this.xSpinner = new NullableSpinner(xSpinnerModel);
       xSpinnerModel.setNullable(controller.getX() == null);
       xSpinnerModel.setLength(controller.getX());
-      final PropertyChangeListener xChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            xSpinnerModel.setNullable(ev.getNewValue() == null);
-            xSpinnerModel.setLength((Float)ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener xChangeListener = ev -> {
+        xSpinnerModel.setNullable(ev.getNewValue() == null);
+        xSpinnerModel.setLength((Float)ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.X, xChangeListener);
-      xSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.X, xChangeListener);
-            controller.setX(xSpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.X, xChangeListener);
-          }
-        });
+      xSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.X, xChangeListener);
+        controller.setX(xSpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.X, xChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.Y)) {
@@ -332,20 +280,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       this.ySpinner = new NullableSpinner(ySpinnerModel);
       ySpinnerModel.setNullable(controller.getY() == null);
       ySpinnerModel.setLength(controller.getY());
-      final PropertyChangeListener yChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            ySpinnerModel.setNullable(ev.getNewValue() == null);
-            ySpinnerModel.setLength((Float) ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener yChangeListener = ev -> {
+        ySpinnerModel.setNullable(ev.getNewValue() == null);
+        ySpinnerModel.setLength((Float) ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.Y, yChangeListener);
-      ySpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.Y, yChangeListener);
-            controller.setY(ySpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.Y, yChangeListener);
-          }
-        });
+      ySpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.Y, yChangeListener);
+        controller.setY(ySpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.Y, yChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.ELEVATION)) {
@@ -357,20 +301,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       this.elevationSpinner = new NullableSpinner(elevationSpinnerModel);
       elevationSpinnerModel.setNullable(controller.getElevation() == null);
       elevationSpinnerModel.setLength(controller.getElevation());
-      final PropertyChangeListener elevationChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            elevationSpinnerModel.setNullable(ev.getNewValue() == null);
-            elevationSpinnerModel.setLength((Float) ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener elevationChangeListener = ev -> {
+        elevationSpinnerModel.setNullable(ev.getNewValue() == null);
+        elevationSpinnerModel.setLength((Float) ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.ELEVATION, elevationChangeListener);
-      elevationSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.ELEVATION, elevationChangeListener);
-            controller.setElevation(elevationSpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.ELEVATION, elevationChangeListener);
-          }
-        });
+      elevationSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.ELEVATION, elevationChangeListener);
+        controller.setElevation(elevationSpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.ELEVATION, elevationChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.ANGLE_IN_DEGREES)
@@ -384,27 +324,23 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       Float angle = controller.getAngle();
       angleSpinnerModel.setNullable(angle == null);
       angleSpinnerModel.setValue(angle != null ? new Float((float)Math.toDegrees(angle)) : null);
-      final PropertyChangeListener angleChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float newAngle = (Float)ev.getNewValue();
-            angleSpinnerModel.setNullable(newAngle == null);
-            angleSpinnerModel.setValue(newAngle != null ? new Float((float)Math.toDegrees(newAngle)) : null);
-          }
-        };
+      final PropertyChangeListener angleChangeListener = ev -> {
+        Float newAngle = (Float)ev.getNewValue();
+        angleSpinnerModel.setNullable(newAngle == null);
+        angleSpinnerModel.setValue(newAngle != null ? new Float((float)Math.toDegrees(newAngle)) : null);
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.ANGLE, angleChangeListener);
-      angleSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.ANGLE,
-                angleChangeListener);
-            Number value = (Number)angleSpinnerModel.getValue();
-            if (value == null) {
-              controller.setAngle(null);
-            } else {
-              controller.setAngle((float)Math.toRadians(value.doubleValue()));
-            }
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.ANGLE, angleChangeListener);
-          }
-        });
+      angleSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.ANGLE,
+            angleChangeListener);
+        Number value = (Number)angleSpinnerModel.getValue();
+        if (value == null) {
+          controller.setAngle(null);
+        } else {
+          controller.setAngle((float)Math.toRadians(value.doubleValue()));
+        }
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.ANGLE, angleChangeListener);
+      });
     }
 
     if (!Boolean.getBoolean("com.eteks.sweethome3d.no3D")) {
@@ -412,11 +348,9 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
         // Create roll label and its spinner bound to ROLL_IN_DEGREES controller property
         this.rollRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, HomeFurniturePanel.class,
             "rollRadioButton.text"));
-        this.rollRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (rollRadioButton.isSelected()) {
-              controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
-            }
+        this.rollRadioButton.addChangeListener(ev -> {
+          if (rollRadioButton.isSelected()) {
+            controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
           }
         });
 
@@ -426,41 +360,35 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
         Float roll = controller.getRoll();
         rollSpinnerModel.setNullable(roll == null);
         rollSpinnerModel.setValue(roll != null ? new Float((float)Math.toDegrees(roll)) : null);
-        final PropertyChangeListener rollChangeListener = new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              Float newRoll = (Float)ev.getNewValue();
-              rollSpinnerModel.setNullable(newRoll == null);
-              rollSpinnerModel.setValue(newRoll != null ? new Float((float)Math.toDegrees(newRoll)) : null);
-            }
-          };
+        final PropertyChangeListener rollChangeListener = ev -> {
+          Float newRoll = (Float)ev.getNewValue();
+          rollSpinnerModel.setNullable(newRoll == null);
+          rollSpinnerModel.setValue(newRoll != null ? new Float((float)Math.toDegrees(newRoll)) : null);
+        };
         controller.addPropertyChangeListener(HomeFurnitureController.Property.ROLL, rollChangeListener);
-        rollSpinnerModel.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              controller.removePropertyChangeListener(HomeFurnitureController.Property.ROLL,
-                  rollChangeListener);
-              Number value = (Number)rollSpinnerModel.getValue();
-              if (value == null) {
-                controller.setRoll(null);
-              } else {
-                controller.setRoll((float)Math.toRadians(value.floatValue()));
-              }
-              controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
-              controller.addPropertyChangeListener(HomeFurnitureController.Property.ROLL, rollChangeListener);
-            }
-          });
+        rollSpinnerModel.addChangeListener(ev -> {
+          controller.removePropertyChangeListener(HomeFurnitureController.Property.ROLL,
+              rollChangeListener);
+          Number value = (Number)rollSpinnerModel.getValue();
+          if (value == null) {
+            controller.setRoll(null);
+          } else {
+            controller.setRoll((float)Math.toRadians(value.floatValue()));
+          }
+          controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
+          controller.addPropertyChangeListener(HomeFurnitureController.Property.ROLL, rollChangeListener);
+        });
       }
 
       if (controller.isPropertyEditable(HomeFurnitureController.Property.PITCH)) {
         // Create pitch label and its spinner bound to PITCH_IN_DEGREES controller property
         this.pitchRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, HomeFurniturePanel.class,
             "pitchRadioButton.text"));
-        this.pitchRadioButton.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              if (pitchRadioButton.isSelected()) {
-                controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
-              }
-            }
-          });
+        this.pitchRadioButton.addChangeListener(ev -> {
+          if (pitchRadioButton.isSelected()) {
+            controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+          }
+        });
 
         final NullableSpinner.NullableSpinnerNumberModel pitchSpinnerModel = new NullableSpinner.NullableSpinnerModuloNumberModel(
             0f, 0f, 360f, 1f);
@@ -468,28 +396,24 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
         Float pitch = controller.getPitch();
         pitchSpinnerModel.setNullable(pitch == null);
         pitchSpinnerModel.setValue(pitch != null ? new Float((float)Math.toDegrees(pitch)) : null);
-        final PropertyChangeListener pitchChangeListener = new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              Float newPitch = (Float)ev.getNewValue();
-              pitchSpinnerModel.setNullable(newPitch == null);
-              pitchSpinnerModel.setValue(newPitch != null ? new Float((float)Math.toDegrees(newPitch)) : null);
-            }
-          };
+        final PropertyChangeListener pitchChangeListener = ev -> {
+          Float newPitch = (Float)ev.getNewValue();
+          pitchSpinnerModel.setNullable(newPitch == null);
+          pitchSpinnerModel.setValue(newPitch != null ? new Float((float)Math.toDegrees(newPitch)) : null);
+        };
         controller.addPropertyChangeListener(HomeFurnitureController.Property.PITCH, pitchChangeListener);
-        pitchSpinnerModel.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              controller.removePropertyChangeListener(HomeFurnitureController.Property.PITCH,
-                  pitchChangeListener);
-              Number value = (Number)pitchSpinnerModel.getValue();
-              if (value == null) {
-                controller.setPitch(null);
-              } else {
-                controller.setPitch((float)Math.toRadians(value.floatValue()));
-              }
-              controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
-              controller.addPropertyChangeListener(HomeFurnitureController.Property.PITCH, pitchChangeListener);
-            }
-          });
+        pitchSpinnerModel.addChangeListener(ev -> {
+          controller.removePropertyChangeListener(HomeFurnitureController.Property.PITCH,
+              pitchChangeListener);
+          Number value = (Number)pitchSpinnerModel.getValue();
+          if (value == null) {
+            controller.setPitch(null);
+          } else {
+            controller.setPitch((float)Math.toRadians(value.floatValue()));
+          }
+          controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+          controller.addPropertyChangeListener(HomeFurnitureController.Property.PITCH, pitchChangeListener);
+        });
       }
 
       if (this.rollRadioButton != null && this.pitchRadioButton != null) {
@@ -497,11 +421,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
         group.add(this.rollRadioButton);
         group.add(this.pitchRadioButton);
         updateHorizontalAxisRadioButtons(controller);
-        controller.addPropertyChangeListener(HomeFurnitureController.Property.HORIZONTAL_AXIS, new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              updateHorizontalAxisRadioButtons(controller);
-            }
-          });
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.HORIZONTAL_AXIS, ev -> updateHorizontalAxisRadioButtons(controller));
       }
     }
 
@@ -517,23 +437,19 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       }
       this.basePlanItemCheckBox.setNullable(controller.getBasePlanItem() == null);
       this.basePlanItemCheckBox.setValue(controller.getBasePlanItem());
-      final PropertyChangeListener basePlanItemModelChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            basePlanItemCheckBox.setNullable(ev.getNewValue() == null);
-            basePlanItemCheckBox.setValue((Boolean) ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener basePlanItemModelChangeListener = ev -> {
+        basePlanItemCheckBox.setNullable(ev.getNewValue() == null);
+        basePlanItemCheckBox.setValue((Boolean) ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.BASE_PLAN_ITEM,
           basePlanItemModelChangeListener);
-      this.basePlanItemCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.BASE_PLAN_ITEM,
-                basePlanItemModelChangeListener);
-            controller.setBasePlanItem(basePlanItemCheckBox.getValue());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.BASE_PLAN_ITEM,
-                basePlanItemModelChangeListener);
-          }
-        });
+      this.basePlanItemCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.BASE_PLAN_ITEM,
+            basePlanItemModelChangeListener);
+        controller.setBasePlanItem(basePlanItemCheckBox.getValue());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.BASE_PLAN_ITEM,
+            basePlanItemModelChangeListener);
+      });
       this.basePlanItemCheckBox.setEnabled(controller.isBasePlanItemEnabled());
     }
 
@@ -546,25 +462,21 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       final NullableSpinner.NullableSpinnerLengthModel widthSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
           preferences, minimumLength, maximumLength);
       this.widthSpinner = new NullableSpinner(widthSpinnerModel);
-      final PropertyChangeListener widthChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float width = controller.getWidth();
-            widthSpinnerModel.setNullable(width == null);
-            widthSpinnerModel.setLength(width);
-            if (width != null) {
-              widthSpinnerModel.setMinimumLength(Math.min(width, minimumLength));
-            }
-          }
-        };
+      final PropertyChangeListener widthChangeListener = ev -> {
+        Float width = controller.getWidth();
+        widthSpinnerModel.setNullable(width == null);
+        widthSpinnerModel.setLength(width);
+        if (width != null) {
+          widthSpinnerModel.setMinimumLength(Math.min(width, minimumLength));
+        }
+      };
       widthChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(HomeFurnitureController.Property.WIDTH, widthChangeListener);
-      widthSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.WIDTH, widthChangeListener);
-            controller.setWidth(widthSpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.WIDTH, widthChangeListener);
-          }
-        });
+      widthSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.WIDTH, widthChangeListener);
+        controller.setWidth(widthSpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.WIDTH, widthChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.DEPTH)) {
@@ -574,25 +486,21 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       final NullableSpinner.NullableSpinnerLengthModel depthSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
           preferences, minimumLength, maximumLength);
       this.depthSpinner = new NullableSpinner(depthSpinnerModel);
-      final PropertyChangeListener depthChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float depth = controller.getDepth();
-            depthSpinnerModel.setNullable(depth == null);
-            depthSpinnerModel.setLength(depth);
-            if (depth != null) {
-              depthSpinnerModel.setMinimumLength(Math.min(depth, minimumLength));
-            }
-          }
-        };
+      final PropertyChangeListener depthChangeListener = ev -> {
+        Float depth = controller.getDepth();
+        depthSpinnerModel.setNullable(depth == null);
+        depthSpinnerModel.setLength(depth);
+        if (depth != null) {
+          depthSpinnerModel.setMinimumLength(Math.min(depth, minimumLength));
+        }
+      };
       depthChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(HomeFurnitureController.Property.DEPTH, depthChangeListener);
-      depthSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.DEPTH, depthChangeListener);
-            controller.setDepth(depthSpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.DEPTH, depthChangeListener);
-          }
-        });
+      depthSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.DEPTH, depthChangeListener);
+        controller.setDepth(depthSpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.DEPTH, depthChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.HEIGHT)) {
@@ -602,36 +510,28 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       final NullableSpinner.NullableSpinnerLengthModel heightSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
           preferences, minimumLength, maximumLength);
       this.heightSpinner = new NullableSpinner(heightSpinnerModel);
-      final PropertyChangeListener heightChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float height = controller.getHeight();
-            heightSpinnerModel.setNullable(height == null);
-            heightSpinnerModel.setLength(height);
-            if (height != null) {
-              heightSpinnerModel.setMinimumLength(Math.min(height, minimumLength));
-            }
-          }
-        };
+      final PropertyChangeListener heightChangeListener = ev -> {
+        Float height = controller.getHeight();
+        heightSpinnerModel.setNullable(height == null);
+        heightSpinnerModel.setLength(height);
+        if (height != null) {
+          heightSpinnerModel.setMinimumLength(Math.min(height, minimumLength));
+        }
+      };
       heightChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(HomeFurnitureController.Property.HEIGHT, heightChangeListener);
-      heightSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.HEIGHT, heightChangeListener);
-            controller.setHeight(heightSpinnerModel.getLength());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.HEIGHT, heightChangeListener);
-          }
-        });
+      heightSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.HEIGHT, heightChangeListener);
+        controller.setHeight(heightSpinnerModel.getLength());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.HEIGHT, heightChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.PROPORTIONAL)) {
       // Create keep proportions check box bound to PROPORTIONAL controller property
       this.keepProportionsCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           ImportedFurnitureWizardStepsPanel.class, "keepProportionsCheckBox.text"));
-      this.keepProportionsCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setProportional(keepProportionsCheckBox.isSelected());
-          }
-        });
+      this.keepProportionsCheckBox.addItemListener(ev -> controller.setProportional(keepProportionsCheckBox.isSelected()));
       this.keepProportionsCheckBox.setSelected(controller.isProportional()
           // Force proportional if selection is rotated around horizontal axis when no 3D is available
           || Boolean.getBoolean("com.eteks.sweethome3d.no3D")
@@ -639,12 +539,10 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
                  || controller.getRoll() != 0
                  || controller.getPitch() == null
                  || controller.getPitch() != 0));
-      controller.addPropertyChangeListener(HomeFurnitureController.Property.PROPORTIONAL, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If proportional property changes update keep proportions check box
-            keepProportionsCheckBox.setSelected(controller.isProportional());
-          }
-        });
+      controller.addPropertyChangeListener(HomeFurnitureController.Property.PROPORTIONAL, ev -> {
+        // If proportional property changes update keep proportions check box
+        keepProportionsCheckBox.setSelected(controller.isProportional());
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.MODEL_MIRRORED)) {
@@ -658,22 +556,18 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       }
       this.mirroredModelCheckBox.setNullable(controller.getModelMirrored() == null);
       this.mirroredModelCheckBox.setValue(controller.getModelMirrored());
-      final PropertyChangeListener mirroredModelChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            mirroredModelCheckBox.setNullable(ev.getNewValue() == null);
-            mirroredModelCheckBox.setValue((Boolean) ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener mirroredModelChangeListener = ev -> {
+        mirroredModelCheckBox.setNullable(ev.getNewValue() == null);
+        mirroredModelCheckBox.setValue((Boolean) ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.MODEL_MIRRORED, mirroredModelChangeListener);
-      this.mirroredModelCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.MODEL_MIRRORED,
-                mirroredModelChangeListener);
-            controller.setModelMirrored(mirroredModelCheckBox.getValue());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.MODEL_MIRRORED,
-                mirroredModelChangeListener);
-          }
-        });
+      this.mirroredModelCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.MODEL_MIRRORED,
+            mirroredModelChangeListener);
+        controller.setModelMirrored(mirroredModelCheckBox.getValue());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.MODEL_MIRRORED,
+            mirroredModelChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.MODEL_TRANSFORMATIONS)) {
@@ -698,11 +592,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
                               ? "mannequinTransformationsButton.text"
                               : "modelTransformationsButton.text"));
                       modelTransformationsButton.setVisible(true);
-                      modelTransformationsButton.addActionListener(new ActionListener() {
-                          public void actionPerformed(ActionEvent ev) {
-                            displayModelTransformationsView(preferences, controller);
-                          }
-                        });
+                      modelTransformationsButton.addActionListener(ev -> displayModelTransformationsView(preferences, controller));
                     }
                   }
 
@@ -723,29 +613,21 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       this.defaultColorAndTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
           HomeFurniturePanel.class, "defaultColorAndTextureRadioButton.text"));
       buttonGroup.add(this.defaultColorAndTextureRadioButton);
-      this.defaultColorAndTextureRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (defaultColorAndTextureRadioButton.isSelected()) {
-              controller.setPaint(HomeFurnitureController.FurniturePaint.DEFAULT);
-            }
-          }
-        });
-      controller.addPropertyChangeListener(HomeFurnitureController.Property.PAINT, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updatePaintRadioButtons(controller);
-          }
-        });
+      this.defaultColorAndTextureRadioButton.addChangeListener(ev -> {
+        if (defaultColorAndTextureRadioButton.isSelected()) {
+          controller.setPaint(HomeFurnitureController.FurniturePaint.DEFAULT);
+        }
+      });
+      controller.addPropertyChangeListener(HomeFurnitureController.Property.PAINT, ev -> updatePaintRadioButtons(controller));
 
       this.colorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, HomeFurniturePanel.class,
           "colorRadioButton.text"));
       buttonGroup.add(this.colorRadioButton);
-      this.colorRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (colorRadioButton.isSelected()) {
-              controller.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
-            }
-          }
-        });
+      this.colorRadioButton.addChangeListener(ev -> {
+        if (colorRadioButton.isSelected()) {
+          controller.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
+        }
+      });
 
       this.colorButton = new ColorButton(preferences);
       if (OperatingSystem.isMacOSX()) {
@@ -755,29 +637,21 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       this.colorButton.setColorDialogTitle(preferences
           .getLocalizedString(HomeFurniturePanel.class, "colorDialog.title"));
       this.colorButton.setColor(controller.getColor());
-      this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setColor(colorButton.getColor());
-            controller.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
-          }
-        });
-      controller.addPropertyChangeListener(HomeFurnitureController.Property.COLOR, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            colorButton.setColor(controller.getColor());
-          }
-        });
+      this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, ev -> {
+        controller.setColor(colorButton.getColor());
+        controller.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
+      });
+      controller.addPropertyChangeListener(HomeFurnitureController.Property.COLOR, ev -> colorButton.setColor(controller.getColor()));
 
       TextureChoiceController textureController = controller.getTextureController();
       if (textureController != null) {
         this.textureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
             HomeFurniturePanel.class, "textureRadioButton.text"));
-        this.textureRadioButton.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              if (textureRadioButton.isSelected()) {
-                controller.setPaint(HomeFurnitureController.FurniturePaint.TEXTURED);
-              }
-            }
-          });
+        this.textureRadioButton.addChangeListener(ev -> {
+          if (textureRadioButton.isSelected()) {
+            controller.setPaint(HomeFurnitureController.FurniturePaint.TEXTURED);
+          }
+        });
         this.textureComponent = (JComponent) textureController.getView();
         if (OperatingSystem.isMacOSX()) {
           this.textureComponent.putClientProperty("JButton.buttonType", "segmented");
@@ -792,13 +666,11 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
             && !Boolean.getBoolean("com.eteks.sweethome3d.no3D")) {
           this.modelMaterialsRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
               HomeFurniturePanel.class, "modelMaterialsRadioButton.text"));
-          this.modelMaterialsRadioButton.addChangeListener(new ChangeListener() {
-              public void stateChanged(ChangeEvent ev) {
-                if (modelMaterialsRadioButton.isSelected()) {
-                  controller.setPaint(HomeFurnitureController.FurniturePaint.MODEL_MATERIALS);
-                }
-              }
-            });
+          this.modelMaterialsRadioButton.addChangeListener(ev -> {
+            if (modelMaterialsRadioButton.isSelected()) {
+              controller.setPaint(HomeFurnitureController.FurniturePaint.MODEL_MATERIALS);
+            }
+          });
           this.modelMaterialsComponent = (JComponent)modelMaterialsController.getView();
           if (OperatingSystem.isMacOSX()) {
             this.modelMaterialsComponent.putClientProperty("JButton.buttonType", "segmented");
@@ -818,36 +690,26 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       // Create radio buttons bound to SHININESS controller properties
       this.defaultShininessRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
           HomeFurniturePanel.class, "defaultShininessRadioButton.text"));
-      this.defaultShininessRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (defaultShininessRadioButton.isSelected()) {
-              controller.setShininess(HomeFurnitureController.FurnitureShininess.DEFAULT);
-            }
-          }
-        });
-      controller.addPropertyChangeListener(HomeFurnitureController.Property.SHININESS, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateShininessRadioButtons(controller);
-          }
-        });
+      this.defaultShininessRadioButton.addChangeListener(ev -> {
+        if (defaultShininessRadioButton.isSelected()) {
+          controller.setShininess(HomeFurnitureController.FurnitureShininess.DEFAULT);
+        }
+      });
+      controller.addPropertyChangeListener(HomeFurnitureController.Property.SHININESS, ev -> updateShininessRadioButtons(controller));
       this.mattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, HomeFurniturePanel.class,
           "mattRadioButton.text"));
-      this.mattRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (mattRadioButton.isSelected()) {
-              controller.setShininess(HomeFurnitureController.FurnitureShininess.MATT);
-            }
-          }
-        });
+      this.mattRadioButton.addChangeListener(ev -> {
+        if (mattRadioButton.isSelected()) {
+          controller.setShininess(HomeFurnitureController.FurnitureShininess.MATT);
+        }
+      });
       this.shinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, HomeFurniturePanel.class,
           "shinyRadioButton.text"));
-      this.shinyRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (shinyRadioButton.isSelected()) {
-              controller.setShininess(HomeFurnitureController.FurnitureShininess.SHINY);
-            }
-          }
-        });
+      this.shinyRadioButton.addChangeListener(ev -> {
+        if (shinyRadioButton.isSelected()) {
+          controller.setShininess(HomeFurnitureController.FurnitureShininess.SHINY);
+        }
+      });
       ButtonGroup buttonGroup = new ButtonGroup();
       buttonGroup.add(this.defaultShininessRadioButton);
       buttonGroup.add(this.mattRadioButton);
@@ -865,20 +727,16 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
           HomeFurniturePanel.class, "visibleCheckBox.text"));
       this.visibleCheckBox.setNullable(controller.getVisible() == null);
       this.visibleCheckBox.setValue(controller.getVisible());
-      final PropertyChangeListener visibleChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            visibleCheckBox.setNullable(ev.getNewValue() == null);
-            visibleCheckBox.setValue((Boolean) ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener visibleChangeListener = ev -> {
+        visibleCheckBox.setNullable(ev.getNewValue() == null);
+        visibleCheckBox.setValue((Boolean) ev.getNewValue());
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.VISIBLE, visibleChangeListener);
-      this.visibleCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.VISIBLE, visibleChangeListener);
-            controller.setVisible(visibleCheckBox.getValue());
-            controller.addPropertyChangeListener(HomeFurnitureController.Property.VISIBLE, visibleChangeListener);
-          }
-        });
+      this.visibleCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.VISIBLE, visibleChangeListener);
+        controller.setVisible(visibleCheckBox.getValue());
+        controller.addPropertyChangeListener(HomeFurnitureController.Property.VISIBLE, visibleChangeListener);
+      });
     }
 
     if (controller.isPropertyEditable(HomeFurnitureController.Property.LIGHT_POWER)) {
@@ -892,34 +750,26 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
       lightPowerSpinnerModel.setValue(controller.getLightPower() != null
           ? Math.round(controller.getLightPower() * 100)
           : null);
-      final PropertyChangeListener lightPowerChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float lightPower = (Float) ev.getNewValue();
-            lightPowerSpinnerModel.setNullable(lightPower == null);
-            lightPowerSpinnerModel.setValue(lightPower != null
-                ? Math.round((Float)ev.getNewValue() * 100)
-                : null);
-          }
-        };
+      final PropertyChangeListener lightPowerChangeListener = ev -> {
+        Float lightPower = (Float) ev.getNewValue();
+        lightPowerSpinnerModel.setNullable(lightPower == null);
+        lightPowerSpinnerModel.setValue(lightPower != null
+            ? Math.round((Float)ev.getNewValue() * 100)
+            : null);
+      };
       controller.addPropertyChangeListener(HomeFurnitureController.Property.LIGHT_POWER, lightPowerChangeListener);
-      lightPowerSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(HomeFurnitureController.Property.LIGHT_POWER,
-                lightPowerChangeListener);
-            controller.setLightPower(((Number) lightPowerSpinnerModel.getValue()).floatValue() / 100f);
-            controller
-                .addPropertyChangeListener(HomeFurnitureController.Property.LIGHT_POWER, lightPowerChangeListener);
-          }
-        });
+      lightPowerSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(HomeFurnitureController.Property.LIGHT_POWER,
+            lightPowerChangeListener);
+        controller.setLightPower(((Number) lightPowerSpinnerModel.getValue()).floatValue() / 100f);
+        controller
+            .addPropertyChangeListener(HomeFurnitureController.Property.LIGHT_POWER, lightPowerChangeListener);
+      });
     }
 
     updateSizeComponents(controller);
     // Add a listener that enables / disables size fields depending on furniture resizable and deformable
-    PropertyChangeListener sizeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          updateSizeComponents(controller);
-        }
-      };
+    PropertyChangeListener sizeListener = ev -> updateSizeComponents(controller);
     controller.addPropertyChangeListener(HomeFurnitureController.Property.RESIZABLE, sizeListener);
     controller.addPropertyChangeListener(HomeFurnitureController.Property.DEFORMABLE, sizeListener);
 
@@ -1410,11 +1260,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
           GridBagConstraints.BOTH, new Insets(0, 0, rowGap, 0), 0, 0));
 
       controller.addPropertyChangeListener(HomeFurnitureController.Property.TEXTURABLE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              paintPanel.setVisible(controller.isTexturable());
-            }
-          });
+              ev -> paintPanel.setVisible(controller.isTexturable()));
       paintPanel.setVisible(controller.isTexturable());
     }
     if (this.defaultShininessRadioButton != null) {
@@ -1440,11 +1286,7 @@ public class HomeFurniturePanel extends JPanel implements DialogView {
           GridBagConstraints.BOTH, new Insets(0, 0, rowGap, 0), 0, 0));
 
       controller.addPropertyChangeListener(HomeFurnitureController.Property.TEXTURABLE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              shininessPanel.setVisible(controller.isTexturable());
-            }
-          });
+              ev -> shininessPanel.setVisible(controller.isTexturable()));
       shininessPanel.setVisible(controller.isTexturable());
     }
     // Last row

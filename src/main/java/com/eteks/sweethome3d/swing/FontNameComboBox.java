@@ -99,12 +99,10 @@ public class FontNameComboBox extends JComboBox {
     // If selected item is not null, and first item is, remove first item
     } else if (firstItem == null && item != null) {
       // Remove item and reselect item later to make it work
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            model.removeElementAt(0);
-            FontNameComboBox.super.setSelectedItem(item);
-          }
-        });
+      EventQueue.invokeLater(() -> {
+        model.removeElementAt(0);
+        FontNameComboBox.super.setSelectedItem(item);
+      });
     // If selected item is an unknown font, add it as first item
     } else if (firstItem != item 
                && Arrays.binarySearch(availableFontNames, item) < 0 

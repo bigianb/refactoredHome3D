@@ -105,8 +105,8 @@ public class FurnitureCatalogTransferHandler extends VisualTransferHandler {
   protected Transferable createTransferable(JComponent source) {
     List<CatalogPieceOfFurniture> selectedCatalogFurniture = this.catalogController.getSelectedFurniture();
     if (!selectedCatalogFurniture.isEmpty()) {
-      List<HomePieceOfFurniture> transferedFurniture = 
-          new ArrayList<HomePieceOfFurniture>(selectedCatalogFurniture.size());
+      List<HomePieceOfFurniture> transferedFurniture =
+              new ArrayList<>(selectedCatalogFurniture.size());
       for (CatalogPieceOfFurniture catalogPiece : selectedCatalogFurniture) {
         transferedFurniture.add(this.furnitureController.createHomePieceOfFurniture(catalogPiece));
       }
@@ -134,18 +134,14 @@ public class FurnitureCatalogTransferHandler extends VisualTransferHandler {
     if (canImport(destination, transferable.getTransferDataFlavors())) {
       try {
         List<File> files = (List<File>)transferable.getTransferData(DataFlavor.javaFileListFlavor);
-        final List<String> importableModels = new ArrayList<String>();        
+        final List<String> importableModels = new ArrayList<>();
         for (File file : files) {
           final String absolutePath = file.getAbsolutePath();
           if (this.contentManager.isAcceptable(absolutePath, ContentManager.ContentType.MODEL)) {
             importableModels.add(absolutePath);
           }        
         }
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              catalogController.dropFiles(importableModels);
-            }
-          });
+        EventQueue.invokeLater(() -> catalogController.dropFiles(importableModels));
         return !importableModels.isEmpty();
       } catch (UnsupportedFlavorException ex) {
         throw new RuntimeException("Can't import", ex);

@@ -30,5 +30,5 @@ public interface CollectionListener<T> extends EventListener {
   /**
    * Called when an item is added or deleted from a collection.
    */
-  public void collectionChanged(CollectionEvent<T> ev);
+  void collectionChanged(CollectionEvent<T> ev);
 }

@@ -259,7 +259,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
     private WeakReference<HomeFurnitureGroup> group;
 
     public LocationAndSizeChangeListener(HomeFurnitureGroup group) {
-      this.group = new WeakReference<HomeFurnitureGroup>(group);
+      this.group = new WeakReference<>(group);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -283,7 +283,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
    * Returns all the pieces of the given <code>furniture</code> list.
    */
   private List<HomePieceOfFurniture> getFurnitureWithoutGroups(List<HomePieceOfFurniture> furniture) {
-    List<HomePieceOfFurniture> pieces = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> pieces = new ArrayList<>();
     for (HomePieceOfFurniture piece : furniture) {
       if (piece instanceof HomeFurnitureGroup) {
         pieces.addAll(getFurnitureWithoutGroups(((HomeFurnitureGroup)piece).getFurniture()));
@@ -299,7 +299,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
    * @since 5.0
    */
   public List<HomePieceOfFurniture> getAllFurniture() {
-    List<HomePieceOfFurniture> pieces = new ArrayList<HomePieceOfFurniture>(this.furniture);
+    List<HomePieceOfFurniture> pieces = new ArrayList<>(this.furniture);
     for (HomePieceOfFurniture piece : getFurniture()) {
       if (piece instanceof HomeFurnitureGroup) {
         pieces.addAll(((HomeFurnitureGroup)piece).getAllFurniture());
@@ -320,7 +320,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
    */
   void addPieceOfFurniture(HomePieceOfFurniture piece, int index) {
     // Make a copy of the list to avoid conflicts in the list returned by getFurniture
-    this.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture);
+    this.furniture = new ArrayList<>(this.furniture);
     piece.setLevel(getLevel());
     this.furniture.add(index, piece);
     piece.addPropertyChangeListener(this.furnitureListener);
@@ -338,7 +338,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
         piece.setLevel(null);
         piece.removePropertyChangeListener(this.furnitureListener);
         // Make a copy of the list to avoid conflicts in the list returned by getFurniture
-        this.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture);
+        this.furniture = new ArrayList<>(this.furniture);
         this.furniture.remove(index);
         updateLocationAndSize(this.furniture, getAngle(), false);
       } else {
@@ -1099,7 +1099,7 @@ public class HomeFurnitureGroup extends HomePieceOfFurniture {
   public HomeFurnitureGroup clone() {
     HomeFurnitureGroup clone = (HomeFurnitureGroup)super.clone();
     // Deep clone furniture managed by this group
-    clone.furniture = new ArrayList<HomePieceOfFurniture>(this.furniture.size());
+    clone.furniture = new ArrayList<>(this.furniture.size());
     for (HomePieceOfFurniture piece : this.furniture) {
       HomePieceOfFurniture pieceClone = piece.clone();
       clone.furniture.add(pieceClone);

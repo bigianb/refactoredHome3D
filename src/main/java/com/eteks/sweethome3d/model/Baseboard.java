@@ -38,7 +38,7 @@ public class Baseboard implements Serializable {
   private final Integer     color;
   private final HomeTexture texture;
   
-  private static final List<WeakReference<Baseboard>> baseboardsCache = new ArrayList<WeakReference<Baseboard>>(); 
+  private static final List<WeakReference<Baseboard>> baseboardsCache = new ArrayList<>();
 
   /**
    * Creates a baseboard.
@@ -54,7 +54,7 @@ public class Baseboard implements Serializable {
     this.texture = texture;
     
     if (cached) {
-      baseboardsCache.add(new WeakReference<Baseboard>(this));
+      baseboardsCache.add(new WeakReference<>(this));
     }
   }
 
@@ -64,7 +64,7 @@ public class Baseboard implements Serializable {
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
     
-    baseboardsCache.add(new WeakReference<Baseboard>(this));
+    baseboardsCache.add(new WeakReference<>(this));
   }
 
   /**
@@ -81,7 +81,7 @@ public class Baseboard implements Serializable {
         return baseboard;
       }
     }
-    baseboardsCache.add(new WeakReference<Baseboard>(baseboard));
+    baseboardsCache.add(new WeakReference<>(baseboard));
     return baseboard;
   }
 

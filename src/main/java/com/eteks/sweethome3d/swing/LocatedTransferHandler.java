@@ -200,7 +200,7 @@ public abstract class LocatedTransferHandler extends TransferHandler {
    */
   protected List<String> getModelContents(List<File> files, 
                                           ContentManager contentManager) {
-    final List<String> importableModels = new ArrayList<String>();        
+    final List<String> importableModels = new ArrayList<>();
     for (File file : files) {
       final String absolutePath = file.getAbsolutePath();
       if (contentManager.isAcceptable(absolutePath, ContentManager.ContentType.MODEL)) {

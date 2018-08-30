@@ -108,17 +108,9 @@ public class LevelPanel extends JPanel implements DialogView {
           LevelPanel.class, "viewableCheckBox.text"));
       this.viewableCheckBox.setNullable(controller.getViewable() == null);
       this.viewableCheckBox.setValue(controller.getViewable());
-      this.viewableCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setViewable(viewableCheckBox.getValue());
-          }
-        });
-      controller.addPropertyChangeListener(LevelController.Property.VIEWABLE, 
-          new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                viewableCheckBox.setValue(controller.getViewable());
-              }
-            });
+      this.viewableCheckBox.addChangeListener(ev -> controller.setViewable(viewableCheckBox.getValue()));
+      controller.addPropertyChangeListener(LevelController.Property.VIEWABLE,
+              ev -> viewableCheckBox.setValue(controller.getViewable()));
     }
 
     if (controller.isPropertyEditable(LevelController.Property.NAME)) {
@@ -128,11 +120,7 @@ public class LevelPanel extends JPanel implements DialogView {
       if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
         SwingTools.addAutoSelectionOnFocusGain(this.nameTextField);
       }
-      final PropertyChangeListener nameChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            nameTextField.setText(controller.getName());
-          }
-        };
+      final PropertyChangeListener nameChangeListener = ev -> nameTextField.setText(controller.getName());
       controller.addPropertyChangeListener(LevelController.Property.NAME, nameChangeListener);
       this.nameTextField.getDocument().addDocumentListener(new DocumentListener() {
           public void changedUpdate(DocumentEvent ev) {
@@ -166,25 +154,21 @@ public class LevelPanel extends JPanel implements DialogView {
       this.elevationSpinner = new NullableSpinner(elevationSpinnerModel);
       elevationSpinnerModel.setNullable(controller.getElevation() == null);
       elevationSpinnerModel.setLength(controller.getElevation());
-      final PropertyChangeListener elevationChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            elevationSpinnerModel.setNullable(ev.getNewValue() == null);
-            elevationSpinnerModel.setLength((Float)ev.getNewValue());
-          }
-        };
+      final PropertyChangeListener elevationChangeListener = ev -> {
+        elevationSpinnerModel.setNullable(ev.getNewValue() == null);
+        elevationSpinnerModel.setLength((Float)ev.getNewValue());
+      };
       controller.addPropertyChangeListener(LevelController.Property.ELEVATION, 
           elevationChangeListener);
-      elevationSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(LevelController.Property.ELEVATION, 
-                elevationChangeListener);
-            controller.setElevation(elevationSpinnerModel.getLength());
-            setFloorThicknessEnabled(controller);
-            setElevationIndexButtonsEnabled(controller);
-            controller.addPropertyChangeListener(LevelController.Property.ELEVATION, 
-                elevationChangeListener);
-          }
-        });
+      elevationSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(LevelController.Property.ELEVATION,
+            elevationChangeListener);
+        controller.setElevation(elevationSpinnerModel.getLength());
+        setFloorThicknessEnabled(controller);
+        setElevationIndexButtonsEnabled(controller);
+        controller.addPropertyChangeListener(LevelController.Property.ELEVATION,
+            elevationChangeListener);
+      });
     }
     
     final float minimumLength = preferences.getLengthUnit().getMinimumLength();
@@ -195,22 +179,18 @@ public class LevelPanel extends JPanel implements DialogView {
       final NullableSpinner.NullableSpinnerLengthModel floorThicknessSpinnerModel = 
           new NullableSpinner.NullableSpinnerLengthModel(preferences, minimumLength, maximumLength / 10);
       this.floorThicknessSpinner = new NullableSpinner(floorThicknessSpinnerModel);
-      final PropertyChangeListener floorThicknessChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float floorThickness = controller.getFloorThickness();
-            floorThicknessSpinnerModel.setNullable(floorThickness == null);
-            floorThicknessSpinnerModel.setLength(floorThickness);
-          }
-        };
+      final PropertyChangeListener floorThicknessChangeListener = ev -> {
+        Float floorThickness = controller.getFloorThickness();
+        floorThicknessSpinnerModel.setNullable(floorThickness == null);
+        floorThicknessSpinnerModel.setLength(floorThickness);
+      };
       floorThicknessChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(LevelController.Property.FLOOR_THICKNESS, floorThicknessChangeListener);
-      floorThicknessSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(LevelController.Property.FLOOR_THICKNESS, floorThicknessChangeListener);
-            controller.setFloorThickness(floorThicknessSpinnerModel.getLength());
-            controller.addPropertyChangeListener(LevelController.Property.FLOOR_THICKNESS, floorThicknessChangeListener);
-          }
-        });
+      floorThicknessSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(LevelController.Property.FLOOR_THICKNESS, floorThicknessChangeListener);
+        controller.setFloorThickness(floorThicknessSpinnerModel.getLength());
+        controller.addPropertyChangeListener(LevelController.Property.FLOOR_THICKNESS, floorThicknessChangeListener);
+      });
       setFloorThicknessEnabled(controller);
     }
     
@@ -221,22 +201,18 @@ public class LevelPanel extends JPanel implements DialogView {
       final NullableSpinner.NullableSpinnerLengthModel heightSpinnerModel = 
           new NullableSpinner.NullableSpinnerLengthModel(preferences, minimumLength, maximumLength);
       this.heightSpinner = new NullableSpinner(heightSpinnerModel);
-      final PropertyChangeListener heightChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            Float height = controller.getHeight();
-            heightSpinnerModel.setNullable(height == null);
-            heightSpinnerModel.setLength(height);
-          }
-        };
+      final PropertyChangeListener heightChangeListener = ev -> {
+        Float height = controller.getHeight();
+        heightSpinnerModel.setNullable(height == null);
+        heightSpinnerModel.setLength(height);
+      };
       heightChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(LevelController.Property.HEIGHT, heightChangeListener);
-      heightSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(LevelController.Property.HEIGHT, heightChangeListener);
-            controller.setHeight(heightSpinnerModel.getLength());
-            controller.addPropertyChangeListener(LevelController.Property.HEIGHT, heightChangeListener);
-          }
-        });
+      heightSpinnerModel.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(LevelController.Property.HEIGHT, heightChangeListener);
+        controller.setHeight(heightSpinnerModel.getLength());
+        controller.addPropertyChangeListener(LevelController.Property.HEIGHT, heightChangeListener);
+      });
     }
     
     if (controller.isPropertyEditable(LevelController.Property.ELEVATION_INDEX)) {
@@ -285,7 +261,7 @@ public class LevelPanel extends JPanel implements DialogView {
                                                        boolean isSelected, boolean hasFocus, 
                                                        int row, int column) {
           if (value != null) {
-            value = preferences.getLengthUnit().getFormat().format((Float)value);
+            value = preferences.getLengthUnit().getFormat().format(value);
             setHorizontalAlignment(JLabel.RIGHT);
           }
           setEnabled((Boolean)table.getModel().getValueAt(row, 4));
@@ -530,12 +506,10 @@ public class LevelPanel extends JPanel implements DialogView {
     private LevelsTableModel(final LevelController controller, String [] columnNames) {
       this.levels = controller.getLevels();
       this.columnNames = columnNames;
-      controller.addPropertyChangeListener(LevelController.Property.LEVELS, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            levels = controller.getLevels();
-            fireTableDataChanged();
-          }
-        });
+      controller.addPropertyChangeListener(LevelController.Property.LEVELS, ev -> {
+        levels = controller.getLevels();
+        fireTableDataChanged();
+      });
     }
 
     public int getRowCount() {

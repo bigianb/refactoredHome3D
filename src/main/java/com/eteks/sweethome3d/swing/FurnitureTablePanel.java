@@ -19,12 +19,18 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
+import com.eteks.sweethome3d.model.CollectionEvent;
+import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.FurnitureController;
+import com.eteks.sweethome3d.viewcontroller.FurnitureView;
+
+import javax.swing.*;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.print.PageFormat;
@@ -41,25 +47,6 @@ import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.List;
 import java.util.Properties;
-
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
-import javax.swing.TransferHandler;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.NumberFormatter;
-
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.FurnitureController;
-import com.eteks.sweethome3d.viewcontroller.FurnitureView;
 
 /**
  * A panel displaying home furniture table and other information like totals.
@@ -106,28 +93,24 @@ public class FurnitureTablePanel extends JPanel implements FurnitureView, Printa
     updateTotals(home, preferences);
 
     // Add listener to update totals when furniture price changes
-    final PropertyChangeListener furnitureChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (HomePieceOfFurniture.Property.PRICE.name().equals(ev.getPropertyName())
-              || HomePieceOfFurniture.Property.VALUE_ADDED_TAX_PERCENTAGE.name().equals(ev.getPropertyName())
-              || HomePieceOfFurniture.Property.CURRENCY.name().equals(ev.getPropertyName())) {
-            updateTotals(home, preferences);
-          }
-        }
-      };
+    final PropertyChangeListener furnitureChangeListener = ev -> {
+      if (HomePieceOfFurniture.Property.PRICE.name().equals(ev.getPropertyName())
+          || HomePieceOfFurniture.Property.VALUE_ADDED_TAX_PERCENTAGE.name().equals(ev.getPropertyName())
+          || HomePieceOfFurniture.Property.CURRENCY.name().equals(ev.getPropertyName())) {
+        updateTotals(home, preferences);
+      }
+    };
     for (HomePieceOfFurniture piece : home.getFurniture()) {
       piece.addPropertyChangeListener(furnitureChangeListener);
     }
-    home.addFurnitureListener(new CollectionListener<HomePieceOfFurniture>() {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(furnitureChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(furnitureChangeListener);
-          }
-          updateTotals(home, preferences);
-        }
-      });
+    home.addFurnitureListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(furnitureChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(furnitureChangeListener);
+      }
+      updateTotals(home, preferences);
+    });
 
     UserPreferencesChangeListener preferencesListener = new UserPreferencesChangeListener(this);
     preferences.addPropertyChangeListener(UserPreferences.Property.LANGUAGE, preferencesListener);
@@ -158,7 +141,7 @@ public class FurnitureTablePanel extends JPanel implements FurnitureView, Printa
     private final WeakReference<FurnitureTablePanel> furnitureTablePanel;
 
     public UserPreferencesChangeListener(FurnitureTablePanel furnitureTotalPricePanel) {
-      this.furnitureTablePanel = new WeakReference<FurnitureTablePanel>(furnitureTotalPricePanel);
+      this.furnitureTablePanel = new WeakReference<>(furnitureTotalPricePanel);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {

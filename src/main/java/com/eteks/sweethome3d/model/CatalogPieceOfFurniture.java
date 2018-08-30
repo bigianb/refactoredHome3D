@@ -81,7 +81,7 @@ public class CatalogPieceOfFurniture implements Comparable<CatalogPieceOfFurnitu
   static {
     COMPARATOR = Collator.getInstance();
     COMPARATOR.setStrength(Collator.PRIMARY); 
-    recentFilters = new WeakHashMap<String, byte[][]>();
+    recentFilters = new WeakHashMap<>();
   }
 
   /**
@@ -664,10 +664,10 @@ public class CatalogPieceOfFurniture implements Comparable<CatalogPieceOfFurnitu
     this.valueAddedTaxPercentage = valueAddedTaxPercentage;
     this.currency = currency;
     this.properties = properties == null || properties.size() == 0
-        ? Collections.<String, String>emptyMap()
+        ? Collections.emptyMap()
         : (properties.size() == 1
             ? Collections.singletonMap(properties.keySet().iterator().next(), properties.values().iterator().next())
-            : new HashMap<String, String>(properties));
+            : new HashMap<>(properties));
     if (modelRotation == null) {
       this.modelRotation = INDENTITY_ROTATION;
     } else {
@@ -1024,8 +1024,8 @@ public class CatalogPieceOfFurniture implements Comparable<CatalogPieceOfFurnitu
     int checkedCriteria = 0;
     if (filterCriteriaCollationKeys.length > 0) {
       byte [] furnitureCollationKey = getPieceOfFurnitureCollationKey();
-      for (int i = 0; i < filterCriteriaCollationKeys.length; i++) {
-        if (isSubCollationKey(furnitureCollationKey, filterCriteriaCollationKeys [i], 0)) {
+      for (byte[] filterCriteriaCollationKey : filterCriteriaCollationKeys) {
+        if (isSubCollationKey(furnitureCollationKey, filterCriteriaCollationKey, 0)) {
           checkedCriteria++;
         } else {
           break;
@@ -1046,7 +1046,7 @@ public class CatalogPieceOfFurniture implements Comparable<CatalogPieceOfFurnitu
     if (filterCollationKeys == null) {
       // Each substring in filter is a search criterion that must be verified 
       String [] filterCriteria = filter.split("\\s|\\p{Punct}|\\|");
-      List<byte []> filterCriteriaCollationKeys = new ArrayList<byte []>(filterCriteria.length);
+      List<byte []> filterCriteriaCollationKeys = new ArrayList<>(filterCriteria.length);
       for (String criterion : filterCriteria) {
         if (criterion.length() > 0) {
           filterCriteriaCollationKeys.add(COMPARATOR.getCollationKey(criterion).toByteArray());

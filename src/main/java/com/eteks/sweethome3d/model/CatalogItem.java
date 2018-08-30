@@ -28,15 +28,15 @@ public interface CatalogItem {
   /**
    * Returns the name of this catalog item.
    */
-  public abstract String getName();
+  String getName();
 
   /**
    * Returns the icon of this catalog item.
    */
-  public abstract Content getIcon();
+  Content getIcon();
 
   /**
    * Returns the creator of this catalog item or <code>null</code>.
    */
-  public String getCreator();
+  String getCreator();
 }

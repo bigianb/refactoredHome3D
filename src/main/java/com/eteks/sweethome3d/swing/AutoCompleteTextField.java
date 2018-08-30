@@ -91,11 +91,7 @@ public class AutoCompleteTextField extends JTextField {
       // Keep suggestions in alphabetical order
       final Collator comparator = Collator.getInstance();
       comparator.setStrength(Collator.TERTIARY);
-      TreeSet<String> matchingStrings = new TreeSet<String>(new Comparator<String>() {
-          public int compare(String s1, String s2) {
-            return comparator.compare(s1, s2);
-          }
-        });
+      TreeSet<String> matchingStrings = new TreeSet<>((s1, s2) -> comparator.compare(s1, s2));
       // Find matching strings
       for (String s : autoCompletionStrings) {
         if (s.toLowerCase().startsWith(stringStart)) {

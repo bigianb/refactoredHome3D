@@ -101,11 +101,7 @@ public class LabelPanel extends JPanel implements DialogView {
     if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
       SwingTools.addAutoSelectionOnFocusGain(this.textTextField);
     }
-    final PropertyChangeListener textChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          textTextField.setText(controller.getText());
-        }
-      };
+    final PropertyChangeListener textChangeListener = ev -> textTextField.setText(controller.getText());
     controller.addPropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
     this.textTextField.getDocument().addDocumentListener(new DocumentListener() {
         public void changedUpdate(DocumentEvent ev) {
@@ -132,24 +128,20 @@ public class LabelPanel extends JPanel implements DialogView {
     this.fontNameLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         LabelPanel.class, "fontNameLabel.text"));
     this.fontNameComboBox = new FontNameComboBox(preferences);
-    this.fontNameComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          String selectedItem = (String)fontNameComboBox.getSelectedItem();
-          controller.setFontName(selectedItem == FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME 
-              ? null : selectedItem);
-        }
-      });
-    PropertyChangeListener fontNameChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (controller.isFontNameSet()) {
-            String fontName = controller.getFontName();
-            fontNameComboBox.setSelectedItem(fontName == null 
-                ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : fontName);
-          } else {
-            fontNameComboBox.setSelectedItem(null);
-          }
-        }
-      };
+    this.fontNameComboBox.addItemListener(ev -> {
+      String selectedItem = (String)fontNameComboBox.getSelectedItem();
+      controller.setFontName(selectedItem == FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME
+          ? null : selectedItem);
+    });
+    PropertyChangeListener fontNameChangeListener = ev -> {
+      if (controller.isFontNameSet()) {
+        String fontName = controller.getFontName();
+        fontNameComboBox.setSelectedItem(fontName == null
+            ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : fontName);
+      } else {
+        fontNameComboBox.setSelectedItem(null);
+      }
+    };
     controller.addPropertyChangeListener(LabelController.Property.FONT_NAME, fontNameChangeListener);
     fontNameChangeListener.propertyChange(null);
 
@@ -160,22 +152,18 @@ public class LabelPanel extends JPanel implements DialogView {
     final NullableSpinner.NullableSpinnerLengthModel fontSizeSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
         preferences, 5, 999);
     this.fontSizeSpinner = new NullableSpinner(fontSizeSpinnerModel);
-    final PropertyChangeListener fontSizeChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          Float fontSize = controller.getFontSize();
-          fontSizeSpinnerModel.setNullable(fontSize == null);
-          fontSizeSpinnerModel.setLength(fontSize);
-        }
-      };
+    final PropertyChangeListener fontSizeChangeListener = ev -> {
+      Float fontSize = controller.getFontSize();
+      fontSizeSpinnerModel.setNullable(fontSize == null);
+      fontSizeSpinnerModel.setLength(fontSize);
+    };
     fontSizeChangeListener.propertyChange(null);
     controller.addPropertyChangeListener(LabelController.Property.FONT_SIZE, fontSizeChangeListener);
-    fontSizeSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(LabelController.Property.FONT_SIZE, fontSizeChangeListener);
-          controller.setFontSize(fontSizeSpinnerModel.getLength());
-          controller.addPropertyChangeListener(LabelController.Property.FONT_SIZE, fontSizeChangeListener);
-        }
-      });
+    fontSizeSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(LabelController.Property.FONT_SIZE, fontSizeChangeListener);
+      controller.setFontSize(fontSizeSpinnerModel.getLength());
+      controller.addPropertyChangeListener(LabelController.Property.FONT_SIZE, fontSizeChangeListener);
+    });
 
     // Create color label and button bound to controller COLOR property
     this.colorLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -189,23 +177,11 @@ public class LabelPanel extends JPanel implements DialogView {
     this.colorButton.setColorDialogTitle(preferences
         .getLocalizedString(LabelPanel.class, "colorDialog.title"));
     this.colorButton.setColor(controller.getColor() != null ? controller.getColor() : getForeground().getRGB());
-    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          controller.setColor(colorButton.getColor());
-        }
-      });
-    controller.addPropertyChangeListener(LabelController.Property.COLOR, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          colorButton.setColor(controller.getColor());
-        }
-      });
+    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, ev -> controller.setColor(colorButton.getColor()));
+    controller.addPropertyChangeListener(LabelController.Property.COLOR, ev -> colorButton.setColor(controller.getColor()));
 
     // Create pitch components bound to PITCH controller property
-    final PropertyChangeListener pitchChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          update3DViewComponents(controller);
-        }
-      };
+    final PropertyChangeListener pitchChangeListener = ev -> update3DViewComponents(controller);
     controller.addPropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
     this.visibleIn3DViewCheckBox = new NullableCheckBox(SwingTools.getLocalizedLabelText(preferences, 
         LabelPanel.class, "visibleIn3DViewCheckBox.text"));
@@ -215,36 +191,32 @@ public class LabelPanel extends JPanel implements DialogView {
       this.visibleIn3DViewCheckBox.setNullable(true);
       this.visibleIn3DViewCheckBox.setValue(null);
     }
-    this.visibleIn3DViewCheckBox.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
-          if (visibleIn3DViewCheckBox.isNullable()) {
-            visibleIn3DViewCheckBox.setNullable(false);
-          }
-          if (Boolean.FALSE.equals(visibleIn3DViewCheckBox.getValue())) {
-            controller.setPitch(null);
-          } else if (pitch90DegreeRadioButton.isSelected()) {
-            controller.setPitch((float)(Math.PI / 2));
-          } else {
-            controller.setPitch(0f);
-          }
-          update3DViewComponents(controller);
-          controller.addPropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
-        }
-      });
+    this.visibleIn3DViewCheckBox.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
+      if (visibleIn3DViewCheckBox.isNullable()) {
+        visibleIn3DViewCheckBox.setNullable(false);
+      }
+      if (Boolean.FALSE.equals(visibleIn3DViewCheckBox.getValue())) {
+        controller.setPitch(null);
+      } else if (pitch90DegreeRadioButton.isSelected()) {
+        controller.setPitch((float)(Math.PI / 2));
+      } else {
+        controller.setPitch(0f);
+      }
+      update3DViewComponents(controller);
+      controller.addPropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
+    });
     this.pitchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         LabelPanel.class, "pitchLabel.text"));
     this.pitch0DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         LabelPanel.class, "pitch0DegreeRadioButton.text"));
-    ItemListener pitchRadioButtonsItemListener = new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          if (pitch0DegreeRadioButton.isSelected()) {
-            controller.setPitch(0f);
-          } else if (pitch90DegreeRadioButton.isSelected()) {
-            controller.setPitch((float)(Math.PI / 2));
-          } 
-        }
-      };
+    ItemListener pitchRadioButtonsItemListener = ev -> {
+      if (pitch0DegreeRadioButton.isSelected()) {
+        controller.setPitch(0f);
+      } else if (pitch90DegreeRadioButton.isSelected()) {
+        controller.setPitch((float)(Math.PI / 2));
+      }
+    };
     this.pitch0DegreeRadioButton.addItemListener(pitchRadioButtonsItemListener);
     this.pitch90DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         LabelPanel.class, "pitch90DegreeRadioButton.text"));
@@ -261,20 +233,16 @@ public class LabelPanel extends JPanel implements DialogView {
     this.elevationSpinner = new NullableSpinner(elevationSpinnerModel);
     elevationSpinnerModel.setNullable(controller.getElevation() == null);
     elevationSpinnerModel.setLength(controller.getElevation());
-    final PropertyChangeListener elevationChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          elevationSpinnerModel.setNullable(ev.getNewValue() == null);
-          elevationSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener elevationChangeListener = ev -> {
+      elevationSpinnerModel.setNullable(ev.getNewValue() == null);
+      elevationSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(LabelController.Property.ELEVATION, elevationChangeListener);
-    elevationSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(LabelController.Property.ELEVATION, elevationChangeListener);
-          controller.setElevation(elevationSpinnerModel.getLength());
-          controller.addPropertyChangeListener(LabelController.Property.ELEVATION, elevationChangeListener);
-        }
-      });
+    elevationSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(LabelController.Property.ELEVATION, elevationChangeListener);
+      controller.setElevation(elevationSpinnerModel.getLength());
+      controller.addPropertyChangeListener(LabelController.Property.ELEVATION, elevationChangeListener);
+    });
 
     update3DViewComponents(controller);
     

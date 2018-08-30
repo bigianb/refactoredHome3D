@@ -57,7 +57,7 @@ public class IconManager {
   private IconManager() {
     this.errorIconContent = new ResourceURLContent(IconManager.class, "resources/icons/tango/image-missing.png");
     this.waitIconContent = new ResourceURLContent(IconManager.class, "resources/icons/tango/image-loading.png");
-    this.icons = Collections.synchronizedMap(new WeakHashMap<Content, Map<Integer, Icon>>());
+    this.icons = Collections.synchronizedMap(new WeakHashMap<>());
   }
   
   /**
@@ -154,7 +154,7 @@ public class IconManager {
   public Icon getIcon(Content content, final int height, Component waitingComponent) {
     Map<Integer, Icon> contentIcons = this.icons.get(content);
     if (contentIcons == null) {
-      contentIcons = Collections.synchronizedMap(new HashMap<Integer, Icon>());
+      contentIcons = Collections.synchronizedMap(new HashMap<>());
       this.icons.put(content, contentIcons);
     }
     Icon icon = contentIcons.get(height);
@@ -240,12 +240,10 @@ public class IconManager {
         iconsLoader = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
       }
       // Load the icon in a different thread
-      iconsLoader.execute(new Runnable () {
-          public void run() {
-            icon = createIcon(content, height, errorIcon);
-            waitingComponent.repaint();
-          }
-        });
+      iconsLoader.execute(() -> {
+        icon = createIcon(content, height, errorIcon);
+        waitingComponent.repaint();
+      });
     }
 
     public int getIconWidth() {

@@ -19,52 +19,24 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BasicStroke;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.RenderingHints;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.JSpinner.DefaultEditor;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.NumberFormatter;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.CompassController;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.List;
 
 /**
  * Compass editing panel.
@@ -120,19 +92,13 @@ public class CompassPanel extends JPanel implements DialogView {
         new NullableSpinner.NullableSpinnerLengthModel(preferences, -maximumLength, maximumLength);
     this.xSpinner = new NullableSpinner(xSpinnerModel);
     xSpinnerModel.setLength(controller.getX());
-    final PropertyChangeListener xChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          xSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener xChangeListener = ev -> xSpinnerModel.setLength((Float)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.X, xChangeListener);
-    xSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.X, xChangeListener);
-          controller.setX(xSpinnerModel.getLength());
-          controller.addPropertyChangeListener(CompassController.Property.X, xChangeListener);
-        }
-      });
+    xSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.X, xChangeListener);
+      controller.setX(xSpinnerModel.getLength());
+      controller.addPropertyChangeListener(CompassController.Property.X, xChangeListener);
+    });
     
     // Create Y label and its spinner bound to Y controller property
     this.yLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -141,19 +107,13 @@ public class CompassPanel extends JPanel implements DialogView {
         new NullableSpinner.NullableSpinnerLengthModel(preferences, -maximumLength, maximumLength);
     this.ySpinner = new NullableSpinner(ySpinnerModel);
     ySpinnerModel.setLength(controller.getY());
-    final PropertyChangeListener yChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          ySpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener yChangeListener = ev -> ySpinnerModel.setLength((Float)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.Y, yChangeListener);
-    ySpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.Y, yChangeListener);
-          controller.setY(ySpinnerModel.getLength());
-          controller.addPropertyChangeListener(CompassController.Property.Y, yChangeListener);
-        }
-      });
+    ySpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.Y, yChangeListener);
+      controller.setY(ySpinnerModel.getLength());
+      controller.addPropertyChangeListener(CompassController.Property.Y, yChangeListener);
+    });
     
     // Create diameter label and its spinner bound to DIAMETER controller property
     this.diameterLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -163,40 +123,28 @@ public class CompassPanel extends JPanel implements DialogView {
             preferences.getLengthUnit().getMinimumLength(), preferences.getLengthUnit().getMaximumLength()  / 10);
     this.diameterSpinner = new NullableSpinner(diameterSpinnerModel);
     diameterSpinnerModel.setLength(controller.getDiameter());
-    final PropertyChangeListener diameterChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          diameterSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener diameterChangeListener = ev -> diameterSpinnerModel.setLength((Float)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.DIAMETER, 
         diameterChangeListener);
-    diameterSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.DIAMETER, 
-              diameterChangeListener);
-          controller.setDiameter(diameterSpinnerModel.getLength());
-          controller.addPropertyChangeListener(CompassController.Property.DIAMETER, 
-              diameterChangeListener);
-        }
-      });
+    diameterSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.DIAMETER,
+          diameterChangeListener);
+      controller.setDiameter(diameterSpinnerModel.getLength());
+      controller.addPropertyChangeListener(CompassController.Property.DIAMETER,
+          diameterChangeListener);
+    });
     
     // Create visible check box bound to VISIBLE controller property
     this.visibleCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences, 
         CompassPanel.class, "visibleCheckBox.text"));
     this.visibleCheckBox.setSelected(controller.isVisible());
-    final PropertyChangeListener visibleChangeListener = new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent ev) {
-        visibleCheckBox.setSelected((Boolean)ev.getNewValue());
-      }
-    };
+    final PropertyChangeListener visibleChangeListener = ev -> visibleCheckBox.setSelected((Boolean)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.VISIBLE, visibleChangeListener);
-    this.visibleCheckBox.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.VISIBLE, visibleChangeListener);
-          controller.setVisible(visibleCheckBox.isSelected());
-          controller.addPropertyChangeListener(CompassController.Property.VISIBLE, visibleChangeListener);
-        }
-      });
+    this.visibleCheckBox.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.VISIBLE, visibleChangeListener);
+      controller.setVisible(visibleCheckBox.isSelected());
+      controller.addPropertyChangeListener(CompassController.Property.VISIBLE, visibleChangeListener);
+    });
 
     this.latitudeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, CompassPanel.class, "latitudeLabel.text"));
     final SpinnerNumberModel latitudeSpinnerModel = new SpinnerNumberModel(new Float(0), new Float(-90), new Float(90), new Float(5));
@@ -208,19 +156,13 @@ public class CompassPanel extends JPanel implements DialogView {
     textField.setFormatterFactory(new DefaultFormatterFactory(numberFormatter));
     SwingTools.addAutoSelectionOnFocusGain(textField);
     latitudeSpinnerModel.setValue(controller.getLatitudeInDegrees());
-    final PropertyChangeListener latitudeChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          latitudeSpinnerModel.setValue((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener latitudeChangeListener = ev -> latitudeSpinnerModel.setValue((Float)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.LATITUDE_IN_DEGREES, latitudeChangeListener);
-    latitudeSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.LATITUDE_IN_DEGREES, latitudeChangeListener);
-          controller.setLatitudeInDegrees(((Number)latitudeSpinnerModel.getValue()).floatValue());
-          controller.addPropertyChangeListener(CompassController.Property.LATITUDE_IN_DEGREES, latitudeChangeListener);
-        }
-      });
+    latitudeSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.LATITUDE_IN_DEGREES, latitudeChangeListener);
+      controller.setLatitudeInDegrees(((Number)latitudeSpinnerModel.getValue()).floatValue());
+      controller.addPropertyChangeListener(CompassController.Property.LATITUDE_IN_DEGREES, latitudeChangeListener);
+    });
     
     this.longitudeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, CompassPanel.class, "longitudeLabel.text"));
     final SpinnerNumberModel longitudeSpinnerModel = new SpinnerNumberModel(new Float(0), new Float(-180), new Float(180), new Float(5));
@@ -232,19 +174,13 @@ public class CompassPanel extends JPanel implements DialogView {
     textField.setFormatterFactory(new DefaultFormatterFactory(numberFormatter));
     SwingTools.addAutoSelectionOnFocusGain(textField);
     longitudeSpinnerModel.setValue(controller.getLongitudeInDegrees());
-    final PropertyChangeListener longitudeChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          longitudeSpinnerModel.setValue((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener longitudeChangeListener = ev -> longitudeSpinnerModel.setValue((Float)ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.LONGITUDE_IN_DEGREES, longitudeChangeListener);
-    longitudeSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.LONGITUDE_IN_DEGREES, longitudeChangeListener);
-          controller.setLongitudeInDegrees(((Number)longitudeSpinnerModel.getValue()).floatValue());
-          controller.addPropertyChangeListener(CompassController.Property.LONGITUDE_IN_DEGREES, longitudeChangeListener);
-        }
-      });
+    longitudeSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.LONGITUDE_IN_DEGREES, longitudeChangeListener);
+      controller.setLongitudeInDegrees(((Number)longitudeSpinnerModel.getValue()).floatValue());
+      controller.addPropertyChangeListener(CompassController.Property.LONGITUDE_IN_DEGREES, longitudeChangeListener);
+    });
 
     this.timeZoneLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, CompassPanel.class, "timeZoneLabel.text"));
     List<String> timeZoneIds = new ArrayList<String>(Arrays.asList(TimeZone.getAvailableIDs()));
@@ -265,11 +201,7 @@ public class CompassPanel extends JPanel implements DialogView {
     Arrays.sort(timeZoneIdsArray);
     this.timeZoneComboBox = new JComboBox(timeZoneIdsArray);
     this.timeZoneComboBox.setSelectedItem(controller.getTimeZone());
-    final PropertyChangeListener timeZoneChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          timeZoneComboBox.setSelectedItem(ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener timeZoneChangeListener = ev -> timeZoneComboBox.setSelectedItem(ev.getNewValue());
     controller.addPropertyChangeListener(CompassController.Property.TIME_ZONE, timeZoneChangeListener);
     this.timeZoneComboBox.setRenderer(new DefaultListCellRenderer() {
         @Override
@@ -293,13 +225,11 @@ public class CompassPanel extends JPanel implements DialogView {
         }
       });
 
-    this.timeZoneComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.TIME_ZONE, timeZoneChangeListener);
-          controller.setTimeZone((String)timeZoneComboBox.getSelectedItem());
-          controller.addPropertyChangeListener(CompassController.Property.TIME_ZONE, timeZoneChangeListener);
-        }
-      });
+    this.timeZoneComboBox.addItemListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.TIME_ZONE, timeZoneChangeListener);
+      controller.setTimeZone((String)timeZoneComboBox.getSelectedItem());
+      controller.addPropertyChangeListener(CompassController.Property.TIME_ZONE, timeZoneChangeListener);
+    });
     this.timeZoneComboBox.setPrototypeDisplayValue("GMT");
     
     this.northDirectionLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, CompassPanel.class, "northDirectionLabel.text"));
@@ -349,21 +279,17 @@ public class CompassPanel extends JPanel implements DialogView {
         }
       };
     this.northDirectionComponent.setOpaque(false);
-    final PropertyChangeListener northDirectionChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          northDirectionSpinnerModel.setValue(((Number)ev.getNewValue()).intValue());
-          northDirectionComponent.repaint();
-        }
-      };
+    final PropertyChangeListener northDirectionChangeListener = ev -> {
+      northDirectionSpinnerModel.setValue(((Number)ev.getNewValue()).intValue());
+      northDirectionComponent.repaint();
+    };
     controller.addPropertyChangeListener(CompassController.Property.NORTH_DIRECTION_IN_DEGREES, northDirectionChangeListener);
-    northDirectionSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(CompassController.Property.NORTH_DIRECTION_IN_DEGREES, northDirectionChangeListener);
-          controller.setNorthDirectionInDegrees(((Number)northDirectionSpinnerModel.getValue()).floatValue());
-          northDirectionComponent.repaint();
-          controller.addPropertyChangeListener(CompassController.Property.NORTH_DIRECTION_IN_DEGREES, northDirectionChangeListener);
-        }
-      });
+    northDirectionSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(CompassController.Property.NORTH_DIRECTION_IN_DEGREES, northDirectionChangeListener);
+      controller.setNorthDirectionInDegrees(((Number)northDirectionSpinnerModel.getValue()).floatValue());
+      northDirectionComponent.repaint();
+      controller.addPropertyChangeListener(CompassController.Property.NORTH_DIRECTION_IN_DEGREES, northDirectionChangeListener);
+    });
 
     this.dialogTitle = preferences.getLocalizedString(CompassPanel.class, "compass.title");
   }

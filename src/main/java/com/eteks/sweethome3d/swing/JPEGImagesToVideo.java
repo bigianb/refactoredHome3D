@@ -31,33 +31,17 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-
-import javax.media.ConfigureCompleteEvent;
-import javax.media.Controller;
-import javax.media.ControllerEvent;
-import javax.media.ControllerListener;
-import javax.media.DataSink;
-import javax.media.EndOfMediaEvent;
-import javax.media.Format;
-import javax.media.Manager;
-import javax.media.MediaLocator;
-import javax.media.NoDataSinkException;
-import javax.media.NoProcessorException;
-import javax.media.PrefetchCompleteEvent;
-import javax.media.Processor;
-import javax.media.RealizeCompleteEvent;
-import javax.media.ResourceUnavailableEvent;
+import javax.media.*;
 import javax.media.control.TrackControl;
 import javax.media.datasink.DataSinkErrorEvent;
-import javax.media.datasink.DataSinkEvent;
 import javax.media.datasink.DataSinkListener;
 import javax.media.datasink.EndOfStreamEvent;
 import javax.media.protocol.ContentDescriptor;
 import javax.media.protocol.DataSource;
 import javax.media.protocol.FileTypeDescriptor;
+import java.io.File;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 /**
  * This program takes a list of images and convert them into a
@@ -80,42 +64,38 @@ public class JPEGImagesToVideo {
     this.fileDone = false;
     this.fileError = null;
     
-    ControllerListener controllerListener = new ControllerListener() {
-        public void controllerUpdate(ControllerEvent ev) {
-          if (ev instanceof ConfigureCompleteEvent 
-              || ev instanceof RealizeCompleteEvent
-              || ev instanceof PrefetchCompleteEvent) {
-            synchronized (waitSync) {
-              stateTransitionOK = true;
-              waitSync.notifyAll();
-            }
-          } else if (ev instanceof ResourceUnavailableEvent) {
-            synchronized (waitSync) {
-              stateTransitionOK = false;
-              waitSync.notifyAll();
-            }
-          } else if (ev instanceof EndOfMediaEvent) {
-            ev.getSourceController().stop();
-            ev.getSourceController().close();
-          }
+    ControllerListener controllerListener = ev -> {
+      if (ev instanceof ConfigureCompleteEvent
+          || ev instanceof RealizeCompleteEvent
+          || ev instanceof PrefetchCompleteEvent) {
+        synchronized (waitSync) {
+          stateTransitionOK = true;
+          waitSync.notifyAll();
         }
-      };
-    DataSinkListener dataSinkListener = new DataSinkListener() {
-        public void dataSinkUpdate(DataSinkEvent ev) {
-          if (ev instanceof EndOfStreamEvent) {
-            synchronized (waitFileSync) {
-              fileDone = true;
-              waitFileSync.notifyAll();
-            }
-          } else if (ev instanceof DataSinkErrorEvent) {
-            synchronized (waitFileSync) {
-              fileDone = true;
-              fileError = "Data sink error";
-              waitFileSync.notifyAll();
-            }
-          }
+      } else if (ev instanceof ResourceUnavailableEvent) {
+        synchronized (waitSync) {
+          stateTransitionOK = false;
+          waitSync.notifyAll();
         }
-      };
+      } else if (ev instanceof EndOfMediaEvent) {
+        ev.getSourceController().stop();
+        ev.getSourceController().close();
+      }
+    };
+    DataSinkListener dataSinkListener = ev -> {
+      if (ev instanceof EndOfStreamEvent) {
+        synchronized (waitFileSync) {
+          fileDone = true;
+          waitFileSync.notifyAll();
+        }
+      } else if (ev instanceof DataSinkErrorEvent) {
+        synchronized (waitFileSync) {
+          fileDone = true;
+          fileError = "Data sink error";
+          waitFileSync.notifyAll();
+        }
+      }
+    };
     Processor processor = null;
     DataSink dataSink = null;
     try {

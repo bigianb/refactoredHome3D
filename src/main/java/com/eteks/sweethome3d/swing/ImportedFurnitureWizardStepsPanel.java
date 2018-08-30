@@ -184,11 +184,7 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
     }
 
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.STEP,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent evt) {
-            updateStep(controller);
-          }
-        });
+            evt -> updateStep(controller));
   }
 
   /**
@@ -207,44 +203,40 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         (importHomePiece || preferences.getFurnitureCatalog().getCategories().size() == 0)
             ? null
             : preferences.getFurnitureCatalog().getCategories().get(0);
-    this.modelChoiceOrChangeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          String modelName = showModelChoiceDialog(preferences, controller.getContentManager());
-          if (modelName != null) {
-            updateController(modelName, preferences,
-                controller.getContentManager(), defaultModelCategory, false);
-          }
-        }
-      });
+    this.modelChoiceOrChangeButton.addActionListener(ev -> {
+      String modelName = showModelChoiceDialog(preferences, controller.getContentManager());
+      if (modelName != null) {
+        updateController(modelName, preferences,
+            controller.getContentManager(), defaultModelCategory, false);
+      }
+    });
     try {
       this.findModelsButton = new JButton(SwingTools.getLocalizedLabelText(preferences,
           ImportedFurnitureWizardStepsPanel.class, "findModelsButton.text"));
       final String findModelsUrl = preferences.getLocalizedString(
           ImportedFurnitureWizardStepsPanel.class, "findModelsButton.url");
-      this.findModelsButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            boolean documentShown = false;
-            try {
-              // Display Find models page in browser
-              documentShown = SwingTools.showDocumentInBrowser(new URL(findModelsUrl));
-            } catch (MalformedURLException ex) {
-              // Document isn't shown
-            }
-            if (!documentShown) {
-              // If the document wasn't shown, display a message
-              // with a copiable URL in a message box
-              JTextArea findModelsMessageTextArea = new JTextArea(preferences.getLocalizedString(
-                  ImportedFurnitureWizardStepsPanel.class, "findModelsMessage.text"));
-              String findModelsTitle = preferences.getLocalizedString(
-                  ImportedFurnitureWizardStepsPanel.class, "findModelsMessage.title");
-              findModelsMessageTextArea.setEditable(false);
-              findModelsMessageTextArea.setOpaque(false);
-              JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
-                  findModelsMessageTextArea, findModelsTitle,
-                  JOptionPane.INFORMATION_MESSAGE);
-            }
-          }
-        });
+      this.findModelsButton.addActionListener(ev -> {
+        boolean documentShown = false;
+        try {
+          // Display Find models page in browser
+          documentShown = SwingTools.showDocumentInBrowser(new URL(findModelsUrl));
+        } catch (MalformedURLException ex) {
+          // Document isn't shown
+        }
+        if (!documentShown) {
+          // If the document wasn't shown, display a message
+          // with a copiable URL in a message box
+          JTextArea findModelsMessageTextArea = new JTextArea(preferences.getLocalizedString(
+              ImportedFurnitureWizardStepsPanel.class, "findModelsMessage.text"));
+          String findModelsTitle = preferences.getLocalizedString(
+              ImportedFurnitureWizardStepsPanel.class, "findModelsMessage.title");
+          findModelsMessageTextArea.setEditable(false);
+          findModelsMessageTextArea.setOpaque(false);
+          JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
+              findModelsMessageTextArea, findModelsTitle,
+              JOptionPane.INFORMATION_MESSAGE);
+        }
+      });
     } catch (IllegalArgumentException ex) {
       // Don't create findModelsButton if its text or url isn't defined
     }
@@ -269,12 +261,8 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
               final String modelName = file.getAbsolutePath();
               // Try to import the first file that would be accepted by content manager
               if (controller.getContentManager().isAcceptable(modelName, ContentManager.ContentType.MODEL)) {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                      updateController(modelName, preferences,
-                          controller.getContentManager(), defaultModelCategory, false);
-                    }
-                  });
+                EventQueue.invokeLater(() -> updateController(modelName, preferences,
+                    controller.getContentManager(), defaultModelCategory, false));
                 success = true;
                 break;
               }
@@ -285,12 +273,8 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
             // No success
           }
           if (!success) {
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
-                      preferences.getLocalizedString(ImportedFurnitureWizardStepsPanel.class, "modelChoiceErrorLabel.text"));
-                }
-              });
+            EventQueue.invokeLater(() -> JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
+                preferences.getLocalizedString(ImportedFurnitureWizardStepsPanel.class, "modelChoiceErrorLabel.text")));
           }
           return success;
         }
@@ -385,18 +369,12 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         ImportedFurnitureWizardStepsPanel.class, "backFaceShownLabel.text"));
     this.backFaceShownCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "backFaceShownCheckBox.text"));
-    this.backFaceShownCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setBackFaceShown(backFaceShownCheckBox.isSelected());
-        }
-      });
+    this.backFaceShownCheckBox.addItemListener(ev -> controller.setBackFaceShown(backFaceShownCheckBox.isSelected()));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.BACK_FACE_SHOWN,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If back face shown changes update back face shown check box
-            backFaceShownCheckBox.setSelected(controller.isBackFaceShown());
-          }
-        });
+            ev -> {
+              // If back face shown changes update back face shown check box
+              backFaceShownCheckBox.setSelected(controller.isBackFaceShown());
+            });
     this.rotationPreviewComponent = new RotationPreviewComponent(preferences, controller);
 
     // Attributes panel components
@@ -425,30 +403,26 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
       };
     this.nameTextField.getDocument().addDocumentListener(nameListener);
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.NAME,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If name changes update name text field
-            if (!nameTextField.getText().trim().equals(controller.getName())) {
-              nameTextField.setText(controller.getName());
-            }
-          }
-        });
+            ev -> {
+              // If name changes update name text field
+              if (!nameTextField.getText().trim().equals(controller.getName())) {
+                nameTextField.setText(controller.getName());
+              }
+            });
 
     this.addToCatalogCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "addToCatalogCheckBox.text"));
     // Propose the add to catalog option only for home furniture import
     this.addToCatalogCheckBox.setVisible(importHomePiece);
-    this.addToCatalogCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          if (addToCatalogCheckBox.isSelected()) {
-            categoryComboBox.setEnabled(true);
-            controller.setCategory((FurnitureCategory)categoryComboBox.getSelectedItem());
-          } else {
-            categoryComboBox.setEnabled(false);
-            controller.setCategory(null);
-          }
-        }
-      });
+    this.addToCatalogCheckBox.addItemListener(ev -> {
+      if (addToCatalogCheckBox.isSelected()) {
+        categoryComboBox.setEnabled(true);
+        controller.setCategory((FurnitureCategory)categoryComboBox.getSelectedItem());
+      } else {
+        categoryComboBox.setEnabled(false);
+        controller.setCategory(null);
+      }
+    });
     this.categoryLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "categoryLabel.text"));
     this.categoryComboBox = new JComboBox(preferences.getFurnitureCatalog().getCategories().toArray());
@@ -509,21 +483,15 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
           return super.getListCellRendererComponent(list, category.getName(), index, isSelected, cellHasFocus);
         }
       });
-    this.categoryComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setCategory((FurnitureCategory)ev.getItem());
-        }
-      });
+    this.categoryComboBox.addItemListener(ev -> controller.setCategory((FurnitureCategory)ev.getItem()));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.CATEGORY,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If category changes update category combo box
-            FurnitureCategory category = controller.getCategory();
-            if (category != null) {
-              categoryComboBox.setSelectedItem(category);
-            }
-          }
-        });
+            ev -> {
+              // If category changes update category combo box
+              FurnitureCategory category = controller.getCategory();
+              if (category != null) {
+                categoryComboBox.setSelectedItem(category);
+              }
+            });
     if (this.categoryComboBox.getItemCount() > 0) {
       this.categoryComboBox.setSelectedIndex(0);
     }
@@ -551,14 +519,12 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
       };
     this.creatorTextField.getDocument().addDocumentListener(creatorListener);
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.CREATOR,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If creator changes update creator text field
-            if (!creatorTextField.getText().trim().equals(controller.getCreator())) {
-              creatorTextField.setText(controller.getCreator());
-            }
-          }
-        });
+            ev -> {
+              // If creator changes update creator text field
+              if (!creatorTextField.getText().trim().equals(controller.getCreator())) {
+                creatorTextField.setText(controller.getCreator());
+              }
+            });
 
     this.widthLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "widthLabel.text", unitName));
@@ -576,13 +542,11 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         }
       });
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.WIDTH,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If width changes update width spinner
-            widthSpinnerModel.setLength(controller.getWidth());
-            widthSpinnerModel.setMinimumLength(Math.min(controller.getWidth(), minimumLength));
-          }
-        });
+            ev -> {
+              // If width changes update width spinner
+              widthSpinnerModel.setLength(controller.getWidth());
+              widthSpinnerModel.setMinimumLength(Math.min(controller.getWidth(), minimumLength));
+            });
 
     this.depthLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "depthLabel.text", unitName));
@@ -598,13 +562,11 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         }
       });
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.DEPTH,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If depth changes update depth spinner
-            depthSpinnerModel.setLength(controller.getDepth());
-            depthSpinnerModel.setMinimumLength(Math.min(controller.getDepth(), minimumLength));
-          }
-        });
+            ev -> {
+              // If depth changes update depth spinner
+              depthSpinnerModel.setLength(controller.getDepth());
+              depthSpinnerModel.setMinimumLength(Math.min(controller.getDepth(), minimumLength));
+            });
 
     this.heightLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
             ImportedFurnitureWizardStepsPanel.class, "heightLabel.text", unitName));
@@ -620,27 +582,19 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         }
       });
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.HEIGHT,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If height changes update height spinner
-            heightSpinnerModel.setLength(controller.getHeight());
-            heightSpinnerModel.setMinimumLength(Math.min(controller.getHeight(), minimumLength));
-          }
-        });
+            ev -> {
+              // If height changes update height spinner
+              heightSpinnerModel.setLength(controller.getHeight());
+              heightSpinnerModel.setMinimumLength(Math.min(controller.getHeight(), minimumLength));
+            });
     this.keepProportionsCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "keepProportionsCheckBox.text"));
-    this.keepProportionsCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setProportional(keepProportionsCheckBox.isSelected());
-        }
-      });
+    this.keepProportionsCheckBox.addItemListener(ev -> controller.setProportional(keepProportionsCheckBox.isSelected()));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.PROPORTIONAL,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If proportional property changes update keep proportions check box
-            keepProportionsCheckBox.setSelected(controller.isProportional());
-          }
-        });
+            ev -> {
+              // If proportional property changes update keep proportions check box
+              keepProportionsCheckBox.setSelected(controller.isProportional());
+            });
 
     this.elevationLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "elevationLabel.text", unitName));
@@ -655,63 +609,43 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         }
       });
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.ELEVATION,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If elevation changes update elevation spinner
-            elevationSpinnerModel.setLength(controller.getElevation());
-          }
-        });
+            ev -> {
+              // If elevation changes update elevation spinner
+              elevationSpinnerModel.setLength(controller.getElevation());
+            });
 
     this.movableCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "movableCheckBox.text"));
-    this.movableCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setMovable(movableCheckBox.isSelected());
-        }
-      });
+    this.movableCheckBox.addItemListener(ev -> controller.setMovable(movableCheckBox.isSelected()));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.MOVABLE,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If movable changes update movable check box
-            movableCheckBox.setSelected(controller.isMovable());
-          }
-        });
+            ev -> {
+              // If movable changes update movable check box
+              movableCheckBox.setSelected(controller.isMovable());
+            });
 
     this.doorOrWindowCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "doorOrWindowCheckBox.text"));
-    this.doorOrWindowCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setDoorOrWindow(doorOrWindowCheckBox.isSelected());
-        }
-      });
+    this.doorOrWindowCheckBox.addItemListener(ev -> controller.setDoorOrWindow(doorOrWindowCheckBox.isSelected()));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.DOOR_OR_WINDOW,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If door or window changes update door or window check box
-            boolean doorOrWindow = controller.isDoorOrWindow();
-            doorOrWindowCheckBox.setSelected(doorOrWindow);
-            movableCheckBox.setEnabled(!doorOrWindow && controller.getStaircaseCutOutShape() == null);
-          }
-        });
+            ev -> {
+              // If door or window changes update door or window check box
+              boolean doorOrWindow = controller.isDoorOrWindow();
+              doorOrWindowCheckBox.setSelected(doorOrWindow);
+              movableCheckBox.setEnabled(!doorOrWindow && controller.getStaircaseCutOutShape() == null);
+            });
 
     this.staircaseCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "staircaseCheckBox.text"));
-    this.staircaseCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setStaircaseCutOutShape(staircaseCheckBox.isSelected()
-              ? PieceOfFurniture.DEFAULT_CUT_OUT_SHAPE
-              : null);
-        }
-      });
+    this.staircaseCheckBox.addItemListener(ev -> controller.setStaircaseCutOutShape(staircaseCheckBox.isSelected()
+        ? PieceOfFurniture.DEFAULT_CUT_OUT_SHAPE
+        : null));
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.STAIRCASE_CUT_OUT_SHAPE,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If staircase cut out shape changes update its check box
-            String staircaseCutOutShape = controller.getStaircaseCutOutShape();
-            staircaseCheckBox.setSelected(staircaseCutOutShape != null);
-            movableCheckBox.setEnabled(!controller.isDoorOrWindow() && staircaseCutOutShape == null);
-          }
-        });
+            ev -> {
+              // If staircase cut out shape changes update its check box
+              String staircaseCutOutShape = controller.getStaircaseCutOutShape();
+              staircaseCheckBox.setSelected(staircaseCutOutShape != null);
+              movableCheckBox.setEnabled(!controller.isDoorOrWindow() && staircaseCutOutShape == null);
+            });
 
     this.colorLabel = new JLabel(
         String.format(SwingTools.getLocalizedLabelText(preferences,
@@ -720,27 +654,17 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
     this.colorButton.setColorDialogTitle(preferences.getLocalizedString(
         ImportedFurnitureWizardStepsPanel.class, "colorDialog.title"));
     this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setColor(colorButton.getColor());
-          }
-        });
+            ev -> controller.setColor(colorButton.getColor()));
     this.clearColorButton = new JButton(SwingTools.getLocalizedLabelText(preferences,
         ImportedFurnitureWizardStepsPanel.class, "clearColorButton.text"));
-    this.clearColorButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          controller.setColor(null);
-        }
-      });
+    this.clearColorButton.addActionListener(ev -> controller.setColor(null));
     this.clearColorButton.setEnabled(false);
     controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.COLOR,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // If color changes update color buttons
-            colorButton.setColor(controller.getColor());
-            clearColorButton.setEnabled(controller.getColor() != null);
-          }
-        });
+            ev -> {
+              // If color changes update color buttons
+              colorButton.setColor(controller.getColor());
+              clearColorButton.setEnabled(controller.getColor() != null);
+            });
 
     this.attributesPreviewComponent = new AttributesPreviewComponent(controller);
 
@@ -769,23 +693,17 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
       timer.setInitialDelay(250);
 
       // Update timer when button is armed
-      addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  if (shiftPressed) {
-                    if (getModel().isArmed()
-                        && !timer.isRunning()) {
-                      timer.restart();
-                    } else if (!getModel().isArmed()
-                               && timer.isRunning()) {
-                      timer.stop();
-                    }
-                  }
-                }
-              });
+      addChangeListener(ev -> EventQueue.invokeLater(() -> {
+          if (shiftPressed) {
+              if (getModel().isArmed()
+                      && !timer.isRunning()) {
+                  timer.restart();
+              } else if (!getModel().isArmed()
+                      && timer.isRunning()) {
+                  timer.stop();
+              }
           }
-        });
+      }));
       addMouseListener(new MouseAdapter() {
           @Override
           public void mousePressed(final MouseEvent ev) {
@@ -799,12 +717,10 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
 
           @Override
           public void mouseReleased(MouseEvent ev) {
-            new Timer(500, new ActionListener() {
-                public void actionPerformed(final ActionEvent ev) {
-                  deleteOrientationToolTip();
-                  ((Timer)ev.getSource()).stop();
-                }
-              }).start();
+            new Timer(500, ev1 -> {
+              deleteOrientationToolTip();
+              ((Timer) ev1.getSource()).stop();
+            }).start();
           }
         });
     }
@@ -865,8 +781,8 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
           ImportedFurnitureWizardStepsPanel.class, "nameLabel.mnemonic")).getKeyCode());
       this.nameLabel.setLabelFor(this.nameTextField);
       this.addToCatalogCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          ImportedFurnitureWizardStepsPanel.class, "addToCatalogCheckBox.mnemonic")).getKeyCode());;
-      this.categoryLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+          ImportedFurnitureWizardStepsPanel.class, "addToCatalogCheckBox.mnemonic")).getKeyCode());
+        this.categoryLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
           ImportedFurnitureWizardStepsPanel.class, "categoryLabel.mnemonic")).getKeyCode());
       this.categoryLabel.setLabelFor(this.categoryComboBox);
       this.creatorLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
@@ -887,12 +803,12 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
           ImportedFurnitureWizardStepsPanel.class, "elevationLabel.mnemonic")).getKeyCode());
       this.elevationLabel.setLabelFor(this.elevationSpinner);
       this.movableCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          ImportedFurnitureWizardStepsPanel.class, "movableCheckBox.mnemonic")).getKeyCode());;
-      this.doorOrWindowCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          ImportedFurnitureWizardStepsPanel.class, "doorOrWindowCheckBox.mnemonic")).getKeyCode());;
-      this.staircaseCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          ImportedFurnitureWizardStepsPanel.class, "staircaseCheckBox.mnemonic")).getKeyCode());;
-      this.colorLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+          ImportedFurnitureWizardStepsPanel.class, "movableCheckBox.mnemonic")).getKeyCode());
+        this.doorOrWindowCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+          ImportedFurnitureWizardStepsPanel.class, "doorOrWindowCheckBox.mnemonic")).getKeyCode());
+        this.staircaseCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+          ImportedFurnitureWizardStepsPanel.class, "staircaseCheckBox.mnemonic")).getKeyCode());
+        this.colorLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
           ImportedFurnitureWizardStepsPanel.class, "colorLabel.mnemonic")).getKeyCode());
       this.colorLabel.setLabelFor(this.colorButton);
       this.clearColorButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
@@ -1174,152 +1090,136 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
     updatePreviewComponentsModel(null);
     setReadingState();
     // Read model in modelLoader executor
-    this.modelLoader.execute(new Runnable() {
-        public void run() {
-          Content modelContent = null;
-          try {
-            modelContent = contentManager.getContent(modelName);
-          } catch (RecorderException ex) {
-            setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
-          }
+    this.modelLoader.execute(() -> {
+      Content modelContent = null;
+      try {
+        modelContent = contentManager.getContent(modelName);
+      } catch (RecorderException ex) {
+        setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
+      }
 
-          try {
-            BranchGroup model = ModelManager.getInstance().loadModel(modelContent);
-            final Vector3f  modelSize = ModelManager.getInstance().getSize(model);
-            // Copy model to a temporary OBJ content with materials and textures
-            final Content copiedContent = copyToTemporaryOBJContent(model, modelName);
-            // Load copied content using cache to make it accessible by preview components without waiting in EDT
-            ModelManager.getInstance().loadModel(copiedContent, true, new ModelManager.ModelObserver() {
-                public void modelUpdated(BranchGroup modelRoot) {
-                  EventQueue.invokeLater(new Runnable() {
-                      public void run() {
-                        setDefaultStateAndInitializeReadModel(copiedContent, modelName, defaultCategory,
-                            modelSize, preferences, contentManager);
-                      }
-                    });
-                }
+      try {
+        BranchGroup model = ModelManager.getInstance().loadModel(modelContent);
+        final Vector3f  modelSize = ModelManager.getInstance().getSize(model);
+        // Copy model to a temporary OBJ content with materials and textures
+        final Content copiedContent = copyToTemporaryOBJContent(model, modelName);
+        // Load copied content using cache to make it accessible by preview components without waiting in EDT
+        ModelManager.getInstance().loadModel(copiedContent, true, new ModelManager.ModelObserver() {
+            public void modelUpdated(BranchGroup modelRoot) {
+              EventQueue.invokeLater(() -> setDefaultStateAndInitializeReadModel(copiedContent, modelName, defaultCategory,
+                      modelSize, preferences, contentManager));
+            }
 
-                public void modelError(Exception ex) {
-                  EventQueue.invokeLater(new Runnable() {
-                      public void run() {
-                        setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
-                      }
-                    });
-                }
-              });
-            return;
+            public void modelError(Exception ex) {
+              EventQueue.invokeLater(() -> setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException));
+            }
+          });
+        return;
+      } catch (IllegalArgumentException ex) {
+        // Thrown by getSize if model is empty
+      } catch (IOException ex) {
+        // Try with zipped content
+      }
+
+      try {
+        // Copy model content to a temporary content
+        modelContent = TemporaryURLContent.copyToTemporaryURLContent(modelContent);
+      } catch (IOException ex) {
+        setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
+        return;
+      }
+
+      // If content couldn't be loaded, try to load model as a zipped file
+      ZipInputStream zipIn = null;
+      try {
+        URLContent urlContent = (URLContent)modelContent;
+        // Open zipped stream
+        zipIn = new ZipInputStream(urlContent.openStream());
+        // Parse entries to see if one is readable
+        while (true) {
+          ZipEntry entry;
+          try {
+            if ((entry = zipIn.getNextEntry()) == null) {
+              // No more entry
+              break;
+            }
           } catch (IllegalArgumentException ex) {
-            // Thrown by getSize if model is empty
-          } catch (IOException ex) {
-            // Try with zipped content
+            // Exception thrown if entry name can't be read
+            break;
           }
 
-          try {
-            // Copy model content to a temporary content
-            modelContent = TemporaryURLContent.copyToTemporaryURLContent(modelContent);
-          } catch (IOException ex) {
-            setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
-            return;
-          }
-
-          // If content couldn't be loaded, try to load model as a zipped file
-          ZipInputStream zipIn = null;
-          try {
-            URLContent urlContent = (URLContent)modelContent;
-            // Open zipped stream
-            zipIn = new ZipInputStream(urlContent.openStream());
-            // Parse entries to see if one is readable
-            while (true) {
-              ZipEntry entry;
-              try {
-                if ((entry = zipIn.getNextEntry()) == null) {
-                  // No more entry
-                  break;
-                }
-              } catch (IllegalArgumentException ex) {
-                // Exception thrown if entry name can't be read
-                break;
-              }
-
-              String entryName = entry.getName();
-              // Ignore directory entries and entries starting by a dot
-              if (!entryName.endsWith("/")) {
-                int slashIndex = entryName.lastIndexOf('/');
-                String entryFileName = entryName.substring(++slashIndex);
-                if (!entryFileName.startsWith(".")) {
-                  URL entryUrl = new URL("jar:" + urlContent.getURL() + "!/"
-                      + URLEncoder.encode(entryName, "UTF-8").replace("+", "%20").replace("%2F", "/"));
-                  final Content entryContent = new TemporaryURLContent(entryUrl);
-                  final AtomicReference<Vector3f> modelSize = new AtomicReference<Vector3f>();
-                  // Load content using cache to make it accessible by preview components without waiting in EDT
-                  ModelManager.getInstance().loadModel(entryContent, true, new ModelManager.ModelObserver() {
-                      public void modelUpdated(BranchGroup modelRoot) {
-                        try {
-                          modelSize.set(ModelManager.getInstance().getSize(modelRoot));
-                        } catch (IllegalArgumentException ex) {
-                          // Thrown by getSize if model is empty
-                        }
-                      }
-
-                      public void modelError(Exception ex) {
-                      }
-                    });
-
-                  if (modelSize.get() != null) {
-                    // Check if all remaining entries in the ZIP file can be read, to be able to save edited home with them
-                    do {
-                      try {
-                        entry = zipIn.getNextEntry();
-                      } catch (IllegalArgumentException ex) {
-                        // Exception thrown if entry name can't be read
-                        break;
-                      }
-                    } while (entry != null);
-
-                    if (entry == null) {
-                      EventQueue.invokeAndWait(new Runnable() {
-                          public void run() {
-                            setDefaultStateAndInitializeReadModel(entryContent, modelName, defaultCategory,
-                                modelSize.get(), preferences, contentManager);
-                          }
-                      });
-                      return;
+          String entryName = entry.getName();
+          // Ignore directory entries and entries starting by a dot
+          if (!entryName.endsWith("/")) {
+            int slashIndex = entryName.lastIndexOf('/');
+            String entryFileName = entryName.substring(++slashIndex);
+            if (!entryFileName.startsWith(".")) {
+              URL entryUrl = new URL("jar:" + urlContent.getURL() + "!/"
+                  + URLEncoder.encode(entryName, "UTF-8").replace("+", "%20").replace("%2F", "/"));
+              final Content entryContent = new TemporaryURLContent(entryUrl);
+              final AtomicReference<Vector3f> modelSize = new AtomicReference<Vector3f>();
+              // Load content using cache to make it accessible by preview components without waiting in EDT
+              ModelManager.getInstance().loadModel(entryContent, true, new ModelManager.ModelObserver() {
+                  public void modelUpdated(BranchGroup modelRoot) {
+                    try {
+                      modelSize.set(ModelManager.getInstance().getSize(modelRoot));
+                    } catch (IllegalArgumentException ex) {
+                      // Thrown by getSize if model is empty
                     }
                   }
+
+                  public void modelError(Exception ex) {
+                  }
+                });
+
+              if (modelSize.get() != null) {
+                // Check if all remaining entries in the ZIP file can be read, to be able to save edited home with them
+                do {
+                  try {
+                    entry = zipIn.getNextEntry();
+                  } catch (IllegalArgumentException ex) {
+                    // Exception thrown if entry name can't be read
+                    break;
+                  }
+                } while (entry != null);
+
+                if (entry == null) {
+                  EventQueue.invokeAndWait(() -> setDefaultStateAndInitializeReadModel(entryContent, modelName, defaultCategory,
+                          modelSize.get(), preferences, contentManager));
+                  return;
                 }
               }
-            }
-          } catch (IOException ex) {
-            setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
-            return;
-          } catch (InterruptedException ex) {
-            setDefaultState();
-            return;
-          } catch (InvocationTargetException ex) {
-            // Show next message
-          } finally {
-            try {
-              if (zipIn != null) {
-                zipIn.close();
-              }
-            } catch (IOException ex) {
-              // Ignore close exception
             }
           }
-
-          // Found no readable model
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                if (isShowing()) {
-                  setDefaultState();
-                  setModelChoiceTexts(preferences);
-                  JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
-                      preferences.getLocalizedString(ImportedFurnitureWizardStepsPanel.class, "modelChoiceFormatError"));
-                }
-              }
-            });
         }
+      } catch (IOException ex) {
+        setDefaultStateAndShowModelChoiceError(modelName, preferences, !ignoreException);
+        return;
+      } catch (InterruptedException ex) {
+        setDefaultState();
+        return;
+      } catch (InvocationTargetException ex) {
+        // Show next message
+      } finally {
+        try {
+          if (zipIn != null) {
+            zipIn.close();
+          }
+        } catch (IOException ex) {
+          // Ignore close exception
+        }
+      }
+
+      // Found no readable model
+      EventQueue.invokeLater(() -> {
+          if (isShowing()) {
+              setDefaultState();
+              setModelChoiceTexts(preferences);
+              JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
+                      preferences.getLocalizedString(ImportedFurnitureWizardStepsPanel.class, "modelChoiceFormatError"));
+          }
       });
+    });
   }
 
   /**
@@ -1363,13 +1263,9 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
                                                       boolean showError) {
     setDefaultState();
     if (showError) {
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
-                preferences.getLocalizedString(
-                    ImportedFurnitureWizardStepsPanel.class, "modelChoiceError", modelName));
-          }
-        });
+      EventQueue.invokeLater(() -> JOptionPane.showMessageDialog(SwingUtilities.getRootPane(ImportedFurnitureWizardStepsPanel.this),
+          preferences.getLocalizedString(
+              ImportedFurnitureWizardStepsPanel.class, "modelChoiceError", modelName)));
     }
   }
 
@@ -1437,11 +1333,7 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
         rootPane.setCursor(this.defaultCursor);
       }
     } else {
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            setDefaultState();
-          }
-        });
+      EventQueue.invokeLater(() -> setDefaultState());
     }
   }
 
@@ -1527,17 +1419,9 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
      */
     protected void addSizeListeners(final ImportedFurnitureWizardController controller) {
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.BACK_FACE_SHOWN,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setBackFaceShown(controller.isBackFaceShown());
-            }
-          });
-      PropertyChangeListener sizeChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setModelRotationAndSize(controller.getModelRotation(),
-                controller.getWidth(), controller.getDepth(), controller.getHeight());
-          }
-        };
+              ev -> setBackFaceShown(controller.isBackFaceShown()));
+      PropertyChangeListener sizeChangeListener = ev -> setModelRotationAndSize(controller.getModelRotation(),
+          controller.getWidth(), controller.getDepth(), controller.getHeight());
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.MODEL_ROTATION,
           sizeChangeListener);
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.WIDTH,
@@ -1553,11 +1437,7 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
      * displayed by this component.
      */
     protected void addColorListener(final ImportedFurnitureWizardController controller) {
-      PropertyChangeListener colorChangeListener = new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setModelColor(controller.getColor());
-          }
-        };
+      PropertyChangeListener colorChangeListener = ev -> setModelColor(controller.getColor());
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.COLOR,
           colorChangeListener);
     }
@@ -1567,11 +1447,7 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
      * displayed by this component.
      */
     protected void addIconYawListener(final ImportedFurnitureWizardController controller) {
-      PropertyChangeListener iconYawChangeListener = new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setViewYaw(controller.getIconYaw());
-          }
-        };
+      PropertyChangeListener iconYawChangeListener = ev -> setViewYaw(controller.getIconYaw());
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.ICON_YAW,
           iconYawChangeListener);
     }
@@ -1664,18 +1540,10 @@ public class ImportedFurnitureWizardStepsPanel extends JPanel
                                        final ImportedFurnitureWizardController controller,
                                        final boolean mainComponent) {
       controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.BACK_FACE_SHOWN,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              viewComponent3D.setBackFaceShown(controller.isBackFaceShown());
-            }
-          });
+              ev -> viewComponent3D.setBackFaceShown(controller.isBackFaceShown()));
       if (mainComponent) {
         controller.addPropertyChangeListener(ImportedFurnitureWizardController.Property.MODEL,
-            new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                modelNode = null;
-              }
-            });
+                ev -> modelNode = null);
       }
       PropertyChangeListener rotationChangeListener = new PropertyChangeListener () {
           public void propertyChange(final PropertyChangeEvent ev) {

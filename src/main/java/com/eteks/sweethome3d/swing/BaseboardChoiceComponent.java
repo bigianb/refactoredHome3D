@@ -19,27 +19,14 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.BaseboardChoiceController;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeListener;
 
 /**
  * Baseboard editing panel.
@@ -80,88 +67,62 @@ public class BaseboardChoiceComponent extends JPanel implements View {
         BaseboardChoiceComponent.class, "visibleCheckBox.text"));
     this.visibleCheckBox.setNullable(controller.getVisible() == null);
     this.visibleCheckBox.setValue(controller.getVisible());
-    this.visibleCheckBox.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setVisible(visibleCheckBox.getValue());
-        }
-      });
-    PropertyChangeListener visibleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          Boolean visible = controller.getVisible();
-          visibleCheckBox.setValue(visible);
-          boolean componentsEnabled = visible != Boolean.FALSE;
-          sameColorAsWallRadioButton.setEnabled(componentsEnabled);
-          colorRadioButton.setEnabled(componentsEnabled);
-          textureRadioButton.setEnabled(componentsEnabled);
-          colorButton.setEnabled(componentsEnabled);
-          ((JComponent)controller.getTextureController().getView()).setEnabled(componentsEnabled);
-          heightSpinner.setEnabled(componentsEnabled);
-          thicknessSpinner.setEnabled(componentsEnabled);
-        }
-      };
+    this.visibleCheckBox.addChangeListener(ev -> controller.setVisible(visibleCheckBox.getValue()));
+    PropertyChangeListener visibleChangeListener = ev -> {
+      Boolean visible = controller.getVisible();
+      visibleCheckBox.setValue(visible);
+      boolean componentsEnabled = visible != Boolean.FALSE;
+      sameColorAsWallRadioButton.setEnabled(componentsEnabled);
+      colorRadioButton.setEnabled(componentsEnabled);
+      textureRadioButton.setEnabled(componentsEnabled);
+      colorButton.setEnabled(componentsEnabled);
+      ((JComponent)controller.getTextureController().getView()).setEnabled(componentsEnabled);
+      heightSpinner.setEnabled(componentsEnabled);
+      thicknessSpinner.setEnabled(componentsEnabled);
+    };
     controller.addPropertyChangeListener(BaseboardChoiceController.Property.VISIBLE, 
         visibleChangeListener);
 
     this.sameColorAsWallRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         BaseboardChoiceComponent.class, "sameColorAsWallRadioButton.text"));
-    this.sameColorAsWallRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (sameColorAsWallRadioButton.isSelected()) {
-            controller.setPaint(BaseboardChoiceController.BaseboardPaint.DEFAULT);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(BaseboardChoiceController.Property.PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateColorRadioButtons(controller);
-          }
-        });
+    this.sameColorAsWallRadioButton.addChangeListener(ev -> {
+      if (sameColorAsWallRadioButton.isSelected()) {
+        controller.setPaint(BaseboardChoiceController.BaseboardPaint.DEFAULT);
+      }
+    });
+    controller.addPropertyChangeListener(BaseboardChoiceController.Property.PAINT,
+            ev -> updateColorRadioButtons(controller));
 
     // Baseboard color and texture buttons bound to baseboard controller properties
     this.colorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         BaseboardChoiceComponent.class, "colorRadioButton.text"));
-    this.colorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (colorRadioButton.isSelected()) {
-            controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(BaseboardChoiceController.Property.PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateColorRadioButtons(controller);
-          }
-        });
+    this.colorRadioButton.addChangeListener(ev -> {
+      if (colorRadioButton.isSelected()) {
+        controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(BaseboardChoiceController.Property.PAINT,
+            ev -> updateColorRadioButtons(controller));
     
     this.colorButton = new ColorButton(preferences);
     this.colorButton.setColorDialogTitle(preferences.getLocalizedString(
         BaseboardChoiceComponent.class, "colorDialog.title"));
     this.colorButton.setColor(controller.getColor());
-    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setColor(colorButton.getColor());
-            controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
-          }
-        });
-    controller.addPropertyChangeListener(BaseboardChoiceController.Property.COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            colorButton.setColor(controller.getColor());
-          }
-        });
+    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> {
+              controller.setColor(colorButton.getColor());
+              controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
+            });
+    controller.addPropertyChangeListener(BaseboardChoiceController.Property.COLOR,
+            ev -> colorButton.setColor(controller.getColor()));
 
     this.textureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         BaseboardChoiceComponent.class, "textureRadioButton.text"));
-    this.textureRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (textureRadioButton.isSelected()) {
-            controller.setPaint(BaseboardChoiceController.BaseboardPaint.TEXTURED);
-          }
-        }
-      });
+    this.textureRadioButton.addChangeListener(ev -> {
+      if (textureRadioButton.isSelected()) {
+        controller.setPaint(BaseboardChoiceController.BaseboardPaint.TEXTURED);
+      }
+    });
     
     this.textureComponent = (JComponent)controller.getTextureController().getView();
 
@@ -183,12 +144,10 @@ public class BaseboardChoiceComponent extends JPanel implements View {
                 : controller.getMaxHeight());
     this.heightSpinner = new NullableSpinner(heightSpinnerModel);
     heightSpinnerModel.setNullable(controller.getHeight() == null);
-    final PropertyChangeListener heightChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          heightSpinnerModel.setNullable(ev.getNewValue() == null);
-          heightSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener heightChangeListener = ev -> {
+      heightSpinnerModel.setNullable(ev.getNewValue() == null);
+      heightSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(BaseboardChoiceController.Property.HEIGHT, 
         heightChangeListener);
     if (controller.getHeight() != null && controller.getMaxHeight() != null) {
@@ -196,27 +155,23 @@ public class BaseboardChoiceComponent extends JPanel implements View {
     } else {
       heightSpinnerModel.setLength(controller.getHeight());
     }
-    heightSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(BaseboardChoiceController.Property.HEIGHT, 
-              heightChangeListener);
-          controller.setHeight(heightSpinnerModel.getLength());
-          controller.addPropertyChangeListener(BaseboardChoiceController.Property.HEIGHT, 
-              heightChangeListener);
-        }
-      });
-    controller.addPropertyChangeListener(BaseboardChoiceController.Property.MAX_HEIGHT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (ev.getOldValue() == null
-                || controller.getMaxHeight() != null
-                   && ((Number)heightSpinnerModel.getMaximum()).floatValue() < controller.getMaxHeight()) {
-              // Change max only if larger value to avoid taking into account intermediate max values  
-              // that may be fired by auto commit spinners while entering a value
-              heightSpinnerModel.setMaximum(controller.getMaxHeight());
-            }
-          }
-        });
+    heightSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(BaseboardChoiceController.Property.HEIGHT,
+          heightChangeListener);
+      controller.setHeight(heightSpinnerModel.getLength());
+      controller.addPropertyChangeListener(BaseboardChoiceController.Property.HEIGHT,
+          heightChangeListener);
+    });
+    controller.addPropertyChangeListener(BaseboardChoiceController.Property.MAX_HEIGHT,
+            ev -> {
+              if (ev.getOldValue() == null
+                  || controller.getMaxHeight() != null
+                     && ((Number)heightSpinnerModel.getMaximum()).floatValue() < controller.getMaxHeight()) {
+                // Change max only if larger value to avoid taking into account intermediate max values
+                // that may be fired by auto commit spinners while entering a value
+                heightSpinnerModel.setMaximum(controller.getMaxHeight());
+              }
+            });
     
     // Create baseboard thickness label and its spinner bound to THICKNESS controller property
     this.thicknessLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -226,23 +181,19 @@ public class BaseboardChoiceComponent extends JPanel implements View {
     this.thicknessSpinner = new NullableSpinner(thicknessSpinnerModel);
     thicknessSpinnerModel.setNullable(controller.getThickness() == null);
     thicknessSpinnerModel.setLength(controller.getThickness());
-    final PropertyChangeListener thicknessChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          thicknessSpinnerModel.setNullable(ev.getNewValue() == null);
-          thicknessSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener thicknessChangeListener = ev -> {
+      thicknessSpinnerModel.setNullable(ev.getNewValue() == null);
+      thicknessSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(BaseboardChoiceController.Property.THICKNESS, 
         thicknessChangeListener);
-    thicknessSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(BaseboardChoiceController.Property.THICKNESS, 
-              thicknessChangeListener);
-          controller.setThickness(thicknessSpinnerModel.getLength());
-          controller.addPropertyChangeListener(BaseboardChoiceController.Property.THICKNESS, 
-              thicknessChangeListener);
-        }
-      });
+    thicknessSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(BaseboardChoiceController.Property.THICKNESS,
+          thicknessChangeListener);
+      controller.setThickness(thicknessSpinnerModel.getLength());
+      controller.addPropertyChangeListener(BaseboardChoiceController.Property.THICKNESS,
+          thicknessChangeListener);
+    });
     
     visibleChangeListener.propertyChange(null);
   }

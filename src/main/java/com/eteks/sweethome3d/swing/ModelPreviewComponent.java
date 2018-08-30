@@ -126,7 +126,7 @@ public class ModelPreviewComponent extends JComponent {
   private Object                  iconImageLock;
   private HomePieceOfFurniture    previewedPiece;
   private boolean                 internalRotationAndSize;
-  private Map<Texture, Texture>   pieceTextures = new HashMap<Texture, Texture>();
+  private Map<Texture, Texture>   pieceTextures = new HashMap<>();
 
   /**
    * Returns an 3D model preview component that lets the user change its yaw.
@@ -267,13 +267,11 @@ public class ModelPreviewComponent extends JComponent {
         public void ancestorRemoved(AncestorEvent ev) {
           if (universe != null) {
             // Dispose universe later to avoid conflicts if canvas is currently being redrawn
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  disposeUniverse();
-                  component3DPanel.removeAll();
-                  component3D = null;
-                }
-              });
+            EventQueue.invokeLater(() -> {
+              disposeUniverse();
+              component3DPanel.removeAll();
+              component3D = null;
+            });
           }
         }
 
@@ -552,7 +550,7 @@ public class ModelPreviewComponent extends JComponent {
 
               // Update matching piece of furniture transformations array
               Transformation[] transformations = previewedPiece.getModelTransformations();
-              ArrayList<Transformation> transformationsList = new ArrayList<Transformation>();
+              ArrayList<Transformation> transformationsList = new ArrayList<>();
               if (transformations != null) {
                 transformationsList.addAll(Arrays.asList(transformations));
               }
@@ -601,12 +599,10 @@ public class ModelPreviewComponent extends JComponent {
     component3D.addMouseMotionListener(mouseListener);
 
     if (scaleChangeSupported) {
-      component3D.addMouseWheelListener(new MouseWheelListener() {
-          public void mouseWheelMoved(MouseWheelEvent ev) {
-            // Mouse move along Y axis with Alt down changes scale
-            setViewScale(Math.max(0.5f, Math.min(1.3f, getViewScale() * (float)Math.exp(ev.getWheelRotation() * ZOOM_FACTOR))));
-          }
-        });
+      component3D.addMouseWheelListener(ev -> {
+        // Mouse move along Y axis with Alt down changes scale
+        setViewScale(Math.max(0.5f, Math.min(1.3f, getViewScale() * (float)Math.exp(ev.getWheelRotation() * ZOOM_FACTOR))));
+      });
     }
 
     // Redirect mouse events to the 3D component
@@ -680,14 +676,12 @@ public class ModelPreviewComponent extends JComponent {
     repaint();
     if (OperatingSystem.isMacOSX()) {
       final Component root = SwingUtilities.getRoot(this);
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            // Request focus again even if dialog isn't supposed to have lost focus!
-            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow() != root) {
-              root.requestFocus();
-            }
-          }
-        });
+      EventQueue.invokeLater(() -> {
+        // Request focus again even if dialog isn't supposed to have lost focus!
+        if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow() != root) {
+          root.requestFocus();
+        }
+      });
     }
   }
 
@@ -956,7 +950,7 @@ public class ModelPreviewComponent extends JComponent {
     this.previewedPiece = null;
     this.pieceTextures.clear();
     if (model != null) {
-      final AtomicReference<IllegalArgumentException> exception = new AtomicReference<IllegalArgumentException>();
+      final AtomicReference<IllegalArgumentException> exception = new AtomicReference<>();
       // Load content model synchronously (or get it from cache)
       ModelManager.getInstance().loadModel(model, true, new ModelManager.ModelObserver() {
           public void modelUpdated(BranchGroup modelRoot) {

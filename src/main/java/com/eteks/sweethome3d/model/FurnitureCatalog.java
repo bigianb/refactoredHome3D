@@ -28,9 +28,9 @@ import java.util.List;
  * @author Emmanuel Puybaret
  */
 public class FurnitureCatalog {
-  private List<FurnitureCategory>       categories = new ArrayList<FurnitureCategory>();
-  private final CollectionChangeSupport<CatalogPieceOfFurniture> furnitureChangeSupport = 
-                             new CollectionChangeSupport<CatalogPieceOfFurniture>(this);
+  private List<FurnitureCategory>       categories = new ArrayList<>();
+  private final CollectionChangeSupport<CatalogPieceOfFurniture> furnitureChangeSupport =
+          new CollectionChangeSupport<>(this);
 
   /**
    * Returns the categories list sorted by name.
@@ -110,7 +110,7 @@ public class FurnitureCatalog {
         
         if (category.getFurnitureCount() == 0) {
           //  Make a copy of the list to avoid conflicts in the list returned by getCategories
-          this.categories = new ArrayList<FurnitureCategory>(this.categories);
+          this.categories = new ArrayList<>(this.categories);
           this.categories.remove(category);
         }
         

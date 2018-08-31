@@ -61,8 +61,8 @@ import com.eteks.sweethome3d.tools.URLContent;
  */
 public class HomeXMLExporter extends ObjectXMLExporter<Home> {
   private Map<Content, String> savedContentNames;
-  private Map<Level, String>   levelIds = new HashMap<Level, String>();
-  private Map<Wall, String>    wallIds = new HashMap<Wall, String>();
+  private Map<Level, String>   levelIds = new HashMap<>();
+  private Map<Wall, String>    wallIds = new HashMap<>();
 
   /**
    * Sets the names that will be saved as XML attribute values for each content.
@@ -130,7 +130,7 @@ public class HomeXMLExporter extends ObjectXMLExporter<Home> {
   @Override
   protected void writeChildren(XMLWriter writer, Home home) throws IOException {
     // Write properties in the alphabetic order of their names
-    List<String> propertiesNames = new ArrayList<String>(home.getPropertyNames());
+    List<String> propertiesNames = new ArrayList<>(home.getPropertyNames());
     Collections.sort(propertiesNames);
     for (String propertyName : propertiesNames) {
       writeProperty(writer, propertyName, home.getProperty(propertyName));
@@ -779,7 +779,7 @@ public class HomeXMLExporter extends ObjectXMLExporter<Home> {
    * Writes in XML the properties of the <code>HomeObject</code> instance with the given <code>writer</code>.
    */
   private void writeProperties(XMLWriter writer, HomeObject object) throws IOException {
-    List<String> propertiesNames = new ArrayList<String>(object.getPropertyNames());
+    List<String> propertiesNames = new ArrayList<>(object.getPropertyNames());
     Collections.sort(propertiesNames);
     for (String propertyName : propertiesNames) {
       writeProperty(writer, propertyName, object.getProperty(propertyName));

@@ -19,20 +19,14 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeEnvironment;
 import com.eteks.sweethome3d.model.HomeTexture;
 import com.eteks.sweethome3d.model.UserPreferences;
+
+import javax.swing.undo.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 /**
  * A MVC controller for home 3D attributes view.
@@ -93,11 +87,7 @@ public class Home3DAttributesController implements Controller {
           this.preferences.getLocalizedString(Home3DAttributesController.class, "groundTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.groundTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setGroundPaint(EnvironmentPaint.TEXTURED);
-            }
-          });
+              ev -> setGroundPaint(EnvironmentPaint.TEXTURED));
     }
     return this.groundTextureController;
   }
@@ -113,11 +103,7 @@ public class Home3DAttributesController implements Controller {
           false,
           this.preferences, this.viewFactory, this.contentManager);
       this.skyTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setSkyPaint(EnvironmentPaint.TEXTURED);
-            }
-          });
+              ev -> setSkyPaint(EnvironmentPaint.TEXTURED));
     }
     return this.skyTextureController;
   }

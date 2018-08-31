@@ -19,7 +19,9 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.beans.PropertyChangeEvent;
+import com.eteks.sweethome3d.model.*;
+
+import javax.swing.undo.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
@@ -28,25 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.List;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeDoorOrWindow;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
-import com.eteks.sweethome3d.model.HomeLight;
-import com.eteks.sweethome3d.model.HomeMaterial;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.HomeTexture;
-import com.eteks.sweethome3d.model.Sash;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.Transformation;
-import com.eteks.sweethome3d.model.UserPreferences;
 
 /**
  * A MVC controller for home furniture view.
@@ -176,11 +159,7 @@ public class HomeFurnitureController implements Controller {
           this.preferences.getLocalizedString(HomeFurnitureController.class, "textureTitle"),
           this.preferences, this.viewFactory, this.contentManager);
       this.textureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setPaint(FurniturePaint.TEXTURED);
-            }
-          });
+              ev -> setPaint(FurniturePaint.TEXTURED));
     }
     return this.textureController;
   }
@@ -196,31 +175,23 @@ public class HomeFurnitureController implements Controller {
           this.preferences.getLocalizedString(HomeFurnitureController.class, "modelMaterialsTitle"),
           this.preferences, this.viewFactory, this.contentManager);
       this.modelMaterialsController.addPropertyChangeListener(ModelMaterialsController.Property.MATERIALS,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setPaint(FurniturePaint.MODEL_MATERIALS);
-            }
-          });
+              ev -> setPaint(FurniturePaint.MODEL_MATERIALS));
 
-      PropertyChangeListener sizeChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // Update model content size in materials controller
-            if (getWidth() != null && getDepth() != null && getHeight() != null) {
-              modelMaterialsController.setModelSize(getWidth(), getDepth(), getHeight());
-            }
-          }
-        };
+      PropertyChangeListener sizeChangeListener = ev -> {
+        // Update model content size in materials controller
+        if (getWidth() != null && getDepth() != null && getHeight() != null) {
+          modelMaterialsController.setModelSize(getWidth(), getDepth(), getHeight());
+        }
+      };
       addPropertyChangeListener(Property.WIDTH, sizeChangeListener);
       addPropertyChangeListener(Property.DEPTH, sizeChangeListener);
       addPropertyChangeListener(Property.HEIGHT, sizeChangeListener);
-      addPropertyChangeListener(Property.MODEL_TRANSFORMATIONS, new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            // Update model transformations in materials controller
-            if (getModelTransformations() != null) {
-              modelMaterialsController.setModelTransformations(getModelTransformations());
-            }
-          }
-        });
+      addPropertyChangeListener(Property.MODEL_TRANSFORMATIONS, ev -> {
+        // Update model transformations in materials controller
+        if (getModelTransformations() != null) {
+          modelMaterialsController.setModelTransformations(getModelTransformations());
+        }
+      });
     }
     return this.modelMaterialsController;
   }
@@ -363,8 +334,8 @@ public class HomeFurnitureController implements Controller {
 
       boolean priceEditable = this.preferences.getCurrency() != null;
       if (priceEditable) {
-        for (int i = 0; i < selectedFurniture.size(); i++) {
-          if (selectedFurniture.get(i) instanceof HomeFurnitureGroup) {
+        for (HomePieceOfFurniture aSelectedFurniture : selectedFurniture) {
+          if (aSelectedFurniture instanceof HomeFurnitureGroup) {
             priceEditable = false;
             break;
           }
@@ -403,7 +374,7 @@ public class HomeFurnitureController implements Controller {
 
       Float x = firstPiece.getX();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (x.floatValue() != selectedFurniture.get(i).getX()) {
+        if (x != selectedFurniture.get(i).getX()) {
           x = null;
           break;
         }
@@ -412,7 +383,7 @@ public class HomeFurnitureController implements Controller {
 
       Float y = firstPiece.getY();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (y.floatValue() != selectedFurniture.get(i).getY()) {
+        if (y != selectedFurniture.get(i).getY()) {
           y = null;
           break;
         }
@@ -421,7 +392,7 @@ public class HomeFurnitureController implements Controller {
 
       Float elevation = firstPiece.getElevation();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (elevation.floatValue() != selectedFurniture.get(i).getElevation()) {
+        if (elevation != selectedFurniture.get(i).getElevation()) {
           elevation = null;
           break;
         }
@@ -438,7 +409,7 @@ public class HomeFurnitureController implements Controller {
 
       Boolean basePlanItem = !firstPiece.isMovable();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (basePlanItem.booleanValue() != !selectedFurniture.get(i).isMovable()) {
+        if (basePlanItem == selectedFurniture.get(i).isMovable()) {
           basePlanItem = null;
           break;
         }
@@ -447,7 +418,7 @@ public class HomeFurnitureController implements Controller {
 
       Float angle = firstPiece.getAngle();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (angle.floatValue() != selectedFurniture.get(i).getAngle()) {
+        if (angle != selectedFurniture.get(i).getAngle()) {
           angle = null;
           break;
         }
@@ -465,7 +436,7 @@ public class HomeFurnitureController implements Controller {
       if (this.rollAndPitchEditable) {
         Float roll = firstPiece.getRoll();
         for (int i = 1; i < selectedFurniture.size(); i++) {
-          if (roll.floatValue() != selectedFurniture.get(i).getRoll()) {
+          if (roll != selectedFurniture.get(i).getRoll()) {
             roll = null;
             break;
           }
@@ -474,7 +445,7 @@ public class HomeFurnitureController implements Controller {
 
         Float pitch = firstPiece.getPitch();
         for (int i = 1; i < selectedFurniture.size(); i++) {
-          if (pitch.floatValue() != selectedFurniture.get(i).getPitch()) {
+          if (pitch != selectedFurniture.get(i).getPitch()) {
             pitch = null;
             break;
           }
@@ -499,7 +470,7 @@ public class HomeFurnitureController implements Controller {
 
       Float width = firstPiece.getWidth();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (width.floatValue() != selectedFurniture.get(i).getWidth()) {
+        if (width != selectedFurniture.get(i).getWidth()) {
           width = null;
           break;
         }
@@ -508,7 +479,7 @@ public class HomeFurnitureController implements Controller {
 
       Float depth = firstPiece.getDepth();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (depth.floatValue() != selectedFurniture.get(i).getDepth()) {
+        if (depth != selectedFurniture.get(i).getDepth()) {
           depth = null;
           break;
         }
@@ -517,7 +488,7 @@ public class HomeFurnitureController implements Controller {
 
       Float height = firstPiece.getHeight();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (height.floatValue() != selectedFurniture.get(i).getHeight()) {
+        if (height != selectedFurniture.get(i).getHeight()) {
           height = null;
           break;
         }
@@ -579,11 +550,10 @@ public class HomeFurnitureController implements Controller {
       }
 
       boolean defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedFurnitureWithoutGroups.size(); i++) {
-        HomePieceOfFurniture piece = selectedFurnitureWithoutGroups.get(i);
+      for (HomePieceOfFurniture piece : selectedFurnitureWithoutGroups) {
         if (piece.getColor() != null
-            || piece.getTexture() != null
-            || piece.getModelMaterials() != null) {
+                || piece.getTexture() != null
+                || piece.getModelMaterials() != null) {
           defaultColorsAndTextures = false;
           break;
         }
@@ -627,7 +597,7 @@ public class HomeFurnitureController implements Controller {
       Float firstPieceShininess = firstPieceExceptGroup.getShininess();
       FurnitureShininess shininess = firstPieceShininess == null
           ? FurnitureShininess.DEFAULT
-          : (firstPieceShininess.floatValue() == 0
+          : (firstPieceShininess == 0
               ? FurnitureShininess.MATT
               : FurnitureShininess.SHINY);
       for (int i = 1; i < selectedFurnitureWithoutGroups.size(); i++) {
@@ -681,7 +651,7 @@ public class HomeFurnitureController implements Controller {
       if (lightPowerEditable) {
         Float lightPower = ((HomeLight)firstPiece).getPower();
         for (int i = 1; i < selectedFurniture.size(); i++) {
-          if (lightPower.floatValue() != ((HomeLight)selectedFurniture.get(i)).getPower()) {
+          if (lightPower != ((HomeLight)selectedFurniture.get(i)).getPower()) {
             lightPower = null;
             break;
           }
@@ -694,12 +664,12 @@ public class HomeFurnitureController implements Controller {
       // Enable size components only if all pieces are resizable
       Boolean resizable = firstPiece.isResizable();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (resizable.booleanValue() != selectedFurniture.get(i).isResizable()) {
+        if (resizable != selectedFurniture.get(i).isResizable()) {
           resizable = null;
           break;
         }
       }
-      setResizable(resizable != null && resizable.booleanValue());
+      setResizable(resizable != null && resizable);
 
       boolean deformable = true;
       for (int i = 0; deformable && i < selectedFurniture.size(); i++) {
@@ -733,12 +703,12 @@ public class HomeFurnitureController implements Controller {
 
       Boolean texturable = firstPiece.isTexturable();
       for (int i = 1; i < selectedFurniture.size(); i++) {
-        if (texturable.booleanValue() != selectedFurniture.get(i).isTexturable()) {
+        if (texturable != selectedFurniture.get(i).isTexturable()) {
           texturable = null;
           break;
         }
       }
-      setTexturable(texturable == null || texturable.booleanValue());
+      setTexturable(texturable == null || texturable);
     }
   }
 
@@ -746,7 +716,7 @@ public class HomeFurnitureController implements Controller {
    * Returns all the pieces of the given <code>furniture</code> list except groups.
    */
   private List<HomePieceOfFurniture> getFurnitureWithoutGroups(List<HomePieceOfFurniture> furniture) {
-    List<HomePieceOfFurniture> pieces = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> pieces = new ArrayList<>();
     for (HomePieceOfFurniture piece : furniture) {
       if (piece instanceof HomeFurnitureGroup) {
         pieces.addAll(getFurnitureWithoutGroups(((HomeFurnitureGroup)piece).getFurniture()));
@@ -1000,7 +970,7 @@ public class HomeFurnitureController implements Controller {
         if (this.angleInDegrees == null) {
           setAngle(null, false);
         } else {
-          setAngle(new Float(Math.toRadians(this.angleInDegrees)), false);
+          setAngle((float) Math.toRadians(this.angleInDegrees), false);
         }
       }
     }
@@ -1615,7 +1585,7 @@ public class HomeFurnitureController implements Controller {
       Float shininess = getShininess() == FurnitureShininess.SHINY
           ? new Float(0.5f)
           : (getShininess() == FurnitureShininess.MATT
-              ? new Float(0) : null);
+              ? (float) 0 : null);
       Boolean visible = getVisible();
       Boolean modelMirrored = getModelMirrored();
       Float lightPower = getLightPower();
@@ -2197,7 +2167,7 @@ public class HomeFurnitureController implements Controller {
      * Returns all the children of the given <code>furnitureGroup</code>.
      */
     private List<HomePieceOfFurniture> getGroupFurniture(HomeFurnitureGroup furnitureGroup) {
-      List<HomePieceOfFurniture> pieces = new ArrayList<HomePieceOfFurniture>();
+      List<HomePieceOfFurniture> pieces = new ArrayList<>();
       for (HomePieceOfFurniture piece : furnitureGroup.getFurniture()) {
         pieces.add(piece);
         if (piece instanceof HomeFurnitureGroup) {

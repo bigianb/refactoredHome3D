@@ -334,7 +334,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
     
     private String keyPrefix;
 
-    private PropertyKey(String keyPrefix) {
+    PropertyKey(String keyPrefix) {
       this.keyPrefix = keyPrefix;
     }
     
@@ -366,9 +366,9 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
   private static final String CONTRIBUTED_FURNITURE_CATALOG_FAMILY = "ContributedFurnitureCatalog";
   private static final String ADDITIONAL_FURNITURE_CATALOG_FAMILY  = "AdditionalFurnitureCatalog";
   
-  private static Map<ResourceBundle, Map<Integer, List<String>>> furnitureAdditionalKeys = new WeakHashMap<ResourceBundle, Map<Integer,List<String>>>();
+  private static Map<ResourceBundle, Map<Integer, List<String>>> furnitureAdditionalKeys = new WeakHashMap<>();
   
-  private List<Library> libraries = new ArrayList<Library>();
+  private List<Library> libraries = new ArrayList<>();
   
   /**
    * Creates a default furniture catalog read from resources in the package of this class.
@@ -400,20 +400,16 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
    */
   public DefaultFurnitureCatalog(final UserPreferences preferences, 
                                  File [] furniturePluginFolders) {
-    Map<FurnitureCategory, Map<CatalogPieceOfFurniture, Integer>> furnitureHomonymsCounter = 
-        new HashMap<FurnitureCategory, Map<CatalogPieceOfFurniture,Integer>>();
-    List<String> identifiedFurniture = new ArrayList<String>();
+    Map<FurnitureCategory, Map<CatalogPieceOfFurniture, Integer>> furnitureHomonymsCounter =
+            new HashMap<>();
+    List<String> identifiedFurniture = new ArrayList<>();
     
     readDefaultFurnitureCatalogs(preferences, furnitureHomonymsCounter, identifiedFurniture);
     
     if (furniturePluginFolders != null) {
       for (File furniturePluginFolder : furniturePluginFolders) {
         // Try to load sh3f files from furniture plugin folder
-        File [] pluginFurnitureCatalogFiles = furniturePluginFolder.listFiles(new FileFilter () {
-          public boolean accept(File pathname) {
-            return pathname.isFile();
-          }
-        });
+        File [] pluginFurnitureCatalogFiles = furniturePluginFolder.listFiles(pathname -> pathname.isFile());
         
         if (pluginFurnitureCatalogFiles != null) {
           // Treat furniture catalog files in reverse order of their version
@@ -441,7 +437,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
    */
   public DefaultFurnitureCatalog(URL [] pluginFurnitureCatalogUrls,
                                  URL    furnitureResourcesUrlBase) {
-    List<String> identifiedFurniture = new ArrayList<String>();
+    List<String> identifiedFurniture = new ArrayList<>();
     try {
       SecurityManager securityManager = System.getSecurityManager();
       if (securityManager != null) {
@@ -455,9 +451,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
           this.libraries.add(0, new DefaultLibrary(pluginFurnitureCatalogUrl.toExternalForm(), 
               UserPreferences.FURNITURE_LIBRARY_TYPE, resource));
           readFurniture(resource, pluginFurnitureCatalogUrl, furnitureResourcesUrlBase, identifiedFurniture);
-        } catch (MissingResourceException ex) {
-          // Ignore malformed furniture catalog
-        } catch (IllegalArgumentException ex) {
+        } catch (MissingResourceException | IllegalArgumentException ex) {
           // Ignore malformed furniture catalog
         }
       }
@@ -476,7 +470,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
     return Collections.unmodifiableList(this.libraries);
   }
 
-  private static final Map<File,URL> pluginFurnitureCatalogUrlUpdates = new HashMap<File, URL>(); 
+  private static final Map<File,URL> pluginFurnitureCatalogUrlUpdates = new HashMap<>();
   
   /**
    * Reads plug-in furniture catalog from the <code>pluginFurnitureCatalogFile</code> file. 
@@ -507,12 +501,8 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
       this.libraries.add(0, new DefaultLibrary(pluginFurnitureCatalogFile.getCanonicalPath(), 
           UserPreferences.FURNITURE_LIBRARY_TYPE, resourceBundle));
       readFurniture(resourceBundle, pluginFurnitureCatalogUrl, null, identifiedFurniture);
-    } catch (MissingResourceException ex) {
+    } catch (MissingResourceException | IOException | IllegalArgumentException ex) {
       // Ignore malformed furniture catalog
-    } catch (IllegalArgumentException ex) {
-      // Ignore malformed furniture catalog
-    } catch (IOException ex) {
-      // Ignore unaccessible catalog
     }
   }
   
@@ -561,15 +551,18 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
           @Override
           public Enumeration<String> getKeys() {
             final Iterator<String> keys = preferences.getLocalizedStringKeys(furnitureCatalogFamily);
-            return new Enumeration<String>() {
-                public boolean hasMoreElements() {
-                  return keys.hasNext();
-                }
-  
-                public String nextElement() {
-                  return keys.next();
-                }
-              };
+            return new Enumeration<>()
+            {
+              public boolean hasMoreElements()
+              {
+                return keys.hasNext();
+              }
+
+              public String nextElement()
+              {
+                return keys.next();
+              }
+            };
           }
         };
     } else {
@@ -637,7 +630,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
     // Get all property keys of furniture different from default properties
     Map<Integer, List<String>> catalogAdditionalKeys = furnitureAdditionalKeys.get(resource);
     if (catalogAdditionalKeys == null) {
-      catalogAdditionalKeys = new HashMap<Integer, List<String>>();
+      catalogAdditionalKeys = new HashMap<>();
       furnitureAdditionalKeys.put(resource, catalogAdditionalKeys);
       for (Enumeration<String> keys = resource.getKeys(); keys.hasMoreElements(); ) {
         String key = keys.nextElement();
@@ -650,7 +643,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
             if (!isDefaultProperty(propertyKey)) {
               List<String> otherKeys = catalogAdditionalKeys.get(pieceIndex);
               if (otherKeys == null) {
-                otherKeys = new ArrayList<String>();
+                otherKeys = new ArrayList<>();
                 catalogAdditionalKeys.put(pieceIndex, otherKeys);
               }
               otherKeys.add(propertyKey);
@@ -670,9 +663,8 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
         String key = additionalKeys.get(0);
         additionalProperties = Collections.singletonMap(key, resource.getString(key + "#" + index)); 
       } else {
-        additionalProperties = new HashMap<String, String>(propertiesCount);
-        for (int i = 0; i < propertiesCount; i++) {
-          String key = additionalKeys.get(i);
+        additionalProperties = new HashMap<>(propertiesCount);
+        for (String key : additionalKeys) {
           additionalProperties.put(key, resource.getString(key + "#" + index));
         }
       }
@@ -919,9 +911,7 @@ public class DefaultFurnitureCatalog extends FurnitureCatalog {
       } else {
         return null;
       }
-    } catch (MissingResourceException ex) {
-      return null;
-    } catch (NumberFormatException ex) {
+    } catch (MissingResourceException | NumberFormatException ex) {
       return null;
     }
   }

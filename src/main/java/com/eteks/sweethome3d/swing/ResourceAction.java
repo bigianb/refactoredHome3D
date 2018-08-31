@@ -138,7 +138,7 @@ public class ResourceAction extends AbstractAction {
 
     String mnemonicKey = getOptionalString(preferences, resourceClass, propertyPrefix + MNEMONIC_KEY, false);
     if (mnemonicKey != null) {
-      putValue(MNEMONIC_KEY, Integer.valueOf(KeyStroke.getKeyStroke(mnemonicKey).getKeyCode()));
+      putValue(MNEMONIC_KEY, KeyStroke.getKeyStroke(mnemonicKey).getKeyCode());
     }
     putValue(VISIBLE, Boolean.TRUE);
   }
@@ -183,22 +183,20 @@ public class ResourceAction extends AbstractAction {
     public AbstractDecoratedAction(Action action) {
       this.action = action;
       this.propertyChangeSupport = new SwingPropertyChangeSupport(this);
-      action.addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            String propertyName = ev.getPropertyName();
-            if ("enabled".equals(propertyName)) {
-              propertyChangeSupport.firePropertyChange(ev);
-            } else {
-              Object newValue = getValue(propertyName);
-              // In case a property value changes, fire the new value decorated in subclasses
-              // unless new value is null (most Swing listeners don't check new value is null !)
-              if (newValue != null) {
-                propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
-                    propertyName, ev.getOldValue(), newValue));
-              }
-            }
+      action.addPropertyChangeListener(ev -> {
+        String propertyName = ev.getPropertyName();
+        if ("enabled".equals(propertyName)) {
+          propertyChangeSupport.firePropertyChange(ev);
+        } else {
+          Object newValue = getValue(propertyName);
+          // In case a property value changes, fire the new value decorated in subclasses
+          // unless new value is null (most Swing listeners don't check new value is null !)
+          if (newValue != null) {
+            propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(),
+                propertyName, ev.getOldValue(), newValue));
           }
-        });
+        }
+      });
     }
 
     public final void actionPerformed(ActionEvent ev) {
@@ -262,14 +260,12 @@ public class ResourceAction extends AbstractAction {
       super(action);
       // Add a listener on POPUP value changes because the value of the
       // POPUP key replaces the one matching NAME if it exists
-      addPropertyChangeListener(new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (POPUP.equals(ev.getPropertyName())
-                && (ev.getOldValue() != null || ev.getNewValue() != null)) {
-              firePropertyChange(NAME, ev.getOldValue(), ev.getNewValue());
-            }
-          }
-        });
+      addPropertyChangeListener(ev -> {
+        if (POPUP.equals(ev.getPropertyName())
+            && (ev.getOldValue() != null || ev.getNewValue() != null)) {
+          firePropertyChange(NAME, ev.getOldValue(), ev.getNewValue());
+        }
+      });
     }
 
     public Object getValue(String key) {

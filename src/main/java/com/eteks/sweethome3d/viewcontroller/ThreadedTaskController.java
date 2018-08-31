@@ -80,52 +80,41 @@ public class ThreadedTaskController implements Controller {
       tasksExecutor = Executors.newSingleThreadExecutor();
     }
 
-    this.task = tasksExecutor.submit(new FutureTask<Void>(this.threadedTask) {
-        @Override
-        public void run() {
-          // Update running status in view
-          getView().invokeLater(new Runnable() {
-              public void run() {
-                getView().setTaskRunning(true, executingView);
-              }
-            });
-          super.run();
-        }
-      
-        @Override
-        protected void done() {
-          // Update running status in view
-          getView().invokeLater(new Runnable() {
-              public void run() {
-                getView().setTaskRunning(false, executingView);
-                task = null;
-              }
-            });
-          
-          try {
-            get();
-          } catch (ExecutionException ex) {
-            // Handle exceptions with handler            
-            final Throwable throwable = ex.getCause();
-            if (throwable instanceof Exception) {
-              getView().invokeLater(new Runnable() {
-                  public void run() {
-                    exceptionHandler.handleException((Exception)throwable);
-                  }
-                });
-            } else {
-              throwable.printStackTrace();
-            }
-          } catch (final InterruptedException ex) {
-            // Handle exception with handler            
-            getView().invokeLater(new Runnable() {
-                public void run() {
-                  exceptionHandler.handleException(ex);
-                }
-              });
+    this.task = tasksExecutor.submit(new FutureTask<>(this.threadedTask)
+    {
+      @Override
+      public void run()
+      {
+        // Update running status in view
+        getView().invokeLater(() -> getView().setTaskRunning(true, executingView));
+        super.run();
+      }
+
+      @Override
+      protected void done()
+      {
+        // Update running status in view
+        getView().invokeLater(() -> {
+          getView().setTaskRunning(false, executingView);
+          task = null;
+        });
+
+        try {
+          get();
+        } catch (ExecutionException ex) {
+          // Handle exceptions with handler
+          final Throwable throwable = ex.getCause();
+          if (throwable instanceof Exception) {
+            getView().invokeLater(() -> exceptionHandler.handleException((Exception) throwable));
+          } else {
+            throwable.printStackTrace();
           }
+        } catch (final InterruptedException ex) {
+          // Handle exception with handler
+          getView().invokeLater(() -> exceptionHandler.handleException(ex));
         }
-      });
+      }
+    });
   }
   
   /**
@@ -147,7 +136,7 @@ public class ThreadedTaskController implements Controller {
   /**
    * Handles exception that may happen during the execution of a threaded task.
    */
-  public static interface ExceptionHandler {
-    public void handleException(Exception ex);
+  public interface ExceptionHandler {
+    void handleException(Exception ex);
   }
 }

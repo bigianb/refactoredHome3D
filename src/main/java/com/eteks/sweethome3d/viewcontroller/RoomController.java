@@ -19,33 +19,16 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.awt.geom.Area;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
+import com.eteks.sweethome3d.model.*;
+
+import javax.swing.undo.*;
+import java.awt.geom.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.Baseboard;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeTexture;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.Room;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
 
 /**
  * A MVC controller for room view.
@@ -121,11 +104,7 @@ public class RoomController implements Controller {
           this.preferences.getLocalizedString(RoomController.class, "floorTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.floorTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setFloorPaint(RoomPaint.TEXTURED);
-            }
-          });
+              ev -> setFloorPaint(RoomPaint.TEXTURED));
     }
     return this.floorTextureController;
   }
@@ -140,11 +119,7 @@ public class RoomController implements Controller {
           this.preferences.getLocalizedString(RoomController.class, "ceilingTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.ceilingTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setCeilingPaint(RoomPaint.TEXTURED);
-            }
-          });
+              ev -> setCeilingPaint(RoomPaint.TEXTURED));
     }
     return this.ceilingTextureController;
   }
@@ -159,11 +134,7 @@ public class RoomController implements Controller {
           this.preferences.getLocalizedString(RoomController.class, "wallSidesTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.wallSidesTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setWallSidesPaint(RoomPaint.TEXTURED);
-            }
-          });
+              ev -> setWallSidesPaint(RoomPaint.TEXTURED));
     }
     return this.wallSidesTextureController;
   }
@@ -307,10 +278,9 @@ public class RoomController implements Controller {
       getFloorTextureController().setTexture(floorTexture);
       
       boolean defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedRooms.size(); i++) {
-        Room room = selectedRooms.get(i);
+      for (Room room : selectedRooms) {
         if (room.getFloorColor() != null
-            || room.getFloorTexture() != null) {
+                || room.getFloorTexture() != null) {
           defaultColorsAndTextures = false;
           break;
         }
@@ -371,10 +341,9 @@ public class RoomController implements Controller {
       getCeilingTextureController().setTexture(ceilingTexture);
       
       defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedRooms.size(); i++) {
-        Room room = selectedRooms.get(i);
+      for (Room room : selectedRooms) {
         if (room.getCeilingColor() != null
-            || room.getCeilingTexture() != null) {
+                || room.getCeilingTexture() != null) {
           defaultColorsAndTextures = false;
           break;
         }
@@ -600,13 +569,12 @@ public class RoomController implements Controller {
       getWallSidesBaseboardController().getTextureController().setTexture(wallSidesBaseboardTexture);
       
       defaultColorsAndTextures = true;
-      for (int i = 0; i < wallSides.size(); i++) {
-        WallSide wallSide = wallSides.get(i);
+      for (WallSide wallSide : wallSides) {
         Baseboard baseboard = wallSide.getSide() == WallSide.LEFT_SIDE
-            ? wallSide.getWall().getLeftSideBaseboard()
-            : wallSide.getWall().getRightSideBaseboard();
+                ? wallSide.getWall().getLeftSideBaseboard()
+                : wallSide.getWall().getRightSideBaseboard();
         if (baseboard != null
-            && (baseboard.getColor() != null
+                && (baseboard.getColor() != null
                 || baseboard.getTexture() != null)) {
           defaultColorsAndTextures = false;
           break;
@@ -629,7 +597,7 @@ public class RoomController implements Controller {
    * Returns the wall sides close to each room of <code>rooms</code>.
    */
   private List<WallSide> getRoomsWallSides(List<Room> rooms, List<WallSide> defaultWallSides) {
-    List<WallSide> wallSides = new ArrayList<WallSide>();
+    List<WallSide> wallSides = new ArrayList<>();
     for (Room room : rooms) {
       Area roomArea = new Area(getPath(room.getPoints(), true));
       if (defaultWallSides != null) {
@@ -734,7 +702,7 @@ public class RoomController implements Controller {
   private float getSurface(Area area) {
     // Add the surface of the different polygons of this room
     float surface = 0;
-    List<float []> currentPathPoints = new ArrayList<float[]>();
+    List<float []> currentPathPoints = new ArrayList<>();
     for (PathIterator it = area.getPathIterator(null); !it.isDone(); ) {
       float [] roomPoint = new float[2];
       switch (it.currentSegment(roomPoint)) {
@@ -1090,9 +1058,9 @@ public class RoomController implements Controller {
       }
       
       // Apply modification
-      List<ModifiedWall> deletedWalls = new ArrayList<ModifiedWall>();
-      List<ModifiedWall> addedWalls = new ArrayList<ModifiedWall>();
-      List<Selectable> newSelection = new ArrayList<Selectable>(oldSelection);
+      List<ModifiedWall> deletedWalls = new ArrayList<>();
+      List<ModifiedWall> addedWalls = new ArrayList<>();
+      List<Selectable> newSelection = new ArrayList<>(oldSelection);
       if (this.splitSurroundingWalls) {
         if (splitWalls(selectedRoomsWallSides, deletedWalls, addedWalls, newSelection)) {
           this.home.setSelectedItems(newSelection);
@@ -1122,8 +1090,8 @@ public class RoomController implements Controller {
             wallSidesPaint, wallSidesColor, wallSidesTexture, wallSidesShininess,
             wallSidesBaseboardVisible, wallSidesBaseboardThickness, wallSidesBaseboardHeight, 
             wallSidesBaseboardPaint, wallSidesBaseboardColor, wallSidesBaseboardTexture,
-            deletedWalls.toArray(new ModifiedWall [deletedWalls.size()]), 
-            addedWalls.toArray(new ModifiedWall [addedWalls.size()]));
+            deletedWalls.toArray(new ModifiedWall[0]),
+            addedWalls.toArray(new ModifiedWall[0]));
         this.undoSupport.postEdit(undoableEdit);
       }
       if (name != null) {
@@ -1140,7 +1108,7 @@ public class RoomController implements Controller {
                              List<ModifiedWall> addedWalls, 
                              List<Selectable> selectedItems) {
     Map<Wall, ModifiedWall> existingWalls = null;
-    List<Wall> newWalls = new ArrayList<Wall>();
+    List<Wall> newWalls = new ArrayList<>();
     WallSide splitWallSide;
     do {
       splitWallSide = null;
@@ -1186,7 +1154,7 @@ public class RoomController implements Controller {
                     
                     if (existingWalls == null) {
                       // Store all walls at start and end in case there would be more than one change on a wall   
-                      existingWalls = new HashMap<Wall, ModifiedWall>(wallSides.size());
+                      existingWalls = new HashMap<>(wallSides.size());
                       for (WallSide side : wallSides) {
                         if (!existingWalls.containsKey(side.getWall())) {
                           existingWalls.put(side.getWall(), new ModifiedWall(side.getWall()));
@@ -1262,7 +1230,7 @@ public class RoomController implements Controller {
         wallSides.add(new WallSide(firstWall, splitWallSide.getSide()));
         wallSides.add(new WallSide(secondWall, splitWallSide.getSide()));
         // Update any wall side that reference the same wall
-        List<WallSide> sameWallSides = new ArrayList<WallSide>(); 
+        List<WallSide> sameWallSides = new ArrayList<>();
         for (int i = wallSides.size() - 1;  i >= 0; i--) {
           WallSide wallSide = wallSides.get(i);
           if (wallSide.getWall() == splitWall) {

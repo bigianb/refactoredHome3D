@@ -19,36 +19,15 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.BaseboardChoiceController;
-import com.eteks.sweethome3d.viewcontroller.DialogView;
-import com.eteks.sweethome3d.viewcontroller.RoomController;
-import com.eteks.sweethome3d.viewcontroller.TextureChoiceController;
-import com.eteks.sweethome3d.viewcontroller.View;
+import com.eteks.sweethome3d.viewcontroller.*;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.beans.PropertyChangeListener;
 
 /**
  * Room editing panel.
@@ -113,11 +92,7 @@ public class RoomPanel extends JPanel implements DialogView {
       if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
         SwingTools.addAutoSelectionOnFocusGain(this.nameTextField);
       }
-      final PropertyChangeListener nameChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            nameTextField.setText(controller.getName());
-          }
-        };
+      final PropertyChangeListener nameChangeListener = ev -> nameTextField.setText(controller.getName());
       controller.addPropertyChangeListener(RoomController.Property.NAME, nameChangeListener);
       this.nameTextField.getDocument().addDocumentListener(new DocumentListener() {
           public void changedUpdate(DocumentEvent ev) {
@@ -147,20 +122,16 @@ public class RoomPanel extends JPanel implements DialogView {
           RoomPanel.class, "areaVisibleCheckBox.text"));
       this.areaVisibleCheckBox.setNullable(controller.getAreaVisible() == null);
       this.areaVisibleCheckBox.setValue(controller.getAreaVisible());
-      final PropertyChangeListener visibleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          areaVisibleCheckBox.setNullable(ev.getNewValue() == null);
-          areaVisibleCheckBox.setValue((Boolean)ev.getNewValue());
-        }
+      final PropertyChangeListener visibleChangeListener = ev -> {
+        areaVisibleCheckBox.setNullable(ev.getNewValue() == null);
+        areaVisibleCheckBox.setValue((Boolean)ev.getNewValue());
       };
       controller.addPropertyChangeListener(RoomController.Property.AREA_VISIBLE, visibleChangeListener);
-      this.areaVisibleCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(RoomController.Property.AREA_VISIBLE, visibleChangeListener);
-            controller.setAreaVisible(areaVisibleCheckBox.getValue());
-            controller.addPropertyChangeListener(RoomController.Property.AREA_VISIBLE, visibleChangeListener);
-          }
-        });
+      this.areaVisibleCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(RoomController.Property.AREA_VISIBLE, visibleChangeListener);
+        controller.setAreaVisible(areaVisibleCheckBox.getValue());
+        controller.addPropertyChangeListener(RoomController.Property.AREA_VISIBLE, visibleChangeListener);
+      });
     }
     
     if (controller.isPropertyEditable(RoomController.Property.FLOOR_VISIBLE)) {
@@ -169,67 +140,49 @@ public class RoomPanel extends JPanel implements DialogView {
           RoomPanel.class, "floorVisibleCheckBox.text"));
       this.floorVisibleCheckBox.setNullable(controller.getFloorVisible() == null);
       this.floorVisibleCheckBox.setValue(controller.getFloorVisible());
-      final PropertyChangeListener floorVisibleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          floorVisibleCheckBox.setNullable(ev.getNewValue() == null);
-          floorVisibleCheckBox.setValue((Boolean)ev.getNewValue());
-        }
+      final PropertyChangeListener floorVisibleChangeListener = ev -> {
+        floorVisibleCheckBox.setNullable(ev.getNewValue() == null);
+        floorVisibleCheckBox.setValue((Boolean)ev.getNewValue());
       };
       controller.addPropertyChangeListener(RoomController.Property.FLOOR_VISIBLE, floorVisibleChangeListener);
-      this.floorVisibleCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(RoomController.Property.FLOOR_VISIBLE, floorVisibleChangeListener);
-            controller.setFloorVisible(floorVisibleCheckBox.getValue());
-            controller.addPropertyChangeListener(RoomController.Property.FLOOR_VISIBLE, floorVisibleChangeListener);
-          }
-        });
+      this.floorVisibleCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(RoomController.Property.FLOOR_VISIBLE, floorVisibleChangeListener);
+        controller.setFloorVisible(floorVisibleCheckBox.getValue());
+        controller.addPropertyChangeListener(RoomController.Property.FLOOR_VISIBLE, floorVisibleChangeListener);
+      });
     }
     
     if (controller.isPropertyEditable(RoomController.Property.FLOOR_PAINT)) {
       // Floor color and texture buttons bound to floor controller properties
       this.floorColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "floorColorRadioButton.text"));
-      this.floorColorRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (floorColorRadioButton.isSelected()) {
-              controller.setFloorPaint(RoomController.RoomPaint.COLORED);
-            }
-          }
-        });
-      controller.addPropertyChangeListener(RoomController.Property.FLOOR_PAINT, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              updateFloorColorRadioButtons(controller);
-            }
-          });
+      this.floorColorRadioButton.addChangeListener(ev -> {
+        if (floorColorRadioButton.isSelected()) {
+          controller.setFloorPaint(RoomController.RoomPaint.COLORED);
+        }
+      });
+      controller.addPropertyChangeListener(RoomController.Property.FLOOR_PAINT,
+              ev -> updateFloorColorRadioButtons(controller));
       
       this.floorColorButton = new ColorButton(preferences);
       this.floorColorButton.setColorDialogTitle(preferences.getLocalizedString(
           RoomPanel.class, "floorColorDialog.title"));
       this.floorColorButton.setColor(controller.getFloorColor());
-      this.floorColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              controller.setFloorColor(floorColorButton.getColor());
-              controller.setFloorPaint(RoomController.RoomPaint.COLORED);
-            }
-          });
-      controller.addPropertyChangeListener(RoomController.Property.FLOOR_COLOR, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              floorColorButton.setColor(controller.getFloorColor());
-            }
-          });
+      this.floorColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+              ev -> {
+                controller.setFloorColor(floorColorButton.getColor());
+                controller.setFloorPaint(RoomController.RoomPaint.COLORED);
+              });
+      controller.addPropertyChangeListener(RoomController.Property.FLOOR_COLOR,
+              ev -> floorColorButton.setColor(controller.getFloorColor()));
     
       this.floorTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "floorTextureRadioButton.text"));
-      this.floorTextureRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (floorTextureRadioButton.isSelected()) {
-              controller.setFloorPaint(RoomController.RoomPaint.TEXTURED);
-            }
-          }
-        });
+      this.floorTextureRadioButton.addChangeListener(ev -> {
+        if (floorTextureRadioButton.isSelected()) {
+          controller.setFloorPaint(RoomController.RoomPaint.TEXTURED);
+        }
+      });
       
       this.floorTextureComponent = (JComponent)controller.getFloorTextureController().getView();
       
@@ -243,30 +196,22 @@ public class RoomPanel extends JPanel implements DialogView {
       // Floor shininess radio buttons bound to FLOOR_SHININESS controller property
       this.floorMattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "floorMattRadioButton.text"));
-      this.floorMattRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (floorMattRadioButton.isSelected()) {
-              controller.setFloorShininess(0f);
-            }
-          }
-        });
-      PropertyChangeListener floorShininessListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateFloorShininessRadioButtons(controller);
-          }
-        };
+      this.floorMattRadioButton.addChangeListener(ev -> {
+        if (floorMattRadioButton.isSelected()) {
+          controller.setFloorShininess(0f);
+        }
+      });
+      PropertyChangeListener floorShininessListener = ev -> updateFloorShininessRadioButtons(controller);
       controller.addPropertyChangeListener(RoomController.Property.FLOOR_SHININESS, 
           floorShininessListener);
   
       this.floorShinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "floorShinyRadioButton.text"));
-      this.floorShinyRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (floorShinyRadioButton.isSelected()) {
-              controller.setFloorShininess(0.25f);
-            }
-          }
-        });
+      this.floorShinyRadioButton.addChangeListener(ev -> {
+        if (floorShinyRadioButton.isSelected()) {
+          controller.setFloorShininess(0.25f);
+        }
+      });
       controller.addPropertyChangeListener(RoomController.Property.FLOOR_SHININESS, 
           floorShininessListener);
       
@@ -282,67 +227,49 @@ public class RoomPanel extends JPanel implements DialogView {
           RoomPanel.class, "ceilingVisibleCheckBox.text"));
       this.ceilingVisibleCheckBox.setNullable(controller.getCeilingVisible() == null);
       this.ceilingVisibleCheckBox.setValue(controller.getCeilingVisible());
-      final PropertyChangeListener ceilingVisibleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          ceilingVisibleCheckBox.setNullable(ev.getNewValue() == null);
-          ceilingVisibleCheckBox.setValue((Boolean)ev.getNewValue());
-        }
+      final PropertyChangeListener ceilingVisibleChangeListener = ev -> {
+        ceilingVisibleCheckBox.setNullable(ev.getNewValue() == null);
+        ceilingVisibleCheckBox.setValue((Boolean)ev.getNewValue());
       };
       controller.addPropertyChangeListener(RoomController.Property.CEILING_VISIBLE, ceilingVisibleChangeListener);
-      this.ceilingVisibleCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.removePropertyChangeListener(RoomController.Property.CEILING_VISIBLE, ceilingVisibleChangeListener);
-            controller.setCeilingVisible(ceilingVisibleCheckBox.getValue());
-            controller.addPropertyChangeListener(RoomController.Property.CEILING_VISIBLE, ceilingVisibleChangeListener);
-          }
-        });
+      this.ceilingVisibleCheckBox.addChangeListener(ev -> {
+        controller.removePropertyChangeListener(RoomController.Property.CEILING_VISIBLE, ceilingVisibleChangeListener);
+        controller.setCeilingVisible(ceilingVisibleCheckBox.getValue());
+        controller.addPropertyChangeListener(RoomController.Property.CEILING_VISIBLE, ceilingVisibleChangeListener);
+      });
     }
   
     if (controller.isPropertyEditable(RoomController.Property.CEILING_PAINT)) {
       // Ceiling color and texture buttons bound to ceiling controller properties
       this.ceilingColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "ceilingColorRadioButton.text"));
-      this.ceilingColorRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent e) {
-            if (ceilingColorRadioButton.isSelected()) {
-              controller.setCeilingPaint(RoomController.RoomPaint.COLORED);
-            }
-          }
-        });
-      controller.addPropertyChangeListener(RoomController.Property.CEILING_PAINT, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              updateCeilingColorRadioButtons(controller);
-            }
-          });
+      this.ceilingColorRadioButton.addChangeListener(e -> {
+        if (ceilingColorRadioButton.isSelected()) {
+          controller.setCeilingPaint(RoomController.RoomPaint.COLORED);
+        }
+      });
+      controller.addPropertyChangeListener(RoomController.Property.CEILING_PAINT,
+              ev -> updateCeilingColorRadioButtons(controller));
     
       this.ceilingColorButton = new ColorButton(preferences);
       this.ceilingColorButton.setColor(controller.getCeilingColor());
       this.ceilingColorButton.setColorDialogTitle(preferences.getLocalizedString(
           RoomPanel.class, "ceilingColorDialog.title"));
-      this.ceilingColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              controller.setCeilingColor(ceilingColorButton.getColor());
-              controller.setCeilingPaint(RoomController.RoomPaint.COLORED);
-            }
-          });
-      controller.addPropertyChangeListener(RoomController.Property.CEILING_COLOR, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              ceilingColorButton.setColor(controller.getCeilingColor());
-            }
-          });
+      this.ceilingColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+              ev -> {
+                controller.setCeilingColor(ceilingColorButton.getColor());
+                controller.setCeilingPaint(RoomController.RoomPaint.COLORED);
+              });
+      controller.addPropertyChangeListener(RoomController.Property.CEILING_COLOR,
+              ev -> ceilingColorButton.setColor(controller.getCeilingColor()));
       
       this.ceilingTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "ceilingTextureRadioButton.text"));
-      this.ceilingTextureRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent e) {
-            if (ceilingTextureRadioButton.isSelected()) {
-              controller.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
-            }
-          }
-        });
+      this.ceilingTextureRadioButton.addChangeListener(e -> {
+        if (ceilingTextureRadioButton.isSelected()) {
+          controller.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
+        }
+      });
     
       this.ceilingTextureComponent = (JComponent)controller.getCeilingTextureController().getView();
   
@@ -356,30 +283,22 @@ public class RoomPanel extends JPanel implements DialogView {
       // Ceiling shininess radio buttons bound to CEILING_SHININESS controller property
       this.ceilingMattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "ceilingMattRadioButton.text"));
-      this.ceilingMattRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (ceilingMattRadioButton.isSelected()) {
-              controller.setCeilingShininess(0f);
-            }
-          }
-        });
-      PropertyChangeListener ceilingShininessListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateCeilingShininessRadioButtons(controller);
-          }
-        };
+      this.ceilingMattRadioButton.addChangeListener(ev -> {
+        if (ceilingMattRadioButton.isSelected()) {
+          controller.setCeilingShininess(0f);
+        }
+      });
+      PropertyChangeListener ceilingShininessListener = ev -> updateCeilingShininessRadioButtons(controller);
       controller.addPropertyChangeListener(RoomController.Property.CEILING_SHININESS, 
           ceilingShininessListener);
   
       this.ceilingShinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "ceilingShinyRadioButton.text"));
-      this.ceilingShinyRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (ceilingShinyRadioButton.isSelected()) {
-              controller.setCeilingShininess(0.25f);
-            }
-          }
-        });
+      this.ceilingShinyRadioButton.addChangeListener(ev -> {
+        if (ceilingShinyRadioButton.isSelected()) {
+          controller.setCeilingShininess(0.25f);
+        }
+      });
       controller.addPropertyChangeListener(RoomController.Property.CEILING_SHININESS, 
           ceilingShininessListener);
       
@@ -395,82 +314,60 @@ public class RoomPanel extends JPanel implements DialogView {
           RoomPanel.class, "splitSurroundingWallsCheckBox.text"));
       final String splitSurroundingWallsToolTip = 
           preferences.getLocalizedString(RoomPanel.class, "splitSurroundingWallsCheckBox.tooltip");
-      PropertyChangeListener splitSurroundingWallsChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          splitSurroundingWallsCheckBox.setEnabled(controller.isSplitSurroundingWallsNeeded());
-          if (splitSurroundingWallsToolTip.length() > 0 && controller.isSplitSurroundingWallsNeeded()) {
-            splitSurroundingWallsCheckBox.setToolTipText(splitSurroundingWallsToolTip);
-          } else {
-            splitSurroundingWallsCheckBox.setToolTipText(null);
-          }
-          splitSurroundingWallsCheckBox.setSelected(controller.isSplitSurroundingWalls());
+      PropertyChangeListener splitSurroundingWallsChangeListener = ev -> {
+        splitSurroundingWallsCheckBox.setEnabled(controller.isSplitSurroundingWallsNeeded());
+        if (splitSurroundingWallsToolTip.length() > 0 && controller.isSplitSurroundingWallsNeeded()) {
+          splitSurroundingWallsCheckBox.setToolTipText(splitSurroundingWallsToolTip);
+        } else {
+          splitSurroundingWallsCheckBox.setToolTipText(null);
         }
+        splitSurroundingWallsCheckBox.setSelected(controller.isSplitSurroundingWalls());
       };
       splitSurroundingWallsChangeListener.propertyChange(null);
       controller.addPropertyChangeListener(RoomController.Property.SPLIT_SURROUNDING_WALLS, splitSurroundingWallsChangeListener);
-      this.splitSurroundingWallsCheckBox.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            controller.setSplitSurroundingWalls(splitSurroundingWallsCheckBox.isSelected());
-            firstWallChange = false;
-          }
-        });
+      this.splitSurroundingWallsCheckBox.addActionListener(ev -> {
+        controller.setSplitSurroundingWalls(splitSurroundingWallsCheckBox.isSelected());
+        firstWallChange = false;
+      });
     }
     
     if (controller.isPropertyEditable(RoomController.Property.WALL_SIDES_PAINT)) {
       // Wall sides color and texture buttons bound to walls controller properties
       this.wallSidesColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "wallSidesColorRadioButton.text"));
-      this.wallSidesColorRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent e) {
-            if (wallSidesColorRadioButton.isSelected()) {
-              controller.setWallSidesPaint(RoomController.RoomPaint.COLORED);
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          }
-        });
-      controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_PAINT, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              updateWallSidesRadioButtons(controller);
-            }
-          });
+      this.wallSidesColorRadioButton.addChangeListener(e -> {
+        if (wallSidesColorRadioButton.isSelected()) {
+          controller.setWallSidesPaint(RoomController.RoomPaint.COLORED);
+          selectSplitSurroundingWallsAtFirstChange();
+        }
+      });
+      controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_PAINT,
+              ev -> updateWallSidesRadioButtons(controller));
   
       this.wallSidesColorButton = new ColorButton(preferences);
       this.wallSidesColorButton.setColor(controller.getWallSidesColor());
       this.wallSidesColorButton.setColorDialogTitle(preferences.getLocalizedString(
           RoomPanel.class, "wallSidesColorDialog.title"));
-      this.wallSidesColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              controller.setWallSidesColor(wallSidesColorButton.getColor());
-            }
-          });
-      controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_COLOR, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              wallSidesColorButton.setColor(controller.getWallSidesColor());
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          });
+      this.wallSidesColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+              ev -> controller.setWallSidesColor(wallSidesColorButton.getColor()));
+      controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_COLOR,
+              ev -> {
+                wallSidesColorButton.setColor(controller.getWallSidesColor());
+                selectSplitSurroundingWallsAtFirstChange();
+              });
       
       this.wallSidesTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "wallSidesTextureRadioButton.text"));
-      this.wallSidesTextureRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent e) {
-            if (wallSidesTextureRadioButton.isSelected()) {
-              controller.setWallSidesPaint(RoomController.RoomPaint.TEXTURED);
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          }
-        });
+      this.wallSidesTextureRadioButton.addChangeListener(e -> {
+        if (wallSidesTextureRadioButton.isSelected()) {
+          controller.setWallSidesPaint(RoomController.RoomPaint.TEXTURED);
+          selectSplitSurroundingWallsAtFirstChange();
+        }
+      });
     
       this.wallSidesTextureComponent = (JComponent)controller.getWallSidesTextureController().getView();
-      controller.getWallSidesTextureController().addPropertyChangeListener(TextureChoiceController.Property.TEXTURE, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          });
+      controller.getWallSidesTextureController().addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
+              ev -> selectSplitSurroundingWallsAtFirstChange());
   
       ButtonGroup wallSidesButtonGroup = new ButtonGroup();
       wallSidesButtonGroup.add(this.wallSidesColorRadioButton);
@@ -482,32 +379,24 @@ public class RoomPanel extends JPanel implements DialogView {
       // Wall sides shininess radio buttons bound to WALL_SIDES_SHININESS controller property
       this.wallSidesMattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "wallSidesMattRadioButton.text"));
-      this.wallSidesMattRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (wallSidesMattRadioButton.isSelected()) {
-              controller.setWallSidesShininess(0f);
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          }
-        });
-      PropertyChangeListener wallSidesShininessListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateWallSidesShininessRadioButtons(controller);
-          }
-        };
+      this.wallSidesMattRadioButton.addChangeListener(ev -> {
+        if (wallSidesMattRadioButton.isSelected()) {
+          controller.setWallSidesShininess(0f);
+          selectSplitSurroundingWallsAtFirstChange();
+        }
+      });
+      PropertyChangeListener wallSidesShininessListener = ev -> updateWallSidesShininessRadioButtons(controller);
       controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_SHININESS, 
           wallSidesShininessListener);
   
       this.wallSidesShinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
           RoomPanel.class, "wallSidesShinyRadioButton.text"));
-      this.wallSidesShinyRadioButton.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            if (wallSidesShinyRadioButton.isSelected()) {
-              controller.setWallSidesShininess(0.25f);
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          }
-        });
+      this.wallSidesShinyRadioButton.addChangeListener(ev -> {
+        if (wallSidesShinyRadioButton.isSelected()) {
+          controller.setWallSidesShininess(0.25f);
+          selectSplitSurroundingWallsAtFirstChange();
+        }
+      });
       controller.addPropertyChangeListener(RoomController.Property.WALL_SIDES_SHININESS, 
           wallSidesShininessListener);
       
@@ -520,12 +409,8 @@ public class RoomPanel extends JPanel implements DialogView {
     
     if (controller.isPropertyEditable(RoomController.Property.WALL_SIDES_BASEBOARD)) {
       this.wallSidesBaseboardComponent = (JComponent)controller.getWallSidesBaseboardController().getView();
-      controller.getWallSidesBaseboardController().addPropertyChangeListener(BaseboardChoiceController.Property.VISIBLE, 
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              selectSplitSurroundingWallsAtFirstChange();
-            }
-          });
+      controller.getWallSidesBaseboardController().addPropertyChangeListener(BaseboardChoiceController.Property.VISIBLE,
+              ev -> selectSplitSurroundingWallsAtFirstChange());
     }
     this.dialogTitle = preferences.getLocalizedString(RoomPanel.class, "room.title");
   }

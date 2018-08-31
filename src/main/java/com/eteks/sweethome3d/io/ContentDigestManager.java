@@ -59,9 +59,9 @@ public class ContentDigestManager {
   private Map<URL, List<ZipEntryData>> zipUrlEntriesCache;
 
   private ContentDigestManager() {
-    this.contentDigestsCache = new WeakHashMap<Content, byte[]>();
-    this.zipUrlsCache = new WeakHashMap<URLContent, URL>();
-    this.zipUrlEntriesCache = new WeakHashMap<URL, List<ZipEntryData>>();
+    this.contentDigestsCache = new WeakHashMap<>();
+    this.zipUrlsCache = new WeakHashMap<>();
+    this.zipUrlEntriesCache = new WeakHashMap<>();
   }
   
   /**
@@ -190,9 +190,7 @@ public class ContentDigestManager {
           }
           return messageDigest.digest();
         } catch (URISyntaxException ex) {
-          IOException ex2 = new IOException();
-          ex2.initCause(ex);
-          throw ex2;
+          throw new IOException(ex);
         }
       }
     } else {
@@ -269,44 +267,30 @@ public class ContentDigestManager {
           return entry.getValue();
         }
       }
-      List<ZipEntryData> zipUrlEntries = new ArrayList<ZipEntryData>();
+      List<ZipEntryData> zipUrlEntries = new ArrayList<>();
       if (zipUrl.getProtocol().equals("file")) {
         // Prefer to retrieve entries in zip files with ZipFile class because it runs much faster
-        ZipFile zipFile = null;
-        try {
-          zipFile = new ZipFile(new File(zipUrl.toURI()));
+        try (ZipFile zipFile = new ZipFile(new File(zipUrl.toURI()))) {
           for (Enumeration<? extends ZipEntry> enumEntries = zipFile.entries(); enumEntries.hasMoreElements(); ) {
             ZipEntry entry = enumEntries.nextElement();
             zipUrlEntries.add(new ZipEntryData(entry.getName(), entry.getSize()));
           }
         } catch (URISyntaxException ex) {
-          IOException ex2 = new IOException("Can't retrieve zip file");
-          ex2.initCause(ex);
-          throw ex2;
-        } finally {
-          if (zipFile != null) {
-            zipFile.close();
-          }
+          throw new IOException("Can't retrieve zip file", ex);
         }
       } else {
-        ZipInputStream zipIn = null;
-        try {
+        try (ZipInputStream zipIn = new ZipInputStream(zipUrl.openStream())) {
           // Search all entries of zip url
-          zipIn = new ZipInputStream(zipUrl.openStream());
           for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
-            long size = entry.getSize(); 
+            long size = entry.getSize();
             if (size == -1) {
               size = 0;
-              byte [] bytes = new byte [8192];
+              byte[] bytes = new byte[8192];
               for (int length; (length = zipIn.read(bytes)) != -1; ) {
                 size += length;
               }
             }
             zipUrlEntries.add(new ZipEntryData(entry.getName(), size));
-          }
-        } finally {
-          if (zipIn != null) {
-            zipIn.close();
           }
         }
       }
@@ -337,17 +321,11 @@ public class ContentDigestManager {
    * Updates message digest with the data of the given <code>content</code>.
    */
   private void updateMessageDigest(MessageDigest messageDigest, Content content) throws IOException {
-    InputStream in = null;
-    try {
-      in = content.openStream();
-      byte [] buffer = new byte [8192];
-      int size; 
+    try (InputStream in = content.openStream()) {
+      byte[] buffer = new byte[8192];
+      int size;
       while ((size = in.read(buffer)) != -1) {
         messageDigest.update(buffer, 0, size);
-      }
-    } finally {
-      if (in != null) {
-        in.close();
       }
     }
   }
@@ -414,9 +392,7 @@ public class ContentDigestManager {
           }
           return size;
         } catch (URISyntaxException ex) {
-          IOException ex2 = new IOException();
-          ex2.initCause(ex);
-          throw ex2;
+          throw new IOException(ex);
         }
       }
     } else {

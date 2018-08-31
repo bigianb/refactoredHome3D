@@ -28,5 +28,5 @@ public interface HelpView extends View {
   /**
    * Displays this pane in a frame.
    */
-  public abstract void displayView();
+  void displayView();
 }

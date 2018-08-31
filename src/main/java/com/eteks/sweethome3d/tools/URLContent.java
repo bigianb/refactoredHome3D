@@ -70,9 +70,7 @@ public class URLContent implements Content {
             connection.setUseCaches(false);
           }
         } catch (URISyntaxException ex) {
-          IOException ex2 = new IOException();
-          ex2.initCause(ex);
-          throw ex2;
+          throw new IOException(ex);
         }
       }
     }

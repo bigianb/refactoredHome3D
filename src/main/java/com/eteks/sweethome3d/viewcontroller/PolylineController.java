@@ -145,8 +145,8 @@ public class PolylineController implements Controller {
       setThickness(thickness);
       
       this.capStyleEditable = false;
-      for (int i = 0; i < selectedPolylines.size(); i++) {
-        if (!selectedPolylines.get(i).isClosedPath()) {
+      for (Polyline selectedPolyline : selectedPolylines) {
+        if (!selectedPolyline.isClosedPath()) {
           this.capStyleEditable = true;
           break;
         }

@@ -19,12 +19,11 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.beans.PropertyChangeEvent;
+import com.eteks.sweethome3d.model.UserPreferences;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.net.URL;
-
-import com.eteks.sweethome3d.model.UserPreferences;
 
 /**
  * An abstract MVC for a wizard view. Subclasses should create a set of wizard steps
@@ -64,21 +63,19 @@ public abstract class WizardController implements Controller {
     this.preferences = preferences;
     this.viewFactory = viewFactory;
     // Create a listener used to track changes in current step state
-    this.stepStatePropertyChangeListener = new PropertyChangeListener () {
-        public void propertyChange(PropertyChangeEvent ev) {
-          switch (WizardControllerStepState.Property.valueOf(ev.getPropertyName())) {
-            case FIRST_STEP :
-              setBackStepEnabled(!stepState.isFirstStep());
-              break;
-            case LAST_STEP :
-              setLastStep(stepState.isLastStep());
-              break;
-            case NEXT_STEP_ENABLED :
-              setNextStepEnabled(stepState.isNextStepEnabled());
-              break;
-          }
-        }
-      };
+    this.stepStatePropertyChangeListener = ev -> {
+      switch (WizardControllerStepState.Property.valueOf(ev.getPropertyName())) {
+        case FIRST_STEP :
+          setBackStepEnabled(!stepState.isFirstStep());
+          break;
+        case LAST_STEP :
+          setLastStep(stepState.isLastStep());
+          break;
+        case NEXT_STEP_ENABLED :
+          setNextStepEnabled(stepState.isNextStepEnabled());
+          break;
+      }
+    };
       
     this.propertyChangeSupport = new PropertyChangeSupport(this);
   }

@@ -19,27 +19,22 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import com.eteks.sweethome3d.j3d.PhotoRenderer;
+import com.eteks.sweethome3d.model.Camera;
+import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.Selectable;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.*;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -47,55 +42,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.swing.AbstractAction;
-import javax.swing.AbstractListModel;
-import javax.swing.ActionMap;
-import javax.swing.BoundedRangeModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.KeyStroke;
-import javax.swing.ListCellRenderer;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import com.eteks.sweethome3d.j3d.PhotoRenderer;
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.ContentManager;
-import com.eteks.sweethome3d.viewcontroller.DialogView;
-import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
-import com.eteks.sweethome3d.viewcontroller.PhotosController;
-import com.eteks.sweethome3d.viewcontroller.View;
 
 /**
  * A panel to edit photos created at home points of view. 
@@ -237,20 +187,14 @@ public class PhotosPanel extends JPanel implements DialogView {
       });
     this.selectedCamerasList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     this.selectedCamerasList.setSelectedIndex(0);
-    controller.addPropertyChangeListener(PhotosController.Property.SELECTED_CAMERAS, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          selectedCamerasList.repaint();
-          getActionMap().get(ActionType.START_PHOTOS_CREATION).setEnabled(!((List)ev.getNewValue()).isEmpty());
-          if (startStopButton.getAction() == getActionMap().get(ActionType.START_PHOTOS_CREATION)) {
-            statusLayout.show(statusPanel, TIP_CARD);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(PhotosController.Property.CAMERAS, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          selectedCamerasList.repaint();
-        }
-      });
+    controller.addPropertyChangeListener(PhotosController.Property.SELECTED_CAMERAS, ev -> {
+      selectedCamerasList.repaint();
+      getActionMap().get(ActionType.START_PHOTOS_CREATION).setEnabled(!((List)ev.getNewValue()).isEmpty());
+      if (startStopButton.getAction() == getActionMap().get(ActionType.START_PHOTOS_CREATION)) {
+        statusLayout.show(statusPanel, TIP_CARD);
+      }
+    });
+    controller.addPropertyChangeListener(PhotosController.Property.CAMERAS, ev -> selectedCamerasList.repaint());
 
     // Create tip / progress / end components
     this.tipLabel = new JLabel();
@@ -263,16 +207,14 @@ public class PhotosPanel extends JPanel implements DialogView {
     
     this.progressBar = new JProgressBar();
     this.progressBar.setIndeterminate(true);
-    this.progressBar.getModel().addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          int progressValue = progressBar.getValue();
-          progressBar.setIndeterminate(progressValue < 0);
-          if (progressValue >= 0) {
-            progressLabel.setText(preferences.getLocalizedString(PhotosPanel.class, "progressLabel.format", 
-                progressValue + 1, progressBar.getMaximum()));
-          }          
-        }
-      });
+    this.progressBar.getModel().addChangeListener(ev -> {
+      int progressValue = progressBar.getValue();
+      progressBar.setIndeterminate(progressValue < 0);
+      if (progressValue >= 0) {
+        progressLabel.setText(preferences.getLocalizedString(PhotosPanel.class, "progressLabel.format",
+            progressValue + 1, progressBar.getMaximum()));
+      }
+    });
     
     this.endLabel = new JLabel();
     this.endLabel.setFont(toolTipFont);
@@ -305,25 +247,19 @@ public class PhotosPanel extends JPanel implements DialogView {
               cellHasFocus);
         }
       });
-    ItemListener fileFormatItemListener = new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          String value = (String)fileFormatComboBox.getSelectedItem();
-          if (value.startsWith("JPEG")) {
-            controller.setFileFormat("JPEG");
-            controller.setFileCompressionQuality(new Float(value.substring(value.lastIndexOf(' ') + 1)));
-          } else {
-            controller.setFileFormat("PNG");
-            controller.setFileCompressionQuality(null);
-          }
-        }
-      };
+    ItemListener fileFormatItemListener = ev -> {
+      String value = (String)fileFormatComboBox.getSelectedItem();
+      if (value.startsWith("JPEG")) {
+        controller.setFileFormat("JPEG");
+        controller.setFileCompressionQuality(new Float(value.substring(value.lastIndexOf(' ') + 1)));
+      } else {
+        controller.setFileFormat("PNG");
+        controller.setFileCompressionQuality(null);
+      }
+    };
     this.fileFormatComboBox.addItemListener(fileFormatItemListener);
-    PropertyChangeListener fileFormatChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          fileFormatComboBox.setSelectedItem(controller.getFileFormat() 
-              + (controller.getFileCompressionQuality() != null  ? " " + controller.getFileCompressionQuality()  : ""));
-        }
-      };
+    PropertyChangeListener fileFormatChangeListener = ev -> fileFormatComboBox.setSelectedItem(controller.getFileFormat()
+        + (controller.getFileCompressionQuality() != null  ? " " + controller.getFileCompressionQuality()  : ""));
     controller.addPropertyChangeListener(PhotosController.Property.FILE_FORMAT, fileFormatChangeListener);
     controller.addPropertyChangeListener(PhotosController.Property.FILE_COMPRESSION_QUALITY, fileFormatChangeListener);
     if (controller.getFileFormat() != null) {
@@ -346,7 +282,7 @@ public class PhotosPanel extends JPanel implements DialogView {
    * Toggles the selected status of the given <code>camera</code>.
    */
   private void toggleCameraSelection(Camera camera, final PhotosController controller) {
-    List<Camera> selectedCameras = new ArrayList<Camera>(controller.getSelectedCameras());
+    List<Camera> selectedCameras = new ArrayList<>(controller.getSelectedCameras());
     if (selectedCameras.contains(camera)) {
       selectedCameras.remove(camera);
     } else {
@@ -395,7 +331,7 @@ public class PhotosPanel extends JPanel implements DialogView {
     private final WeakReference<PhotosPanel> photoPanel;
 
     public LanguageChangeListener(PhotosPanel photoPanel) {
-      this.photoPanel = new WeakReference<PhotosPanel>(photoPanel);
+      this.photoPanel = new WeakReference<>(photoPanel);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -561,7 +497,7 @@ public class PhotosPanel extends JPanel implements DialogView {
         ContentManager.ContentType.PHOTOS_DIRECTORY, this.home.getName());
     if (directory != null) {
       // Build file names list
-      final Map<Camera, File> cameraFiles = new LinkedHashMap<Camera, File>();
+      final Map<Camera, File> cameraFiles = new LinkedHashMap<>();
       List<Camera> selectedCameras = this.controller.getSelectedCameras();
       ContentManager contentManager = this.controller.getContentManager();
       boolean overwriteConfirmed = false;
@@ -617,11 +553,7 @@ public class PhotosPanel extends JPanel implements DialogView {
       List<Selectable> emptySelection = Collections.emptyList();
       home.setSelectedItems(emptySelection);
       this.photosCreationExecutor = Executors.newSingleThreadExecutor();
-      this.photosCreationExecutor.execute(new Runnable() {
-          public void run() {
-            computePhotos(home, cameraFiles);
-          }
-        });
+      this.photosCreationExecutor.execute(() -> computePhotos(home, cameraFiles));
     }
   }
 
@@ -692,33 +624,29 @@ public class PhotosPanel extends JPanel implements DialogView {
       showPhotosComputingError(ex);
     } finally { 
       final boolean succeeded = success;
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            startStopButton.setAction(getActionMap().get(ActionType.START_PHOTOS_CREATION));
-            selectedCamerasList.setEnabled(true);
-            sizeAndQualityPanel.setEnabled(true);
-            sizeAndQualityPanel.setProportionsChoiceEnabled(true);
-            fileFormatComboBox.setEnabled(true);
-            if (succeeded) {
-              statusLayout.show(statusPanel, END_CARD);
-            } else {
-              statusLayout.show(statusPanel, TIP_CARD);
-            }
-            photosCreationExecutor = null;
-          }
-        });
+      EventQueue.invokeLater(() -> {
+        startStopButton.setAction(getActionMap().get(ActionType.START_PHOTOS_CREATION));
+        selectedCamerasList.setEnabled(true);
+        sizeAndQualityPanel.setEnabled(true);
+        sizeAndQualityPanel.setProportionsChoiceEnabled(true);
+        fileFormatComboBox.setEnabled(true);
+        if (succeeded) {
+          statusLayout.show(statusPanel, END_CARD);
+        } else {
+          statusLayout.show(statusPanel, TIP_CARD);
+        }
+        photosCreationExecutor = null;
+      });
     }
   }
 
   private void updateProgressBar(final int photoIndex, final int photoCount) {
     final BoundedRangeModel progressModel = this.progressBar.getModel();
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          progressModel.setMinimum(0);
-          progressModel.setMaximum(photoCount);
-          progressModel.setValue(photoIndex);
-        }
-      });
+    EventQueue.invokeLater(() -> {
+      progressModel.setMinimum(0);
+      progressModel.setMaximum(photoCount);
+      progressModel.setValue(photoIndex);
+    });
   }
   
   /**
@@ -726,13 +654,11 @@ public class PhotosPanel extends JPanel implements DialogView {
    */
   private void showPhotoSaveError(final Throwable ex) {
     try {
-      EventQueue.invokeAndWait(new Runnable() {
-          public void run() {
-            String messageFormat = preferences.getLocalizedString(PhotosPanel.class, "savePhotosError.message");
-            JOptionPane.showMessageDialog(SwingUtilities.getRootPane(PhotosPanel.this), String.format(messageFormat, ex.getMessage()), 
-                preferences.getLocalizedString(PhotosPanel.class, "savePhotosError.title"), JOptionPane.ERROR_MESSAGE);
-          }
-        });
+      EventQueue.invokeAndWait(() -> {
+        String messageFormat = preferences.getLocalizedString(PhotosPanel.class, "savePhotosError.message");
+        JOptionPane.showMessageDialog(SwingUtilities.getRootPane(PhotosPanel.this), String.format(messageFormat, ex.getMessage()),
+            preferences.getLocalizedString(PhotosPanel.class, "savePhotosError.title"), JOptionPane.ERROR_MESSAGE);
+      });
     } catch (InterruptedException ex1) {
       ex1.printStackTrace();
     } catch (InvocationTargetException ex1) {
@@ -744,13 +670,11 @@ public class PhotosPanel extends JPanel implements DialogView {
    * Displays an error message box.
    */
   public void showPhotosComputingError(Throwable exception) {
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          String title = preferences.getLocalizedString(PhotosPanel.class, "error.title");
-          String message = preferences.getLocalizedString(PhotosPanel.class, "error.message");
-          JOptionPane.showMessageDialog(PhotosPanel.this, message, title, JOptionPane.ERROR_MESSAGE);
-        }
-      });
+    EventQueue.invokeLater(() -> {
+      String title = preferences.getLocalizedString(PhotosPanel.class, "error.title");
+      String message = preferences.getLocalizedString(PhotosPanel.class, "error.message");
+      JOptionPane.showMessageDialog(PhotosPanel.this, message, title, JOptionPane.ERROR_MESSAGE);
+    });
   }
 
   /**

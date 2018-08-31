@@ -56,22 +56,11 @@ public class TemporaryURLContent extends URLContent {
       }
     }
     File tempFile = OperatingSystem.createTemporaryFile("temp", extension);
-    InputStream tempIn = null;
-    OutputStream tempOut = null;
-    try {
-      tempIn = content.openStream();
-      tempOut = new FileOutputStream(tempFile);
-      byte [] buffer = new byte [8192];
-      int size; 
+    try (InputStream tempIn = content.openStream(); OutputStream tempOut = new FileOutputStream(tempFile)) {
+      byte[] buffer = new byte[8192];
+      int size;
       while ((size = tempIn.read(buffer)) != -1) {
         tempOut.write(buffer, 0, size);
-      }
-    } finally {
-      if (tempIn != null) {
-        tempIn.close();
-      }
-      if (tempOut != null) {
-        tempOut.close();
       }
     }
     return new TemporaryURLContent(tempFile.toURI().toURL());

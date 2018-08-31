@@ -88,16 +88,14 @@ public class PlanTransferHandler extends LocatedTransferHandler {
     if (source instanceof TransferableView) {
       // Create an image that contains only selected items
       this.copiedImage = null;
-      this.homeController.createTransferData(new TransferableView.TransferObserver() {
-            public void dataReady(Object [] data) {
-              for (Object transferedData : data) {
-                if (transferedData instanceof BufferedImage) {
-                  copiedImage = transferedData;
-                  break;
-                }
-              }
-            }
-          }, TransferableView.DataType.PLAN_IMAGE);
+      this.homeController.createTransferData(data -> {
+        for (Object transferedData : data) {
+          if (transferedData instanceof BufferedImage) {
+            copiedImage = transferedData;
+            break;
+          }
+        }
+      }, TransferableView.DataType.PLAN_IMAGE);
       // Create a transferable that contains copied items and an image
       return new Transferable () {
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
@@ -109,10 +107,10 @@ public class PlanTransferHandler extends LocatedTransferHandler {
         }
 
         public DataFlavor [] getTransferDataFlavors() {
-          ArrayList<DataFlavor> dataFlavors = 
-              new ArrayList<DataFlavor>(Arrays.asList(transferable.getTransferDataFlavors()));
+          ArrayList<DataFlavor> dataFlavors =
+                  new ArrayList<>(Arrays.asList(transferable.getTransferDataFlavors()));
           dataFlavors.add(DataFlavor.imageFlavor);
-          return dataFlavors.toArray(new DataFlavor [dataFlavors.size()]);
+          return dataFlavors.toArray(new DataFlavor[0]);
         }
 
         public boolean isDataFlavorSupported(DataFlavor flavor) {
@@ -265,12 +263,8 @@ public class PlanTransferHandler extends LocatedTransferHandler {
         ? getDropModelLocation(destination)
         : new Point2D.Float();
     final List<String> importableModels = getModelContents(files, contentManager);
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          homeController.dropFiles(importableModels, 
-              (float)dropLocation.getX(), (float)dropLocation.getY());        
-        }
-      });
+    EventQueue.invokeLater(() -> homeController.dropFiles(importableModels,
+        (float)dropLocation.getX(), (float)dropLocation.getY()));
     return !importableModels.isEmpty();
   }
 

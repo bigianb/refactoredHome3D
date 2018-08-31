@@ -19,30 +19,20 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
+import com.eteks.sweethome3d.j3d.PhotoRenderer;
+import com.eteks.sweethome3d.model.*;
+import com.eteks.sweethome3d.model.Camera.Lens;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.*;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -51,54 +41,10 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.imageio.ImageIO;
-import javax.swing.ActionMap;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerDateModel;
-import javax.swing.SwingUtilities;
-import javax.swing.TransferHandler;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import com.eteks.sweethome3d.j3d.PhotoRenderer;
-import com.eteks.sweethome3d.model.AspectRatio;
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.Camera.Lens;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.AbstractPhotoController;
-import com.eteks.sweethome3d.viewcontroller.ContentManager;
-import com.eteks.sweethome3d.viewcontroller.DialogView;
-import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
-import com.eteks.sweethome3d.viewcontroller.PhotoController;
-import com.eteks.sweethome3d.viewcontroller.View;
 
 /**
  * A panel to edit photo creation. 
@@ -250,9 +196,7 @@ public class PhotoPanel extends JPanel implements DialogView {
                 g2D.dispose();
                 return new ImageIcon(iconImage);
               } 
-            } catch (UnsupportedFlavorException ex) {
-              // Use default representation
-            } catch (IOException ex) {
+            } catch (UnsupportedFlavorException | IOException ex) {
               // Use default representation
             }
             return super.getVisualRepresentation(transferable);
@@ -274,12 +218,8 @@ public class PhotoPanel extends JPanel implements DialogView {
 
     // Create size and quality panel
     this.sizeAndQualityPanel = new PhotoSizeAndQualityPanel(home, preferences, controller);
-    controller.addPropertyChangeListener(AbstractPhotoController.Property.QUALITY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateAdvancedComponents();
-          }
-        });
+    controller.addPropertyChangeListener(AbstractPhotoController.Property.QUALITY,
+            ev -> updateAdvancedComponents());
 
     this.advancedComponentsSeparator = new JSeparator();
 
@@ -334,49 +274,43 @@ public class PhotoPanel extends JPanel implements DialogView {
     this.timeSpinner.setEditor(timeEditor);
     SwingTools.addAutoSelectionOnFocusGain(timeEditor.getTextField());
 
-    final PropertyChangeListener timeChangeListener = new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent ev) {
-        Date date = new Date(Camera.convertTimeToTimeZone(controller.getTime(), TimeZone.getDefault().getID()));
-        dateSpinnerModel.setValue(date);
-        timeSpinnerModel.setValue(date);
-      }
+    final PropertyChangeListener timeChangeListener = ev -> {
+      Date date = new Date(Camera.convertTimeToTimeZone(controller.getTime(), TimeZone.getDefault().getID()));
+      dateSpinnerModel.setValue(date);
+      timeSpinnerModel.setValue(date);
     };
     controller.addPropertyChangeListener(PhotoController.Property.TIME, timeChangeListener);
-    final ChangeListener dateTimeChangeListener = new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(PhotoController.Property.TIME, timeChangeListener);
-          // Merge date and time
-          GregorianCalendar dateCalendar = new GregorianCalendar();
-          dateCalendar.setTime((Date)dateSpinnerModel.getValue());
-          GregorianCalendar timeCalendar = new GregorianCalendar();
-          timeCalendar.setTime((Date)timeSpinnerModel.getValue());
-          Calendar utcCalendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-          utcCalendar.set(GregorianCalendar.YEAR, dateCalendar.get(GregorianCalendar.YEAR));
-          utcCalendar.set(GregorianCalendar.MONTH, dateCalendar.get(GregorianCalendar.MONTH));
-          utcCalendar.set(GregorianCalendar.DAY_OF_MONTH, dateCalendar.get(GregorianCalendar.DAY_OF_MONTH));
-          utcCalendar.set(GregorianCalendar.HOUR_OF_DAY, timeCalendar.get(GregorianCalendar.HOUR_OF_DAY));
-          utcCalendar.set(GregorianCalendar.MINUTE, timeCalendar.get(GregorianCalendar.MINUTE));
-          utcCalendar.set(GregorianCalendar.SECOND, timeCalendar.get(GregorianCalendar.SECOND));
-          controller.setTime(utcCalendar.getTimeInMillis());
-          controller.addPropertyChangeListener(PhotoController.Property.TIME, timeChangeListener);
-        }
-      };
+    final ChangeListener dateTimeChangeListener = ev -> {
+      controller.removePropertyChangeListener(PhotoController.Property.TIME, timeChangeListener);
+      // Merge date and time
+      GregorianCalendar dateCalendar = new GregorianCalendar();
+      dateCalendar.setTime((Date)dateSpinnerModel.getValue());
+      GregorianCalendar timeCalendar = new GregorianCalendar();
+      timeCalendar.setTime((Date)timeSpinnerModel.getValue());
+      Calendar utcCalendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+      utcCalendar.set(GregorianCalendar.YEAR, dateCalendar.get(GregorianCalendar.YEAR));
+      utcCalendar.set(GregorianCalendar.MONTH, dateCalendar.get(GregorianCalendar.MONTH));
+      utcCalendar.set(GregorianCalendar.DAY_OF_MONTH, dateCalendar.get(GregorianCalendar.DAY_OF_MONTH));
+      utcCalendar.set(GregorianCalendar.HOUR_OF_DAY, timeCalendar.get(GregorianCalendar.HOUR_OF_DAY));
+      utcCalendar.set(GregorianCalendar.MINUTE, timeCalendar.get(GregorianCalendar.MINUTE));
+      utcCalendar.set(GregorianCalendar.SECOND, timeCalendar.get(GregorianCalendar.SECOND));
+      controller.setTime(utcCalendar.getTimeInMillis());
+      controller.addPropertyChangeListener(PhotoController.Property.TIME, timeChangeListener);
+    };
     dateSpinnerModel.addChangeListener(dateTimeChangeListener);
     timeSpinnerModel.addChangeListener(dateTimeChangeListener);
 
     this.dayNightLabel = new JLabel();
     final ImageIcon dayIcon = SwingTools.getScaledImageIcon(PhotoPanel.class.getResource("resources/day.png"));
     final ImageIcon nightIcon = SwingTools.getScaledImageIcon(PhotoPanel.class.getResource("resources/night.png"));
-    PropertyChangeListener dayNightListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (home.getCompass().getSunElevation(
-                Camera.convertTimeToTimeZone(controller.getTime(), home.getCompass().getTimeZone())) > 0) {
-            dayNightLabel.setIcon(dayIcon);
-          } else {
-            dayNightLabel.setIcon(nightIcon);
-          }
-        }
-      };
+    PropertyChangeListener dayNightListener = ev -> {
+      if (home.getCompass().getSunElevation(
+            Camera.convertTimeToTimeZone(controller.getTime(), home.getCompass().getTimeZone())) > 0) {
+        dayNightLabel.setIcon(dayIcon);
+      } else {
+        dayNightLabel.setIcon(nightIcon);
+      }
+    };
     controller.addPropertyChangeListener(PhotoController.Property.TIME, dayNightListener);
     home.getCompass().addPropertyChangeListener(dayNightListener);
     dayNightListener.propertyChange(null);
@@ -409,38 +343,24 @@ public class PhotoPanel extends JPanel implements DialogView {
         }
       });
     this.lensComboBox.setSelectedItem(controller.getLens());
-    controller.addPropertyChangeListener(PhotoController.Property.LENS, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            lensComboBox.setSelectedItem(controller.getLens());            
-          }
-        });
-    this.lensComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          Camera.Lens lens = (Camera.Lens)lensComboBox.getSelectedItem();
-          controller.setLens(lens);
-          if (lens == Camera.Lens.SPHERICAL) {
-            controller.setAspectRatio(AspectRatio.RATIO_2_1);
-          } else if (lens == Camera.Lens.FISHEYE) {
-            controller.setAspectRatio(AspectRatio.SQUARE_RATIO);
-          }  
-          updateRatioComponents();
-        }
-      });
+    controller.addPropertyChangeListener(PhotoController.Property.LENS,
+            ev -> lensComboBox.setSelectedItem(controller.getLens()));
+    this.lensComboBox.addItemListener(ev -> {
+      Lens lens = (Lens)lensComboBox.getSelectedItem();
+      controller.setLens(lens);
+      if (lens == Lens.SPHERICAL) {
+        controller.setAspectRatio(AspectRatio.RATIO_2_1);
+      } else if (lens == Lens.FISHEYE) {
+        controller.setAspectRatio(AspectRatio.SQUARE_RATIO);
+      }
+      updateRatioComponents();
+    });
 
     this.ceilingLightEnabledCheckBox = new JCheckBox();
     this.ceilingLightEnabledCheckBox.setSelected(controller.getCeilingLightColor() > 0);
-    controller.addPropertyChangeListener(AbstractPhotoController.Property.CEILING_LIGHT_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            ceilingLightEnabledCheckBox.setSelected(controller.getCeilingLightColor() > 0);
-          }
-        });
-    this.ceilingLightEnabledCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setCeilingLightColor(ceilingLightEnabledCheckBox.isSelected() ? 0xD0D0D0 : 0);
-        }
-      });
+    controller.addPropertyChangeListener(AbstractPhotoController.Property.CEILING_LIGHT_COLOR,
+            ev -> ceilingLightEnabledCheckBox.setSelected(controller.getCeilingLightColor() > 0));
+    this.ceilingLightEnabledCheckBox.addItemListener(ev -> controller.setCeilingLightColor(ceilingLightEnabledCheckBox.isSelected() ? 0xD0D0D0 : 0));
     
     final JComponent view3D = (JComponent)controller.get3DView();
     controller.set3DViewAspectRatio((float)view3D.getWidth() / view3D.getHeight());
@@ -736,11 +656,7 @@ public class PhotoPanel extends JPanel implements DialogView {
     List<Selectable> emptySelection = Collections.emptyList();
     home.setSelectedItems(emptySelection);
     this.photoCreationExecutor = Executors.newSingleThreadExecutor();
-    this.photoCreationExecutor.execute(new Runnable() {
-        public void run() {
-          computePhoto(home);
-        }
-      });
+    this.photoCreationExecutor.execute(() -> computePhoto(home));
   }
 
   /**
@@ -773,11 +689,7 @@ public class PhotoPanel extends JPanel implements DialogView {
         if (photoCreationExecutor != null) {
           image = new BufferedImage(imageWidth, bestImageHeight, BufferedImage.TYPE_INT_RGB);
           this.photoComponent.setImage(image);
-          EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              photoCardLayout.show(photoPanel, PHOTO_CARD);
-            }
-          });
+          EventQueue.invokeLater(() -> photoCardLayout.show(photoPanel, PHOTO_CARD));
           photoRenderer.render(image, camera, this.photoComponent);
           photoRenderer.dispose();
         }
@@ -787,10 +699,7 @@ public class PhotoPanel extends JPanel implements DialogView {
             home, this.preferences, this.object3dFactory, quality == 1, null);
         image = homeComponent3D.getOffScreenImage(imageWidth, imageHeight);
       }
-    } catch (OutOfMemoryError ex) {
-      image = getErrorImage();
-      throw ex;
-    } catch (IllegalStateException ex) {
+    } catch (OutOfMemoryError | IllegalStateException ex) {
       image = getErrorImage();
       throw ex;
     } catch (IOException ex) {
@@ -799,24 +708,22 @@ public class PhotoPanel extends JPanel implements DialogView {
       final BufferedImage photoImage = this.photoCreationExecutor != null
           ? image
           : null;
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            getActionMap().get(ActionType.SAVE_PHOTO).setEnabled(photoImage != null);
-            if (photoImage != null) {
-              getRootPane().setDefaultButton(saveButton);
-            }
-            createButton.setAction(getActionMap().get(ActionType.START_PHOTO_CREATION));
-            photoComponent.setImage(photoImage);
-            sizeAndQualityPanel.setEnabled(true);
-            updateRatioComponents();
-            dateSpinner.setEnabled(true);
-            timeSpinner.setEnabled(true);
-            lensComboBox.setEnabled(true);
-            ceilingLightEnabledCheckBox.setEnabled(true);
-            photoCardLayout.show(photoPanel, PHOTO_CARD);
-            photoCreationExecutor = null;
-          }
-        });
+      EventQueue.invokeLater(() -> {
+        getActionMap().get(ActionType.SAVE_PHOTO).setEnabled(photoImage != null);
+        if (photoImage != null) {
+          getRootPane().setDefaultButton(saveButton);
+        }
+        createButton.setAction(getActionMap().get(ActionType.START_PHOTO_CREATION));
+        photoComponent.setImage(photoImage);
+        sizeAndQualityPanel.setEnabled(true);
+        updateRatioComponents();
+        dateSpinner.setEnabled(true);
+        timeSpinner.setEnabled(true);
+        lensComboBox.setEnabled(true);
+        ceilingLightEnabledCheckBox.setEnabled(true);
+        photoCardLayout.show(photoPanel, PHOTO_CARD);
+        photoCreationExecutor = null;
+      });
     }
   }
   

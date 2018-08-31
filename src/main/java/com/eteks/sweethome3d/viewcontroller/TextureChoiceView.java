@@ -29,6 +29,6 @@ public interface TextureChoiceView extends View {
    * the selected texture from catalog or not.
    * @return <code>true</code> if user confirmed to delete.
    */
-  public abstract boolean confirmDeleteSelectedCatalogTexture();
+  boolean confirmDeleteSelectedCatalogTexture();
 
 }

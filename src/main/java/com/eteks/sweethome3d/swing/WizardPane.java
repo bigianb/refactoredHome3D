@@ -19,40 +19,19 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.net.URL;
-import java.util.Locale;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.border.BevelBorder;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.WizardController;
+
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.net.URL;
+import java.util.Locale;
 
 /**
  * Wizard pane. 
@@ -91,20 +70,12 @@ public class WizardPane extends JOptionPane implements DialogView {
     
     // Update wizard pane content and icon
     updateStepView(controller);
-    controller.addPropertyChangeListener(WizardController.Property.STEP_VIEW, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateStepView(controller);
-          }
-        });
+    controller.addPropertyChangeListener(WizardController.Property.STEP_VIEW,
+            ev -> updateStepView(controller));
     
     updateStepIcon(controller);
-    controller.addPropertyChangeListener(WizardController.Property.STEP_ICON, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateStepIcon(controller);
-          }
-        });
+    controller.addPropertyChangeListener(WizardController.Property.STEP_ICON,
+            ev -> updateStepIcon(controller));
   }
 
   private void createOptionButtons(UserPreferences preferences, 
@@ -112,12 +83,8 @@ public class WizardPane extends JOptionPane implements DialogView {
     this.backOptionButton = new JButton(SwingTools.getLocalizedLabelText(preferences, 
         WizardPane.class, "backOptionButton.text"));
     this.backOptionButton.setEnabled(controller.isBackStepEnabled());
-    controller.addPropertyChangeListener(WizardController.Property.BACK_STEP_ENABLED, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            backOptionButton.setEnabled(controller.isBackStepEnabled());
-          }
-        });
+    controller.addPropertyChangeListener(WizardController.Property.BACK_STEP_ENABLED,
+            ev -> backOptionButton.setEnabled(controller.isBackStepEnabled()));
     if (!OperatingSystem.isMacOSX()) {
       this.backOptionButton.setMnemonic(
           KeyStroke.getKeyStroke(preferences.getLocalizedString(
@@ -126,42 +93,28 @@ public class WizardPane extends JOptionPane implements DialogView {
 
     this.nextFinishOptionButton = new JButton();
     this.nextFinishOptionButton.setEnabled(controller.isNextStepEnabled());
-    controller.addPropertyChangeListener(WizardController.Property.NEXT_STEP_ENABLED, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            nextFinishOptionButton.setEnabled(controller.isNextStepEnabled());
-          }
-        });
+    controller.addPropertyChangeListener(WizardController.Property.NEXT_STEP_ENABLED,
+            ev -> nextFinishOptionButton.setEnabled(controller.isNextStepEnabled()));
     
     // Update nextFinishButton text and mnemonic
     updateNextFinishOptionButton(controller);
-    controller.addPropertyChangeListener(WizardController.Property.LAST_STEP, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateNextFinishOptionButton(controller);
-          }
-        });
+    controller.addPropertyChangeListener(WizardController.Property.LAST_STEP,
+            ev -> updateNextFinishOptionButton(controller));
     
     // Add action listeners
-    this.backOptionButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          controller.goBackToPreviousStep();
-        }
-      });
+    this.backOptionButton.addActionListener(ev -> controller.goBackToPreviousStep());
     
-    this.nextFinishOptionButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          if (controller.isLastStep()) {
-            controller.finish();
-            setValue(nextFinishOptionButton);
-            if (dialog != null) {
-              dialog.setVisible(false);
-            }
-          } else {
-            controller.goToNextStep();
-          }
+    this.nextFinishOptionButton.addActionListener(ev -> {
+      if (controller.isLastStep()) {
+        controller.finish();
+        setValue(nextFinishOptionButton);
+        if (dialog != null) {
+          dialog.setVisible(false);
         }
-      });
+      } else {
+        controller.goToNextStep();
+      }
+    });
   }
 
   /**
@@ -224,7 +177,7 @@ public class WizardPane extends JOptionPane implements DialogView {
         if (stepIconBackgroundColors.length == 1) {
           backgroundColor2 = backgroundColor1;  
         } else if (stepIconBackgroundColors.length == 2) {
-          backgroundColor2 = new Color(Integer.decode(stepIconBackgroundColors [1]));;
+          backgroundColor2 = new Color(Integer.decode(stepIconBackgroundColors [1]));
         }
       } catch (IllegalArgumentException ex) {
         // Don't change colors if stepIconBackgroundColors doesn't exist or if colors are wrongly formatted
@@ -281,23 +234,15 @@ public class WizardPane extends JOptionPane implements DialogView {
         this.controller.getTitle() != null 
             ? this.controller.getTitle() 
             : this.defaultTitle);
-    this.controller.addPropertyChangeListener(WizardController.Property.TITLE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            dialog.setTitle(controller.getTitle() != null 
-                                ? controller.getTitle() 
-                                : defaultTitle);
-          }
-        });
+    this.controller.addPropertyChangeListener(WizardController.Property.TITLE,
+            ev -> dialog.setTitle(controller.getTitle() != null
+                                ? controller.getTitle()
+                                : defaultTitle));
     
     this.dialog.applyComponentOrientation(ComponentOrientation.getOrientation(Locale.getDefault()));    
     this.dialog.setResizable(this.controller.isResizable());
-    this.controller.addPropertyChangeListener(WizardController.Property.RESIZABLE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            dialog.setResizable(controller.isResizable());
-          }
-        });
+    this.controller.addPropertyChangeListener(WizardController.Property.RESIZABLE,
+            ev -> dialog.setResizable(controller.isResizable()));
     
     if (OperatingSystem.isMacOSXLionOrSuperior()
         && OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {

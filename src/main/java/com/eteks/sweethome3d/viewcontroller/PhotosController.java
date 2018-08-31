@@ -76,7 +76,7 @@ public class PhotosController extends AbstractPhotoController {
     private WeakReference<PhotosController> photosController;
     
     public HomeStoredCamerasChangeListener(PhotosController photoController) {
-      this.photosController = new WeakReference<PhotosController>(photoController);
+      this.photosController = new WeakReference<>(photoController);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -147,7 +147,7 @@ public class PhotosController extends AbstractPhotoController {
   private void setCameras(List<Camera> cameras) {
     if (!cameras.equals(this.cameras)) {
       List<Camera> oldCameras = this.cameras;
-      this.cameras = new ArrayList<Camera>(cameras);
+      this.cameras = new ArrayList<>(cameras);
       this.propertyChangeSupport.firePropertyChange(
           Property.CAMERAS.name(), Collections.unmodifiableList(oldCameras), Collections.unmodifiableList(cameras));
     }
@@ -166,7 +166,7 @@ public class PhotosController extends AbstractPhotoController {
   public void setSelectedCameras(List<Camera> selectedCameras) {
     if (!selectedCameras.equals(this.selectedCameras)) {
       List<Camera> oldSelectedCameras = this.selectedCameras;
-      this.selectedCameras = new ArrayList<Camera>(selectedCameras);
+      this.selectedCameras = new ArrayList<>(selectedCameras);
       this.propertyChangeSupport.firePropertyChange(
           Property.SELECTED_CAMERAS.name(), Collections.unmodifiableList(oldSelectedCameras), Collections.unmodifiableList(selectedCameras));
     }

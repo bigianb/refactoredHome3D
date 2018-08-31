@@ -82,13 +82,11 @@ public class AutoRecoveryManager {
    */
   public AutoRecoveryManager(HomeApplication application) throws RecorderException {
     this.application = application;
-    this.autoSaveForRecoveryExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
-        public Thread newThread(Runnable runnable) {
-          Thread thread = new Thread(runnable);
-          thread.setPriority(Thread.MIN_PRIORITY);
-          return thread;
-        }
-      });
+    this.autoSaveForRecoveryExecutor = Executors.newSingleThreadExecutor(runnable -> {
+      Thread thread = new Thread(runnable);
+      thread.setPriority(Thread.MIN_PRIORITY);
+      return thread;
+    });
     
     readRecoveredHomes();
     
@@ -101,33 +99,25 @@ public class AutoRecoveryManager {
       });
     
     // Remove auto saved files when a home is closed
-    application.addHomesListener(new CollectionListener<Home>() {
-        public void collectionChanged(CollectionEvent<Home> ev) {
-          if (ev.getType() == CollectionEvent.Type.DELETE) {
-            final Home home = ev.getItem();
-            autoSaveForRecoveryExecutor.submit(new Runnable() {
-                public void run() {
-                  try {
-                    final File homeFile = autoSavedFiles.get(home);
-                    if (homeFile != null) {
-                      freeLockedFile(homeFile);
-                      homeFile.delete();
-                      autoSavedFiles.remove(home);
-                    }
-                  } catch (RecorderException ex) {
-                  }
-                }
-              });
+    application.addHomesListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.DELETE) {
+        final Home home = ev.getItem();
+        autoSaveForRecoveryExecutor.submit(() -> {
+          try {
+            final File homeFile = autoSavedFiles.get(home);
+            if (homeFile != null) {
+              freeLockedFile(homeFile);
+              homeFile.delete();
+              autoSavedFiles.remove(home);
+            }
+          } catch (RecorderException ex) {
           }
-        }
-      });
+        });
+      }
+    });
     
     // Add a listener on auto save delay that will run auto save timer
-    application.getUserPreferences().addPropertyChangeListener(Property.AUTO_SAVE_DELAY_FOR_RECOVERY, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          restartTimer();
-        }
-      });
+    application.getUserPreferences().addPropertyChangeListener(Property.AUTO_SAVE_DELAY_FOR_RECOVERY, ev -> restartTimer());
     restartTimer();
   }
 
@@ -136,22 +126,16 @@ public class AutoRecoveryManager {
    */
   private void readRecoveredHomes() throws RecorderException {
     File recoveryFolder = getRecoveryFolder();
-    File [] recoveredFiles = recoveryFolder.listFiles(new FileFilter() {
-        public boolean accept(File file) {
-          return file.isFile()
-              && file.getName().endsWith(RECOVERED_FILE_EXTENSION);
+    File [] recoveredFiles = recoveryFolder.listFiles(file -> file.isFile()
+        && file.getName().endsWith(RECOVERED_FILE_EXTENSION));
+    if (recoveredFiles != null) {
+      Arrays.sort(recoveredFiles, (f1, f2) -> {
+        if (f1.lastModified() < f2.lastModified()) {
+          return 1;
+        } else {
+          return -1;
         }
       });
-    if (recoveredFiles != null) {
-      Arrays.sort(recoveredFiles, new Comparator<File>() {
-          public int compare(File f1, File f2) {
-            if (f1.lastModified() < f2.lastModified()) {
-              return 1;
-            } else {
-              return -1;
-            }
-          }
-        });
       for (final File file : recoveredFiles) {
         if (!isFileLocked(file)) {
           try {
@@ -161,13 +145,11 @@ public class AutoRecoveryManager {
                 || !file.equals(new File(home.getName()))) {
               home.setRecovered(true);
               // Delete recovered file once home isn't recovered anymore
-              home.addPropertyChangeListener(Home.Property.RECOVERED, new PropertyChangeListener() {
-                  public void propertyChange(PropertyChangeEvent evt) {
-                    if (!home.isRecovered()) {
-                      file.delete();
-                    }
-                  }
-                });
+              home.addPropertyChangeListener(Home.Property.RECOVERED, evt -> {
+                if (!home.isRecovered()) {
+                  file.delete();
+                }
+              });
               this.recoveredHomes.add(home);
             }
           } catch (RecorderException ex) {
@@ -256,25 +238,21 @@ public class AutoRecoveryManager {
    */
   private void cloneAndSaveHomes() {
     try {
-      EventQueue.invokeAndWait(new Runnable() {
-          public void run() {
-            // Handle and clone application homes in Event Dispatch Thread
-            for (final Home home : application.getHomes()) {
-              final Home autoSavedHome = home.clone();
-              final HomeRecorder homeRecorder = application.getHomeRecorder();
-              autoSaveForRecoveryExecutor.submit(new Runnable() {
-                public void run() {
-                  try {
-                    // Save home clone in an other thread
-                    saveHome(home, autoSavedHome, homeRecorder);
-                  } catch (RecorderException ex) {
-                    ex.printStackTrace();
-                  }
-                }
-              });
+      EventQueue.invokeAndWait(() -> {
+        // Handle and clone application homes in Event Dispatch Thread
+        for (final Home home : application.getHomes()) {
+          final Home autoSavedHome = home.clone();
+          final HomeRecorder homeRecorder = application.getHomeRecorder();
+          autoSaveForRecoveryExecutor.submit(() -> {
+            try {
+              // Save home clone in an other thread
+              saveHome(home, autoSavedHome, homeRecorder);
+            } catch (RecorderException ex) {
+              ex.printStackTrace();
             }
-          }
-        });
+          });
+        }
+      });
     } catch (InvocationTargetException ex) {
       throw new RuntimeException(ex);
     } catch (InterruptedException ex) {

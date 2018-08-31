@@ -19,32 +19,15 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
+import com.eteks.sweethome3d.model.*;
+
+import javax.swing.undo.UndoableEditSupport;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Elevatable;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeEnvironment;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.Label;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.ObserverCamera;
-import com.eteks.sweethome3d.model.Room;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.SelectionEvent;
-import com.eteks.sweethome3d.model.SelectionListener;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
 
 /**
  * A MVC controller for the home 3D view.
@@ -91,61 +74,51 @@ public class HomeController3D implements Controller {
    * Add listeners to model to update camera position accordingly.
    */
   private void addModelListeners(final Home home) {
-    home.addPropertyChangeListener(Home.Property.CAMERA, new PropertyChangeListener() {      
-        public void propertyChange(PropertyChangeEvent ev) {
-          setCameraState(home.getCamera() == home.getTopCamera() 
-              ? topCameraState
-              : observerCameraState);
-        }
-      });
+    home.addPropertyChangeListener(Home.Property.CAMERA, ev -> setCameraState(home.getCamera() == home.getTopCamera()
+        ? topCameraState
+        : observerCameraState));
     // Add listeners to adjust observer camera elevation when the elevation of the selected level  
     // or the level selection change
-    final PropertyChangeListener levelElevationChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (Level.Property.ELEVATION.name().equals(ev.getPropertyName()) 
-              && home.getEnvironment().isObserverCameraElevationAdjusted()) {
-            home.getObserverCamera().setZ(Math.max(getObserverCameraMinimumElevation(home), 
-                home.getObserverCamera().getZ() + (Float)ev.getNewValue() - (Float)ev.getOldValue()));
-          }
-        }
-      };
+    final PropertyChangeListener levelElevationChangeListener = ev -> {
+      if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())
+          && home.getEnvironment().isObserverCameraElevationAdjusted()) {
+        home.getObserverCamera().setZ(Math.max(getObserverCameraMinimumElevation(home),
+            home.getObserverCamera().getZ() + (Float)ev.getNewValue() - (Float)ev.getOldValue()));
+      }
+    };
     Level selectedLevel = home.getSelectedLevel();
     if (selectedLevel != null) {
       selectedLevel.addPropertyChangeListener(levelElevationChangeListener);
     }
-    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          Level oldSelectedLevel = (Level)ev.getOldValue();
-          Level selectedLevel = home.getSelectedLevel();
-          if (home.getEnvironment().isObserverCameraElevationAdjusted()) {
-            home.getObserverCamera().setZ(Math.max(getObserverCameraMinimumElevation(home), 
-                home.getObserverCamera().getZ() 
-                + (selectedLevel == null ? 0 : selectedLevel.getElevation()) 
-                - (oldSelectedLevel == null ? 0 : oldSelectedLevel.getElevation())));
-          }
-          if (oldSelectedLevel != null) {
-            oldSelectedLevel.removePropertyChangeListener(levelElevationChangeListener);
-          }
-          if (selectedLevel != null) {
-            selectedLevel.addPropertyChangeListener(levelElevationChangeListener);
-          }
-        }
-      });     
+    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, ev -> {
+      Level oldSelectedLevel = (Level)ev.getOldValue();
+      Level selectedLevel12 = home.getSelectedLevel();
+      if (home.getEnvironment().isObserverCameraElevationAdjusted()) {
+        home.getObserverCamera().setZ(Math.max(getObserverCameraMinimumElevation(home),
+            home.getObserverCamera().getZ()
+            + (selectedLevel12 == null ? 0 : selectedLevel12.getElevation())
+            - (oldSelectedLevel == null ? 0 : oldSelectedLevel.getElevation())));
+      }
+      if (oldSelectedLevel != null) {
+        oldSelectedLevel.removePropertyChangeListener(levelElevationChangeListener);
+      }
+      if (selectedLevel12 != null) {
+        selectedLevel12.addPropertyChangeListener(levelElevationChangeListener);
+      }
+    });
     // Add a listener to home to update visible levels according to selected level
-    PropertyChangeListener selectedLevelListener = new PropertyChangeListener() {
-         public void propertyChange(PropertyChangeEvent ev) {
-           List<Level> levels = home.getLevels();
-           Level selectedLevel = home.getSelectedLevel();
-           boolean visible = true;
-           for (int i = 0; i < levels.size(); i++) {
-             levels.get(i).setVisible(visible);
-             if (levels.get(i) == selectedLevel
-                 && !home.getEnvironment().isAllLevelsVisible()) {
-               visible = false;
-             }
-           }
-         }
-       };
+    PropertyChangeListener selectedLevelListener = ev -> {
+      List<Level> levels = home.getLevels();
+      Level selectedLevel1 = home.getSelectedLevel();
+      boolean visible = true;
+      for (int i = 0; i < levels.size(); i++) {
+        levels.get(i).setVisible(visible);
+        if (levels.get(i) == selectedLevel1
+            && !home.getEnvironment().isAllLevelsVisible()) {
+          visible = false;
+        }
+      }
+    };
     home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, selectedLevelListener);     
     home.getEnvironment().addPropertyChangeListener(HomeEnvironment.Property.ALL_LEVELS_VISIBLE, selectedLevelListener);
   }
@@ -188,7 +161,7 @@ public class HomeController3D implements Controller {
     Camera camera = this.home.getCamera().clone();
     camera.setName(name);
     List<Camera> homeStoredCameras = this.home.getStoredCameras();
-    ArrayList<Camera> storedCameras = new ArrayList<Camera>(homeStoredCameras.size() + 1);
+    ArrayList<Camera> storedCameras = new ArrayList<>(homeStoredCameras.size() + 1);
     storedCameras.addAll(homeStoredCameras);
     // Don't keep two cameras with the same name or the same location
     for (int i = storedCameras.size() - 1; i >= 0; i--) {
@@ -224,7 +197,7 @@ public class HomeController3D implements Controller {
     }
     this.cameraState.goToCamera(camera);
     // Reorder cameras
-    ArrayList<Camera> storedCameras = new ArrayList<Camera>(this.home.getStoredCameras());
+    ArrayList<Camera> storedCameras = new ArrayList<>(this.home.getStoredCameras());
     storedCameras.remove(camera);
     storedCameras.add(0, camera);
     this.home.setStoredCameras(storedCameras);
@@ -236,7 +209,7 @@ public class HomeController3D implements Controller {
   public void deleteCameras(List<Camera> cameras) {
     List<Camera> homeStoredCameras = this.home.getStoredCameras();
     // Build a list of cameras that will contain only the cameras not in the camera list in parameter
-    ArrayList<Camera> storedCameras = new ArrayList<Camera>(homeStoredCameras.size() - cameras.size());
+    ArrayList<Camera> storedCameras = new ArrayList<>(homeStoredCameras.size() - cameras.size());
     for (Camera camera : homeStoredCameras) {
       if (!cameras.contains(camera)) {
         storedCameras.add(camera);
@@ -394,69 +367,55 @@ public class HomeController3D implements Controller {
     private float       minDistanceToAerialViewCenter;
     private float       maxDistanceToAerialViewCenter;
     private boolean     aerialViewCenteredOnSelectionEnabled;
-    private PropertyChangeListener objectChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
+    private PropertyChangeListener objectChangeListener = ev -> updateCameraFromHomeBounds(false);
+    private CollectionListener<Level> levelsListener = ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(objectChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(objectChangeListener);
+      }
+      updateCameraFromHomeBounds(false);
+    };
+    private CollectionListener<Wall> wallsListener = ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(objectChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(objectChangeListener);
+      }
+      updateCameraFromHomeBounds(false);
+    };
+    private CollectionListener<HomePieceOfFurniture> furnitureListener = new CollectionListener<>()
+    {
+      public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev)
+      {
+        if (ev.getType() == CollectionEvent.Type.ADD) {
+          ev.getItem().addPropertyChangeListener(objectChangeListener);
+          updateCameraFromHomeBounds(home.getFurniture().size() == 1
+                  && home.getWalls().isEmpty()
+                  && home.getRooms().isEmpty());
+        } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+          ev.getItem().removePropertyChangeListener(objectChangeListener);
           updateCameraFromHomeBounds(false);
         }
-      };
-    private CollectionListener<Level> levelsListener = new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(objectChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(objectChangeListener);
-          } 
-          updateCameraFromHomeBounds(false);
-        }
-      };
-    private CollectionListener<Wall> wallsListener = new CollectionListener<Wall>() {
-        public void collectionChanged(CollectionEvent<Wall> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(objectChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(objectChangeListener);
-          } 
-          updateCameraFromHomeBounds(false);
-        }
-      };
-    private CollectionListener<HomePieceOfFurniture> furnitureListener = new CollectionListener<HomePieceOfFurniture>() {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(objectChangeListener);
-            updateCameraFromHomeBounds(home.getFurniture().size() == 1
-                && home.getWalls().isEmpty()
-                && home.getRooms().isEmpty());
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(objectChangeListener);
-            updateCameraFromHomeBounds(false);
-          } 
-        }
-      };
-    private CollectionListener<Room> roomsListener = new CollectionListener<Room>() {
-        public void collectionChanged(CollectionEvent<Room> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(objectChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(objectChangeListener);
-          } 
-          updateCameraFromHomeBounds(false);
-        }
-      };
-    private CollectionListener<Label> labelsListener = new CollectionListener<Label>() {
-        public void collectionChanged(CollectionEvent<Label> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(objectChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(objectChangeListener);
-          } 
-          updateCameraFromHomeBounds(false);
-        }
-      };
-    private SelectionListener selectionListener = new SelectionListener() {
-        public void selectionChanged(SelectionEvent ev) {
-          updateCameraFromHomeBounds(false);
-        }
-      };
+      }
+    };
+    private CollectionListener<Room> roomsListener = ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(objectChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(objectChangeListener);
+      }
+      updateCameraFromHomeBounds(false);
+    };
+    private CollectionListener<Label> labelsListener = ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(objectChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(objectChangeListener);
+      }
+      updateCameraFromHomeBounds(false);
+    };
+    private SelectionListener selectionListener = ev -> updateCameraFromHomeBounds(false);
     private UserPreferencesChangeListener userPreferencesChangeListener;
 
     public TopCameraState(UserPreferences preferences) {
@@ -532,7 +491,7 @@ public class HomeController3D implements Controller {
       this.aerialViewBoundsUpperPoint = null;
       List<Selectable> selectedItems = Collections.emptyList();
       if (centerOnSelection) { 
-        selectedItems = new ArrayList<Selectable>();
+        selectedItems = new ArrayList<>();
         for (Selectable item : home.getSelectedItems()) {
           if (item instanceof Elevatable 
               && isItemAtVisibleLevel((Elevatable)item)
@@ -797,7 +756,7 @@ public class HomeController3D implements Controller {
     private WeakReference<TopCameraState>  topCameraState;
 
     public UserPreferencesChangeListener(TopCameraState topCameraState) {
-      this.topCameraState = new WeakReference<TopCameraState>(topCameraState);
+      this.topCameraState = new WeakReference<>(topCameraState);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -817,23 +776,19 @@ public class HomeController3D implements Controller {
    */
   private class ObserverCameraState extends CameraControllerState {
     private ObserverCamera observerCamera;
-    private PropertyChangeListener levelElevationChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())) {
-            updateCameraMinimumElevation();
-          }
-        }
-      };
-    private CollectionListener<Level> levelsListener = new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(levelElevationChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(levelElevationChangeListener);
-          } 
-          updateCameraMinimumElevation();
-        }
-      };
+    private PropertyChangeListener levelElevationChangeListener = ev -> {
+      if (Level.Property.ELEVATION.name().equals(ev.getPropertyName())) {
+        updateCameraMinimumElevation();
+      }
+    };
+    private CollectionListener<Level> levelsListener = ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(levelElevationChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(levelElevationChangeListener);
+      }
+      updateCameraMinimumElevation();
+    };
 
     @Override
     public void enter() {
@@ -844,7 +799,7 @@ public class HomeController3D implements Controller {
       home.addLevelsListener(this.levelsListener);
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
     
@@ -854,7 +809,7 @@ public class HomeController3D implements Controller {
       this.observerCamera.setY(this.observerCamera.getY() + (float)Math.cos(this.observerCamera.getYaw()) * delta);
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
     
@@ -864,7 +819,7 @@ public class HomeController3D implements Controller {
       this.observerCamera.setY(this.observerCamera.getY() - (float)Math.sin(this.observerCamera.getYaw()) * delta);
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
     
@@ -875,7 +830,7 @@ public class HomeController3D implements Controller {
       this.observerCamera.setZ(newElevation);
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
 
@@ -898,7 +853,7 @@ public class HomeController3D implements Controller {
       // Select observer camera for user feedback
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
     
@@ -910,7 +865,7 @@ public class HomeController3D implements Controller {
       this.observerCamera.setPitch(newPitch); 
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
 
@@ -922,7 +877,7 @@ public class HomeController3D implements Controller {
       this.observerCamera.setFieldOfView(newFieldOfView); 
       if (preferences.isObserverCameraSelectedAtChange()) {
         // Select observer camera for user feedback      
-        home.setSelectedItems(Arrays.asList(new Selectable [] {this.observerCamera}));
+        home.setSelectedItems(Collections.singletonList(this.observerCamera));
       }
     }
     
@@ -938,7 +893,7 @@ public class HomeController3D implements Controller {
       // Remove observer camera from selection
       List<Selectable> selectedItems = home.getSelectedItems();
       if (selectedItems.contains(this.observerCamera)) {
-        selectedItems = new ArrayList<Selectable>(selectedItems);
+        selectedItems = new ArrayList<>(selectedItems);
         selectedItems.remove(this.observerCamera);
         home.setSelectedItems(selectedItems);
       }

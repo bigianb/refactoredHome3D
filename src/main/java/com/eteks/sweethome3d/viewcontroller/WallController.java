@@ -19,25 +19,13 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
+import com.eteks.sweethome3d.model.*;
+
+import javax.swing.undo.*;
 import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.Baseboard;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeTexture;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.TextureImage;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
 
 /**
  * A MVC controller for wall view.
@@ -125,11 +113,7 @@ public class WallController implements Controller {
           this.preferences.getLocalizedString(WallController.class, "leftSideTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.leftSideTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setLeftSidePaint(WallPaint.TEXTURED);
-            }
-          });
+              ev -> setLeftSidePaint(WallPaint.TEXTURED));
     }
     return this.leftSideTextureController;
   }
@@ -157,11 +141,7 @@ public class WallController implements Controller {
           this.preferences.getLocalizedString(WallController.class, "rightSideTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.rightSideTextureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setRightSidePaint(WallPaint.TEXTURED);
-            }
-          });
+              ev -> setRightSidePaint(WallPaint.TEXTURED));
     }
     return this.rightSideTextureController;
   }
@@ -320,10 +300,9 @@ public class WallController implements Controller {
       getLeftSideTextureController().setTexture(leftSideTexture);
       
       boolean defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedWalls.size(); i++) {
-        Wall wall = selectedWalls.get(i);
+      for (Wall wall : selectedWalls) {
         if (wall.getLeftSideColor() != null
-            || wall.getLeftSideTexture() != null) {
+                || wall.getLeftSideTexture() != null) {
           defaultColorsAndTextures = false;
           break;
         }
@@ -422,10 +401,10 @@ public class WallController implements Controller {
       getLeftSideBaseboardController().getTextureController().setTexture(leftSideBaseboardTexture);
       
       defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedWalls.size(); i++) {
-        Baseboard baseboard = selectedWalls.get(i).getLeftSideBaseboard();
+      for (Wall selectedWall1 : selectedWalls) {
+        Baseboard baseboard = selectedWall1.getLeftSideBaseboard();
         if (baseboard != null
-            && (baseboard.getColor() != null
+                && (baseboard.getColor() != null
                 || baseboard.getTexture() != null)) {
           defaultColorsAndTextures = false;
           break;
@@ -467,10 +446,9 @@ public class WallController implements Controller {
       getRightSideTextureController().setTexture(rightSideTexture);
       
       defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedWalls.size(); i++) {
-        Wall wall = selectedWalls.get(i);
+      for (Wall wall : selectedWalls) {
         if (wall.getRightSideColor() != null
-            || wall.getRightSideTexture() != null) {
+                || wall.getRightSideTexture() != null) {
           defaultColorsAndTextures = false;
           break;
         }
@@ -569,10 +547,10 @@ public class WallController implements Controller {
       getRightSideBaseboardController().getTextureController().setTexture(rightSideBaseboardTexture);
       
       defaultColorsAndTextures = true;
-      for (int i = 0; i < selectedWalls.size(); i++) {
-        Baseboard baseboard = selectedWalls.get(i).getRightSideBaseboard();
+      for (Wall selectedWall : selectedWalls) {
+        Baseboard baseboard = selectedWall.getRightSideBaseboard();
         if (baseboard != null
-            && (baseboard.getColor() != null
+                && (baseboard.getColor() != null
                 || baseboard.getTexture() != null)) {
           defaultColorsAndTextures = false;
           break;
@@ -842,7 +820,7 @@ public class WallController implements Controller {
         Float xEnd = getXEnd();
         Float yEnd = getYEnd();
         if (xStart != null && yStart != null && xEnd != null && yEnd != null && length != null) {
-          if (getArcExtentInDegrees() != null && getArcExtentInDegrees().floatValue() == 0) {
+          if (getArcExtentInDegrees() != null && getArcExtentInDegrees() == 0) {
             double wallAngle = Math.atan2(yStart - yEnd, xEnd - xStart);
             setXEnd((float)(xStart + length * Math.cos(wallAngle)));
             setYEnd((float)(yStart - length * Math.sin(wallAngle)));
@@ -1674,10 +1652,10 @@ public class WallController implements Controller {
         }
       }
       if (thickness != null) {
-        wall.setThickness(thickness.floatValue());
+        wall.setThickness(thickness);
       }
       if (arcExtent != null) {
-        if (arcExtent.floatValue() == 0) {
+        if (arcExtent == 0) {
           wall.setArcExtent(null);
         } else {
           wall.setArcExtent(arcExtent);

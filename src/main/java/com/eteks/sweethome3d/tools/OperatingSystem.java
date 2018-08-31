@@ -305,22 +305,20 @@ public class OperatingSystem {
    * Returns a file comparator that sorts file names according to their version number (excluding their extension when they are the same). 
    */
   public static Comparator<File> getFileVersionComparator() {
-    return new Comparator<File>() {
-        public int compare(File file1, File file2) {
-          String fileName1 = file1.getName();
-          String fileName2 = file2.getName();
-          int extension1Index = fileName1.lastIndexOf('.');
-          String extension1 = extension1Index != -1  ? fileName1.substring(extension1Index)  : null;
-          int extension2Index = fileName2.lastIndexOf('.');
-          String extension2 = extension2Index != -1  ? fileName2.substring(extension2Index)  : null;
-          // If the files have the same extension, remove it 
-          if (extension1 != null && extension1.equals(extension2)) {
-            fileName1 = fileName1.substring(0, extension1Index);
-            fileName2 = fileName2.substring(0, extension2Index);
-          }
-          return OperatingSystem.compareVersions(fileName1, fileName2);
-        }
-      };
+    return (file1, file2) -> {
+      String fileName1 = file1.getName();
+      String fileName2 = file2.getName();
+      int extension1Index = fileName1.lastIndexOf('.');
+      String extension1 = extension1Index != -1  ? fileName1.substring(extension1Index)  : null;
+      int extension2Index = fileName2.lastIndexOf('.');
+      String extension2 = extension2Index != -1  ? fileName2.substring(extension2Index)  : null;
+      // If the files have the same extension, remove it
+      if (extension1 != null && extension1.equals(extension2)) {
+        fileName1 = fileName1.substring(0, extension1Index);
+        fileName2 = fileName2.substring(0, extension2Index);
+      }
+      return OperatingSystem.compareVersions(fileName1, fileName2);
+    };
   }
 
   /**
@@ -357,12 +355,8 @@ public class OperatingSystem {
           versionPrefix + TEMPORARY_SESSION_SUB_FOLDER);      
       if (!sessionTemporaryFolder.exists()) {
         // Retrieve existing folders working with same Sweet Home 3D version in temporary folder
-        final File [] siblingTemporaryFolders = temporaryFolder.listFiles(new FileFilter() {
-            public boolean accept(File file) {
-              return file.isDirectory() 
-                  && file.getName().startsWith(versionPrefix);
-            }
-          });
+        final File [] siblingTemporaryFolders = temporaryFolder.listFiles(file -> file.isDirectory()
+            && file.getName().startsWith(versionPrefix));
         
         // Create temporary folder  
         if (!createTemporaryFolders(sessionTemporaryFolder)) {

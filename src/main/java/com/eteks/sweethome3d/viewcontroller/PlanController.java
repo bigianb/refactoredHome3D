@@ -19,59 +19,16 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeEvent;
+import com.eteks.sweethome3d.model.*;
+import com.eteks.sweethome3d.model.Label;
+
+import javax.swing.undo.*;
+import java.awt.*;
+import java.awt.geom.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.BackgroundImage;
-import com.eteks.sweethome3d.model.Baseboard;
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Compass;
-import com.eteks.sweethome3d.model.DimensionLine;
-import com.eteks.sweethome3d.model.Elevatable;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeDoorOrWindow;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
-import com.eteks.sweethome3d.model.HomeLight;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.HomeTexture;
-import com.eteks.sweethome3d.model.Label;
-import com.eteks.sweethome3d.model.LengthUnit;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.ObserverCamera;
-import com.eteks.sweethome3d.model.Polyline;
-import com.eteks.sweethome3d.model.Room;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.SelectionEvent;
-import com.eteks.sweethome3d.model.SelectionListener;
-import com.eteks.sweethome3d.model.TextStyle;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
 
 /**
  * A MVC controller for the plan view.
@@ -210,7 +167,7 @@ public class PlanController extends FurnitureController implements Controller {
     this.contentManager = contentManager;
     this.undoSupport = undoSupport;
     this.propertyChangeSupport = new PropertyChangeSupport(this);
-    this.furnitureSidesCache = new Hashtable<HomePieceOfFurniture, Area>();
+    this.furnitureSidesCache = new Hashtable<>();
     // Initialize states
     this.selectionState = new SelectionState();
     this.selectionMoveState = new SelectionMoveState();
@@ -825,11 +782,11 @@ public class PlanController extends FurnitureController implements Controller {
       final boolean allLevelsSelection = this.home.isAllLevelsSelection();
       List<Selectable> selection = this.home.getSelectedItems();
       final Selectable [] oldSelectedItems =
-          selection.toArray(new Selectable [selection.size()]);
+          selection.toArray(new Selectable[0]);
 
       List<Selectable> newSelection = getItemsNotPartOfBasePlan(selection);
       final Selectable [] newSelectedItems =
-        newSelection.toArray(new Selectable [newSelection.size()]);
+        newSelection.toArray(new Selectable[0]);
 
       this.home.setBasePlanLocked(true);
       selectItems(newSelection, allLevelsSelection);
@@ -874,7 +831,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Returns the items among the given list that are not part of the base plan.
    */
   private List<Selectable> getItemsNotPartOfBasePlan(List<? extends Selectable> items) {
-    List<Selectable> itemsNotPartOfBasePlan = new ArrayList<Selectable>();
+    List<Selectable> itemsNotPartOfBasePlan = new ArrayList<>();
     for (Selectable item : items) {
       if (!isItemPartOfBasePlan(item)) {
         itemsNotPartOfBasePlan.add(item);
@@ -891,7 +848,7 @@ public class PlanController extends FurnitureController implements Controller {
       final boolean allLevelsSelection = this.home.isAllLevelsSelection();
       List<Selectable> selection = this.home.getSelectedItems();
       final Selectable [] selectedItems =
-          selection.toArray(new Selectable [selection.size()]);
+          selection.toArray(new Selectable[0]);
 
       this.home.setBasePlanLocked(false);
       this.home.setAllLevelsSelection(false);
@@ -981,19 +938,17 @@ public class PlanController extends FurnitureController implements Controller {
       }
     }
     if (walls [1] == null) {
-      Collections.sort(selectedWalls, new Comparator<Wall>() {
-          public int compare(Wall wall1, Wall wall2) {
-            float[] intersection1 = computeIntersection(wall1.getXStart(), wall1.getYStart(), wall1.getXEnd(), wall1.getYEnd(),
-                walls [0].getXStart(), walls [0].getYStart(), walls [0].getXEnd(), walls [0].getYEnd());
-            float[] intersection2 = computeIntersection(wall2.getXStart(), wall2.getYStart(), wall2.getXEnd(), wall2.getYEnd(),
-                walls [0].getXStart(), walls [0].getYStart(), walls [0].getXEnd(), walls [0].getYEnd());
-            double closestPoint1 = Math.min(Point2D.distanceSq(walls [0].getXStart(), walls [0].getYStart(), intersection1 [0], intersection1 [1]),
-                Point2D.distanceSq(walls [0].getXEnd(), walls [0].getYEnd(), intersection1 [0], intersection1 [1]));
-            double closestPoint2 = Math.min(Point2D.distanceSq(walls [0].getXStart(), walls [0].getYStart(), intersection2 [0], intersection2 [1]),
-                Point2D.distanceSq(walls [0].getXEnd(), walls [0].getYEnd(), intersection2 [0], intersection2 [1]));
-            return Double.compare(closestPoint1, closestPoint2);
-          }
-        });
+      Collections.sort(selectedWalls, (wall1, wall2) -> {
+        float[] intersection1 = computeIntersection(wall1.getXStart(), wall1.getYStart(), wall1.getXEnd(), wall1.getYEnd(),
+                walls[0].getXStart(), walls[0].getYStart(), walls[0].getXEnd(), walls[0].getYEnd());
+        float[] intersection2 = computeIntersection(wall2.getXStart(), wall2.getYStart(), wall2.getXEnd(), wall2.getYEnd(),
+                walls[0].getXStart(), walls[0].getYStart(), walls[0].getXEnd(), walls[0].getYEnd());
+        double closestPoint1 = Math.min(Point2D.distanceSq(walls[0].getXStart(), walls[0].getYStart(), intersection1[0], intersection1[1]),
+                Point2D.distanceSq(walls[0].getXEnd(), walls[0].getYEnd(), intersection1[0], intersection1[1]));
+        double closestPoint2 = Math.min(Point2D.distanceSq(walls[0].getXStart(), walls[0].getYStart(), intersection2[0], intersection2[1]),
+                Point2D.distanceSq(walls[0].getXEnd(), walls[0].getYEnd(), intersection2[0], intersection2[1]));
+        return Double.compare(closestPoint1, closestPoint2);
+      });
       if (walls [0] != selectedWalls.get(1)) {
         walls [1] = selectedWalls.get(1);
       }
@@ -1064,7 +1019,7 @@ public class PlanController extends FurnitureController implements Controller {
                                      List<Selectable> oldSelection) {
     final boolean allLevelsSelection = home.isAllLevelsSelection();
     final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
     UndoableEdit undoableEdit = new AbstractUndoableEdit() {
       @Override
       public void undo() throws CannotUndoException {
@@ -1151,7 +1106,7 @@ public class PlanController extends FurnitureController implements Controller {
     if (connected) {
       this.home.setSelectedItems(Arrays.asList(walls [0], walls [1]));
     } else {
-      this.home.setSelectedItems(Arrays.asList(walls [0]));
+      this.home.setSelectedItems(Collections.singletonList(walls[0]));
     }
   }
 
@@ -1162,7 +1117,7 @@ public class PlanController extends FurnitureController implements Controller {
     List<Selectable> selectedItems = this.home.getSelectedItems();
     List<Wall> selectedWalls = Home.getWallsSubList(selectedItems);
     if (!selectedWalls.isEmpty()) {
-      Wall [] reversedWalls = selectedWalls.toArray(new Wall [selectedWalls.size()]);
+      Wall [] reversedWalls = selectedWalls.toArray(new Wall[0]);
       doReverseWallsDirection(reversedWalls);
       selectAndShowItems(Arrays.asList(reversedWalls), false);
       postReverseSelectedWallsDirection(reversedWalls, selectedItems);
@@ -1176,7 +1131,7 @@ public class PlanController extends FurnitureController implements Controller {
                                                  List<Selectable> oldSelection) {
     final boolean allLevelsSelection = home.isAllLevelsSelection();
     final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
     UndoableEdit undoableEdit = new AbstractUndoableEdit() {
       @Override
       public void undo() throws CannotUndoException {
@@ -1345,7 +1300,7 @@ public class PlanController extends FurnitureController implements Controller {
 
       // Delete split wall
       this.home.deleteWall(splitWall);
-      selectAndShowItems(Arrays.asList(new Wall [] {firstWall}), false);
+      selectAndShowItems(Collections.singletonList(firstWall), false);
 
       postSplitSelectedWall(splitJoinedWall,
           new JoinedWall(firstWall), new JoinedWall(secondWall), selectedItems, basePlanLocked, allLevelsSelection);
@@ -1362,7 +1317,7 @@ public class PlanController extends FurnitureController implements Controller {
                                      final boolean oldBasePlanLocked,
                                      final boolean oldAllLevelsSelection) {
     final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
     final boolean newBasePlanLocked = this.home.isBasePlanLocked();
     UndoableEdit undoableEdit = new AbstractUndoableEdit() {
       @Override
@@ -1378,7 +1333,7 @@ public class PlanController extends FurnitureController implements Controller {
         super.redo();
         doDeleteWalls(new JoinedWall [] {splitJoinedWall}, newBasePlanLocked);
         doAddWalls(new JoinedWall [] {firstJoinedWall, secondJoinedWall}, newBasePlanLocked);
-        selectAndShowItems(Arrays.asList(new Wall [] {firstJoinedWall.getWall()}), false);
+        selectAndShowItems(Collections.singletonList(firstJoinedWall.getWall()), false);
       }
 
       @Override
@@ -1483,9 +1438,9 @@ public class PlanController extends FurnitureController implements Controller {
       selectionBoldStyle = !selectionBoldStyle;
     }
 
-    List<Selectable> itemsWithText = new ArrayList<Selectable>();
-    List<TextStyle> oldTextStyles = new ArrayList<TextStyle>();
-    List<TextStyle> textStyles = new ArrayList<TextStyle>();
+    List<Selectable> itemsWithText = new ArrayList<>();
+    List<TextStyle> oldTextStyles = new ArrayList<>();
+    List<TextStyle> textStyles = new ArrayList<>();
     for (Selectable item : this.home.getSelectedItems()) {
       if (item instanceof Label) {
         Label label = (Label)item;
@@ -1518,9 +1473,9 @@ public class PlanController extends FurnitureController implements Controller {
         textStyles.add(oldLengthStyle.deriveBoldStyle(selectionBoldStyle));
       }
     }
-    modifyTextStyle(itemsWithText.toArray(new Selectable [itemsWithText.size()]),
-        oldTextStyles.toArray(new TextStyle [oldTextStyles.size()]),
-        textStyles.toArray(new TextStyle [textStyles.size()]));
+    modifyTextStyle(itemsWithText.toArray(new Selectable[0]),
+        oldTextStyles.toArray(new TextStyle[0]),
+        textStyles.toArray(new TextStyle[0]));
   }
 
   /**
@@ -1572,9 +1527,9 @@ public class PlanController extends FurnitureController implements Controller {
       selectionItalicStyle = !selectionItalicStyle;
     }
 
-    List<Selectable> itemsWithText = new ArrayList<Selectable>();
-    List<TextStyle> oldTextStyles = new ArrayList<TextStyle>();
-    List<TextStyle> textStyles = new ArrayList<TextStyle>();
+    List<Selectable> itemsWithText = new ArrayList<>();
+    List<TextStyle> oldTextStyles = new ArrayList<>();
+    List<TextStyle> textStyles = new ArrayList<>();
     for (Selectable item : this.home.getSelectedItems()) {
       if (item instanceof Label) {
         Label label = (Label)item;
@@ -1607,9 +1562,9 @@ public class PlanController extends FurnitureController implements Controller {
         textStyles.add(oldLengthStyle.deriveItalicStyle(selectionItalicStyle));
       }
     }
-    modifyTextStyle(itemsWithText.toArray(new Selectable [itemsWithText.size()]),
-        oldTextStyles.toArray(new TextStyle [oldTextStyles.size()]),
-        textStyles.toArray(new TextStyle [textStyles.size()]));
+    modifyTextStyle(itemsWithText.toArray(new Selectable[0]),
+        oldTextStyles.toArray(new TextStyle[0]),
+        textStyles.toArray(new TextStyle[0]));
   }
 
   /**
@@ -1630,9 +1585,9 @@ public class PlanController extends FurnitureController implements Controller {
    * Applies a factor to the font size of the texts of the selected items in home.
    */
   private void applyFactorToTextSize(float factor) {
-    List<Selectable> itemsWithText = new ArrayList<Selectable>();
-    List<TextStyle> oldTextStyles = new ArrayList<TextStyle>();
-    List<TextStyle> textStyles = new ArrayList<TextStyle>();
+    List<Selectable> itemsWithText = new ArrayList<>();
+    List<TextStyle> oldTextStyles = new ArrayList<>();
+    List<TextStyle> textStyles = new ArrayList<>();
     for (Selectable item : this.home.getSelectedItems()) {
       if (item instanceof Label) {
         Label label = (Label)item;
@@ -1665,9 +1620,9 @@ public class PlanController extends FurnitureController implements Controller {
         textStyles.add(oldLengthStyle.deriveStyle(Math.round(oldLengthStyle.getFontSize() * factor)));
       }
     }
-    modifyTextStyle(itemsWithText.toArray(new Selectable [itemsWithText.size()]),
-        oldTextStyles.toArray(new TextStyle [oldTextStyles.size()]),
-        textStyles.toArray(new TextStyle [textStyles.size()]));
+    modifyTextStyle(itemsWithText.toArray(new Selectable[0]),
+        oldTextStyles.toArray(new TextStyle[0]),
+        textStyles.toArray(new TextStyle[0]));
   }
 
   /**
@@ -1679,7 +1634,7 @@ public class PlanController extends FurnitureController implements Controller {
     final boolean allLevelsSelection = home.isAllLevelsSelection();
     List<Selectable> oldSelection = this.home.getSelectedItems();
     final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
 
     doModifyTextStyle(items, styles);
     UndoableEdit undoableEdit = new AbstractUndoableEdit() {
@@ -1794,7 +1749,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Returns the viewable and selectable home items at the selected level, except camera.
    */
   private List<Selectable> getVisibleItemsAtSelectedLevel() {
-    List<Selectable> selectableItems = new ArrayList<Selectable>();
+    List<Selectable> selectableItems = new ArrayList<>();
     Level selectedLevel = this.home.getSelectedLevel();
     for (Selectable item : this.home.getSelectableViewableItems()) {
       if (item instanceof HomePieceOfFurniture) {
@@ -1814,7 +1769,7 @@ public class PlanController extends FurnitureController implements Controller {
    * @since 4.4
    */
   public void selectAllAtAllLevels() {
-    List<Selectable> allItems = new ArrayList<Selectable>(this.home.getSelectableViewableItems());
+    List<Selectable> allItems = new ArrayList<>(this.home.getSelectableViewableItems());
     if (this.home.isBasePlanLocked()) {
       allItems = getItemsNotPartOfBasePlan(allItems);
     }
@@ -1832,7 +1787,7 @@ public class PlanController extends FurnitureController implements Controller {
     if (selectedLevel == null || levels.size() <= 1) {
       return rooms;
     } else {
-      List<Room> visibleRooms = new ArrayList<Room>(rooms.size());
+      List<Room> visibleRooms = new ArrayList<>(rooms.size());
       int selectedLevelIndex = levels.indexOf(selectedLevel);
       boolean level0 = levels.get(0) == selectedLevel
           || levels.get(selectedLevelIndex - 1).getElevation() == selectedLevel.getElevation();
@@ -1862,7 +1817,7 @@ public class PlanController extends FurnitureController implements Controller {
     if (selectedLevel == null || levels.size() <= 1) {
       return walls;
     } else {
-      Collection<Wall> visibleWalls = new ArrayList<Wall>(walls.size());
+      Collection<Wall> visibleWalls = new ArrayList<>(walls.size());
       int selectedLevelIndex = levels.indexOf(selectedLevel);
       boolean level0 = levels.get(0) == selectedLevel
           || levels.get(selectedLevelIndex - 1).getElevation() == selectedLevel.getElevation();
@@ -1895,104 +1850,92 @@ public class PlanController extends FurnitureController implements Controller {
   }
 
   private void addModelListeners() {
-    this.selectionListener = new SelectionListener() {
-        public void selectionChanged(SelectionEvent ev) {
-          selectLevelFromSelectedItems();
-          if (getView() != null) {
-            getView().makeSelectionVisible();
-          }
-        }
-      };
+    this.selectionListener = ev -> {
+      selectLevelFromSelectedItems();
+      if (getView() != null) {
+        getView().makeSelectionVisible();
+      }
+    };
     this.home.addSelectionListener(this.selectionListener);
     // Ensure observer camera is visible when its size, location or angles change
-    this.home.getObserverCamera().addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (home.getSelectedItems().contains(ev.getSource())) {
-            if (getView() != null) {
-              getView().makeSelectionVisible();
-            }
+    this.home.getObserverCamera().addPropertyChangeListener(ev -> {
+      if (home.getSelectedItems().contains(ev.getSource())) {
+        if (getView() != null) {
+          getView().makeSelectionVisible();
+        }
+      }
+    });
+    this.wallChangeListener = ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Wall.Property.X_START.name().equals(propertyName)
+          || Wall.Property.X_END.name().equals(propertyName)
+          || Wall.Property.Y_START.name().equals(propertyName)
+          || Wall.Property.Y_END.name().equals(propertyName)
+          || Wall.Property.WALL_AT_START.name().equals(propertyName)
+          || Wall.Property.WALL_AT_END.name().equals(propertyName)
+          || Wall.Property.THICKNESS.name().equals(propertyName)
+          || Wall.Property.ARC_EXTENT.name().equals(propertyName)
+          || Wall.Property.LEVEL.name().equals(propertyName)
+          || Wall.Property.HEIGHT.name().equals(propertyName)
+          || Wall.Property.HEIGHT_AT_END.name().equals(propertyName)
+          || Wall.Property.LEFT_SIDE_BASEBOARD.name().equals(propertyName)
+          || Wall.Property.RIGHT_SIDE_BASEBOARD.name().equals(propertyName)) {
+        resetAreaCache();
+        // Unselect unreachable wall
+        Wall wall = (Wall)ev.getSource();
+        if (!wall.isAtLevel(home.getSelectedLevel())) {
+          List<Selectable> selectedItems = new ArrayList<>(home.getSelectedItems());
+          if (selectedItems.remove(wall)) {
+            selectItems(selectedItems, home.isAllLevelsSelection());
           }
         }
-      });
-    this.wallChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Wall.Property.X_START.name().equals(propertyName)
-              || Wall.Property.X_END.name().equals(propertyName)
-              || Wall.Property.Y_START.name().equals(propertyName)
-              || Wall.Property.Y_END.name().equals(propertyName)
-              || Wall.Property.WALL_AT_START.name().equals(propertyName)
-              || Wall.Property.WALL_AT_END.name().equals(propertyName)
-              || Wall.Property.THICKNESS.name().equals(propertyName)
-              || Wall.Property.ARC_EXTENT.name().equals(propertyName)
-              || Wall.Property.LEVEL.name().equals(propertyName)
-              || Wall.Property.HEIGHT.name().equals(propertyName)
-              || Wall.Property.HEIGHT_AT_END.name().equals(propertyName)
-              || Wall.Property.LEFT_SIDE_BASEBOARD.name().equals(propertyName)
-              || Wall.Property.RIGHT_SIDE_BASEBOARD.name().equals(propertyName)) {
-            resetAreaCache();
-            // Unselect unreachable wall
-            Wall wall = (Wall)ev.getSource();
-            if (!wall.isAtLevel(home.getSelectedLevel())) {
-              List<Selectable> selectedItems = new ArrayList<Selectable>(home.getSelectedItems());
-              if (selectedItems.remove(wall)) {
-                selectItems(selectedItems, home.isAllLevelsSelection());
-              }
-            }
-          }
-        }
-      };
+      }
+    };
     for (Wall wall : this.home.getWalls()) {
       wall.addPropertyChangeListener(this.wallChangeListener);
     }
-    this.home.addWallsListener(new CollectionListener<Wall> () {
-        public void collectionChanged(CollectionEvent<Wall> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(wallChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(wallChangeListener);
-          }
-          resetAreaCache();
-        }
-      });
+    this.home.addWallsListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(wallChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(wallChangeListener);
+      }
+      resetAreaCache();
+    });
     // Add listener to update furnitureBordersCache when walls change
-    final PropertyChangeListener furnitureChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (HomePieceOfFurniture.Property.X.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.Y.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.WIDTH_IN_PLAN.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.DEPTH_IN_PLAN.name().equals(propertyName)) {
-            furnitureSidesCache.remove((HomePieceOfFurniture)ev.getSource());
-          }
+    final PropertyChangeListener furnitureChangeListener = ev -> {
+      String propertyName = ev.getPropertyName();
+      if (HomePieceOfFurniture.Property.X.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.Y.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.WIDTH_IN_PLAN.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.DEPTH_IN_PLAN.name().equals(propertyName)) {
+        furnitureSidesCache.remove(ev.getSource());
+      }
+    };
+    this.furnitureSizeChangeListener = ev -> {
+      HomePieceOfFurniture piece = (HomePieceOfFurniture)ev.getSource();
+      String propertyName = ev.getPropertyName();
+      if (HomePieceOfFurniture.Property.WIDTH.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.DEPTH.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.HEIGHT.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.ROLL.name().equals(propertyName)
+          || HomePieceOfFurniture.Property.PITCH.name().equals(propertyName)) {
+        // Update piece size in plan
+        float [] size = getView().getPieceOfFurnitureSizeInPlan(piece);
+        if (size != null) {
+          piece.setWidthInPlan(size [0]);
+          piece.setDepthInPlan(size [1]);
+          piece.setHeightInPlan(size [2]);
+        } else if (HomePieceOfFurniture.Property.WIDTH.name().equals(propertyName)) {
+          // If the 2D view is unable to send the new piece size in the plan
+          // the size change is considered to be applied proportionally
+          float scale = piece.getWidth() / ((Number)ev.getOldValue()).floatValue();
+          piece.setWidthInPlan(scale * piece.getWidthInPlan());
+          piece.setDepthInPlan(scale * piece.getDepthInPlan());
+          piece.setHeightInPlan(scale * piece.getHeightInPlan());
         }
-      };
-    this.furnitureSizeChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          HomePieceOfFurniture piece = (HomePieceOfFurniture)ev.getSource();
-          String propertyName = ev.getPropertyName();
-          if (HomePieceOfFurniture.Property.WIDTH.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.DEPTH.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.HEIGHT.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.ROLL.name().equals(propertyName)
-              || HomePieceOfFurniture.Property.PITCH.name().equals(propertyName)) {
-            // Update piece size in plan
-            float [] size = getView().getPieceOfFurnitureSizeInPlan(piece);
-            if (size != null) {
-              piece.setWidthInPlan(size [0]);
-              piece.setDepthInPlan(size [1]);
-              piece.setHeightInPlan(size [2]);
-            } else if (HomePieceOfFurniture.Property.WIDTH.name().equals(propertyName)) {
-              // If the 2D view is unable to send the new piece size in the plan
-              // the size change is considered to be applied proportionally
-              float scale = piece.getWidth() / ((Number)ev.getOldValue()).floatValue();
-              piece.setWidthInPlan(scale * piece.getWidthInPlan());
-              piece.setDepthInPlan(scale * piece.getDepthInPlan());
-              piece.setHeightInPlan(scale * piece.getHeightInPlan());
-            }
-          }
-        }
-      };
+      }
+    };
     for (HomePieceOfFurniture piece : this.home.getFurniture()) {
       piece.addPropertyChangeListener(furnitureChangeListener);
       piece.addPropertyChangeListener(furnitureSizeChangeListener);
@@ -2002,41 +1945,31 @@ public class PlanController extends FurnitureController implements Controller {
         }
       }
     }
-    this.home.addFurnitureListener(new CollectionListener<HomePieceOfFurniture> () {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev) {
-          HomePieceOfFurniture piece = ev.getItem();
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            piece.addPropertyChangeListener(furnitureChangeListener);
-            piece.addPropertyChangeListener(furnitureSizeChangeListener);
-            if (piece instanceof HomeFurnitureGroup) {
-              for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-                childPiece.addPropertyChangeListener(furnitureSizeChangeListener);
-              }
-            }
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            piece.removePropertyChangeListener(furnitureChangeListener);
-            furnitureSidesCache.remove(piece);
-            piece.removePropertyChangeListener(furnitureSizeChangeListener);
-            if (piece instanceof HomeFurnitureGroup) {
-              for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-                childPiece.removePropertyChangeListener(furnitureSizeChangeListener);
-              }
-            }
+    this.home.addFurnitureListener(ev -> {
+      HomePieceOfFurniture piece = ev.getItem();
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        piece.addPropertyChangeListener(furnitureChangeListener);
+        piece.addPropertyChangeListener(furnitureSizeChangeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup) piece).getAllFurniture()) {
+            childPiece.addPropertyChangeListener(furnitureSizeChangeListener);
           }
         }
-      });
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        piece.removePropertyChangeListener(furnitureChangeListener);
+        furnitureSidesCache.remove(piece);
+        piece.removePropertyChangeListener(furnitureSizeChangeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup) piece).getAllFurniture()) {
+            childPiece.removePropertyChangeListener(furnitureSizeChangeListener);
+          }
+        }
+      }
+    });
 
-    this.home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          resetAreaCache();
-        }
-      });
+    this.home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, ev -> resetAreaCache());
     this.home.getObserverCamera().setFixedSize(home.getLevels().size() >= 2);
-    this.home.addLevelsListener(new CollectionListener<Level>() {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          home.getObserverCamera().setFixedSize(home.getLevels().size() >= 2);
-        }
-      });
+    this.home.addLevelsListener(ev -> home.getObserverCamera().setFixedSize(home.getLevels().size() >= 2));
   }
 
   private void resetAreaCache() {
@@ -2216,7 +2149,7 @@ public class PlanController extends FurnitureController implements Controller {
           final float thicknessEpsilon = 0.00075f;
           float wallDistance;
           if (referenceWallArcExtent == null
-              || referenceWallArcExtent.floatValue() == 0) {
+              || referenceWallArcExtent == 0) {
             wallDistance = thicknessEpsilon / 2;
             if (piece instanceof HomeDoorOrWindow) {
               HomeDoorOrWindow doorOrWindow = (HomeDoorOrWindow)piece;
@@ -2366,7 +2299,7 @@ public class PlanController extends FurnitureController implements Controller {
       piece.setY(yPiece);
       if (piece instanceof HomeDoorOrWindow) {
         ((HomeDoorOrWindow)piece).setBoundToWall(referenceWallArcExtent == null
-            || referenceWallArcExtent.floatValue() == 0);
+            || referenceWallArcExtent == 0);
       }
       return referenceWall;
     }
@@ -2387,7 +2320,7 @@ public class PlanController extends FurnitureController implements Controller {
    */
   private Wall getReferenceWall(Wall wall, float x, float y) {
     Float arcExtent = wall.getArcExtent();
-    if (arcExtent == null || arcExtent.floatValue() == 0) {
+    if (arcExtent == null || arcExtent == 0) {
       return wall;
     } else {
       double angle = Math.atan2(wall.getYArcCircleCenter() - y, x - wall.getXArcCircleCenter());
@@ -2450,7 +2383,7 @@ public class PlanController extends FurnitureController implements Controller {
       pieceRightPoint = computeIntersection(wallPoints [2], wallPoints [3], piecePoints [1], piecePoints [2]);
     }
 
-    List<DimensionLine> dimensionLines = new ArrayList<DimensionLine>();
+    List<DimensionLine> dimensionLines = new ArrayList<>();
     float [] wallEndPointJoinedToPieceLeftPoint = null;
     float [] wallEndPointJoinedToPieceRightPoint = null;
     // Search among room paths which segment includes pieceLeftPoint and pieceRightPoint
@@ -2998,7 +2931,7 @@ public class PlanController extends FurnitureController implements Controller {
     final boolean allLevelsSelection = this.home.isAllLevelsSelection();
     List<Selectable> oldSelection = this.home.getSelectedItems();
     final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
     final Level oldSelectedLevel = this.home.getSelectedLevel();
     final BackgroundImage homeBackgroundImage = this.home.getBackgroundImage();
     List<Level> levels = this.home.getLevels();
@@ -3141,7 +3074,7 @@ public class PlanController extends FurnitureController implements Controller {
   public void deleteSelectedLevel() {
     // Start a compound edit that delete walls, furniture, rooms, dimension lines and labels from home
     undoSupport.beginUpdate();
-    List<HomePieceOfFurniture> levelFurniture = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> levelFurniture = new ArrayList<>();
     final Level oldSelectedLevel = this.home.getSelectedLevel();
     for (HomePieceOfFurniture piece : this.home.getFurniture()) {
       if (piece.getLevel() == oldSelectedLevel) {
@@ -3151,7 +3084,7 @@ public class PlanController extends FurnitureController implements Controller {
     // Delete furniture with inherited method
     deleteFurniture(levelFurniture);
 
-    List<Selectable> levelOtherItems = new ArrayList<Selectable>();
+    List<Selectable> levelOtherItems = new ArrayList<>();
     addLevelItemsAtSelectedLevel(this.home.getWalls(), levelOtherItems);
     addLevelItemsAtSelectedLevel(this.home.getRooms(), levelOtherItems);
     addLevelItemsAtSelectedLevel(this.home.getDimensionLines(), levelOtherItems);
@@ -3502,7 +3435,7 @@ public class PlanController extends FurnitureController implements Controller {
       }
       final int index = closestSegmentIndex + 1;
       room.addPoint(x, y, index);
-      this.home.setSelectedItems(Arrays.asList(new Room [] {room}));
+      this.home.setSelectedItems(Collections.singletonList(room));
       // Upright an undoable edit
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
           @Override
@@ -3516,7 +3449,7 @@ public class PlanController extends FurnitureController implements Controller {
           public void redo() throws CannotRedoException {
             super.redo();
             room.addPoint(x, y, index);
-            selectAndShowItems(Arrays.asList(new Room [] {room}));
+            selectAndShowItems(Collections.singletonList(room));
           }
 
           @Override
@@ -3554,7 +3487,7 @@ public class PlanController extends FurnitureController implements Controller {
         final float yPoint = point [1];
 
         room.removePoint(index);
-        this.home.setSelectedItems(Arrays.asList(new Room [] {room}));
+        this.home.setSelectedItems(Collections.singletonList(room));
         // Upright an undoable edit
         UndoableEdit undoableEdit = new AbstractUndoableEdit() {
             @Override
@@ -3568,7 +3501,7 @@ public class PlanController extends FurnitureController implements Controller {
             public void redo() throws CannotRedoException {
               super.redo();
               room.removePoint(index);
-              selectAndShowItems(Arrays.asList(new Room [] {room}));
+              selectAndShowItems(Collections.singletonList(room));
             }
 
             @Override
@@ -3728,7 +3661,7 @@ public class PlanController extends FurnitureController implements Controller {
   private List<Selectable> getSelectableItemsAt(float x, float y,
                                                 boolean stopAtFirstItem,
                                                 boolean ignoreGroupsFurniture) {
-    List<Selectable> items = new ArrayList<Selectable>();
+    List<Selectable> items = new ArrayList<>();
     float margin = PIXEL_MARGIN / getScale();
     float textMargin = PIXEL_MARGIN / 2 / getScale();
     ObserverCamera camera = this.home.getObserverCamera();
@@ -3790,7 +3723,7 @@ public class PlanController extends FurnitureController implements Controller {
     List<HomePieceOfFurniture> furniture = this.home.getFurniture();
     // Search in home furniture in reverse order to give priority to last drawn piece
     // at highest elevation in case it covers an other piece
-    List<HomePieceOfFurniture> foundFurniture = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> foundFurniture = new ArrayList<>();
     HomePieceOfFurniture foundPiece = null;
     for (int i = furniture.size() - 1; i >= 0; i--) {
       HomePieceOfFurniture piece = furniture.get(i);
@@ -3879,11 +3812,7 @@ public class PlanController extends FurnitureController implements Controller {
       }
       return Arrays.asList(new Selectable [] {foundPiece});
     } else {
-      Collections.sort(foundFurniture, new Comparator<HomePieceOfFurniture>() {
-          public int compare(HomePieceOfFurniture p1, HomePieceOfFurniture p2) {
-            return -Float.compare(p1.getGroundElevation(), p2.getGroundElevation());
-          }
-        });
+      Collections.sort(foundFurniture, (p1, p2) -> -Float.compare(p1.getGroundElevation(), p2.getGroundElevation()));
       items.addAll(foundFurniture);
       for (Wall wall : this.home.getWalls()) {
         if ((!basePlanLocked
@@ -3970,7 +3899,7 @@ public class PlanController extends FurnitureController implements Controller {
    * <code>y0</code>), (<code>x1</code>, <code>y1</code>) opposite corners.
    */
   protected List<Selectable> getSelectableItemsIntersectingRectangle(float x0, float y0, float x1, float y1) {
-    List<Selectable> items = new ArrayList<Selectable>();
+    List<Selectable> items = new ArrayList<>();
     boolean basePlanLocked = this.home.isBasePlanLocked();
     for (Selectable item : getVisibleItemsAtSelectedLevel()) {
       if ((!basePlanLocked
@@ -4381,7 +4310,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Deletes <code>items</code> in plan and record it as an undoable operation.
    */
   public void deleteItems(List<? extends Selectable> items) {
-    List<Selectable> deletedItems = new ArrayList<Selectable>(items.size());
+    List<Selectable> deletedItems = new ArrayList<>(items.size());
     for (Selectable item : items) {
       if (isItemDeletable(item)) {
         deletedItems.add(item);
@@ -4396,7 +4325,7 @@ public class PlanController extends FurnitureController implements Controller {
       // Start a compound edit that deletes walls, furniture and dimension lines from home
 
       final boolean allLevelsSelection = home.isAllLevelsSelection();
-      final List<Selectable> selectedItems = new ArrayList<Selectable>(items);
+      final List<Selectable> selectedItems = new ArrayList<>(items);
       // Add a undoable edit that will select the undeleted items at undo
       this.undoSupport.postEdit(new AbstractUndoableEdit() {
           @Override
@@ -4416,7 +4345,7 @@ public class PlanController extends FurnitureController implements Controller {
       deleteFurniture(Home.getFurnitureSubList(deletedItems));
 
       List<Selectable> deletedOtherItems =
-          new ArrayList<Selectable>(Home.getWallsSubList(deletedItems));
+              new ArrayList<>(Home.getWallsSubList(deletedItems));
       deletedOtherItems.addAll(Home.getRoomsSubList(deletedItems));
       deletedOtherItems.addAll(Home.getDimensionLinesSubList(deletedItems));
       deletedOtherItems.addAll(Home.getPolylinesSubList(deletedItems));
@@ -4456,11 +4385,11 @@ public class PlanController extends FurnitureController implements Controller {
     List<Room> deletedRooms = Home.getRoomsSubList(deletedItems);
     List<Room> homeRooms = this.home.getRooms();
     // Sort the deleted rooms in the ascending order of their index in home
-    Map<Integer, Room> sortedMap = new TreeMap<Integer, Room>();
+    Map<Integer, Room> sortedMap = new TreeMap<>();
     for (Room room : deletedRooms) {
       sortedMap.put(homeRooms.indexOf(room), room);
     }
-    final Room [] rooms = sortedMap.values().toArray(new Room [sortedMap.size()]);
+    final Room [] rooms = sortedMap.values().toArray(new Room[0]);
     final int [] roomsIndices = new int [rooms.length];
     final Level [] roomsLevels = new Level [rooms.length];
     int i = 0;
@@ -4473,7 +4402,7 @@ public class PlanController extends FurnitureController implements Controller {
     // Manage dimension lines
     List<DimensionLine> deletedDimensionLines = Home.getDimensionLinesSubList(deletedItems);
     final DimensionLine [] dimensionLines = deletedDimensionLines.toArray(
-        new DimensionLine [deletedDimensionLines.size()]);
+            new DimensionLine[0]);
     final Level [] dimensionLinesLevels = new Level [dimensionLines.length];
     for (i = 0; i < dimensionLines.length; i++) {
       dimensionLinesLevels [i] = dimensionLines [i].getLevel();
@@ -4483,11 +4412,11 @@ public class PlanController extends FurnitureController implements Controller {
     List<Polyline> deletedPolylines = Home.getPolylinesSubList(deletedItems);
     List<Polyline> homePolylines = this.home.getPolylines();
     // Sort the deleted polylines in the ascending order of their index in home
-    Map<Integer, Polyline> sortedPolylinesMap = new TreeMap<Integer, Polyline>();
+    Map<Integer, Polyline> sortedPolylinesMap = new TreeMap<>();
     for (Polyline polyline : deletedPolylines) {
       sortedPolylinesMap.put(homePolylines.indexOf(polyline), polyline);
     }
-    final Polyline [] polylines = sortedPolylinesMap.values().toArray(new Polyline [sortedPolylinesMap.size()]);
+    final Polyline [] polylines = sortedPolylinesMap.values().toArray(new Polyline[0]);
     final int [] polylinesIndices = new int [polylines.length];
     final Level [] polylinesLevels = new Level [polylines.length];
     i = 0;
@@ -4499,7 +4428,7 @@ public class PlanController extends FurnitureController implements Controller {
 
     // Manage labels
     List<Label> deletedLabels = Home.getLabelsSubList(deletedItems);
-    final Label [] labels = deletedLabels.toArray(new Label [deletedLabels.size()]);
+    final Label [] labels = deletedLabels.toArray(new Label[0]);
     final Level [] labelsLevels = new Level [labels.length];
     for (i = 0; i < labels.length; i++) {
       labelsLevels [i] = labels [i].getLevel();
@@ -4569,7 +4498,7 @@ public class PlanController extends FurnitureController implements Controller {
    */
   private void moveAndShowSelectedItems(float dx, float dy) {
     List<Selectable> selectedItems = this.home.getSelectedItems();
-    List<Selectable> movedItems = new ArrayList<Selectable>(selectedItems.size());
+    List<Selectable> movedItems = new ArrayList<>(selectedItems.size());
     for (Selectable item : selectedItems) {
       if (isItemMovable(item)) {
         movedItems.add(item);
@@ -4768,7 +4697,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Selects the given <code>item</code>.
    */
   public void selectItem(Selectable item) {
-    selectItems(Arrays.asList(new Selectable [] {item}));
+    selectItems(Collections.singletonList(item));
   }
 
   /**
@@ -4776,7 +4705,7 @@ public class PlanController extends FurnitureController implements Controller {
    * @since 4.4
    */
   public void toggleItemSelection(Selectable item) {
-    List<Selectable> selectedItems = new ArrayList<Selectable>(this.home.getSelectedItems());
+    List<Selectable> selectedItems = new ArrayList<>(this.home.getSelectedItems());
     if (selectedItems.contains(item)) {
       selectedItems.remove(item);
     } else {
@@ -4878,7 +4807,7 @@ public class PlanController extends FurnitureController implements Controller {
       // Retrieve data about joined walls to newWalls
       final JoinedWall [] joinedNewWalls = JoinedWall.getJoinedWalls(newWalls);
       final Selectable [] oldSelectedItems =
-        oldSelection.toArray(new Selectable [oldSelection.size()]);
+        oldSelection.toArray(new Selectable[0]);
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
         public void undo() throws CannotUndoException {
@@ -4956,7 +4885,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Add <code>newRooms</code> to home and post an undoable new room line operation.
    */
   public void addRooms(List<Room> rooms) {
-    final Room [] newRooms = rooms.toArray(new Room [rooms.size()]);
+    final Room [] newRooms = rooms.toArray(new Room[0]);
     // Get indices of rooms added to home
     final int [] roomsIndex = new int [rooms.size()];
     int endIndex = home.getRooms().size();
@@ -4988,7 +4917,7 @@ public class PlanController extends FurnitureController implements Controller {
       final boolean newBasePlanLocked = basePlanLocked;
 
       final Selectable [] oldSelectedItems =
-          oldSelection.toArray(new Selectable [oldSelection.size()]);
+          oldSelection.toArray(new Selectable[0]);
       final Level roomsLevel = this.home.getSelectedLevel();
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
@@ -5023,7 +4952,7 @@ public class PlanController extends FurnitureController implements Controller {
                                boolean basePlanLocked,
                                boolean allLevelsSelection) {
     // Search the index of rooms in home list of rooms
-    Room [] newRooms = rooms.toArray(new Room [rooms.size()]);
+    Room [] newRooms = rooms.toArray(new Room[0]);
     int [] roomsIndex = new int [rooms.size()];
     List<Room> homeRooms = this.home.getRooms();
     for (int i = 0; i < roomsIndex.length; i++) {
@@ -5090,9 +5019,9 @@ public class PlanController extends FurnitureController implements Controller {
       final boolean newBasePlanLocked = basePlanLocked;
 
       final DimensionLine [] dimensionLines = newDimensionLines.toArray(
-          new DimensionLine [newDimensionLines.size()]);
+              new DimensionLine[0]);
       final Selectable [] oldSelectedItems =
-          oldSelection.toArray(new Selectable [oldSelection.size()]);
+          oldSelection.toArray(new Selectable[0]);
       final Level dimensionLinesLevel = this.home.getSelectedLevel();
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
@@ -5150,7 +5079,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Add <code>newPolylines</code> to home and post an undoable new polyline line operation.
    */
   public void addPolylines(List<Polyline> polylines) {
-    final Polyline [] newPolylines = polylines.toArray(new Polyline [polylines.size()]);
+    final Polyline [] newPolylines = polylines.toArray(new Polyline[0]);
     // Get indices of polylines added to home
     final int [] polylinesIndex = new int [polylines.size()];
     int endIndex = home.getPolylines().size();
@@ -5182,7 +5111,7 @@ public class PlanController extends FurnitureController implements Controller {
       final boolean newBasePlanLocked = basePlanLocked;
 
       final Selectable [] oldSelectedItems =
-          oldSelection.toArray(new Selectable [oldSelection.size()]);
+          oldSelection.toArray(new Selectable[0]);
       final Level polylinesLevel = this.home.getSelectedLevel();
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
@@ -5217,7 +5146,7 @@ public class PlanController extends FurnitureController implements Controller {
                                boolean basePlanLocked,
                                boolean allLevelsSelection) {
     // Search the index of polylines in home list of polylines
-    Polyline [] newPolylines = polylines.toArray(new Polyline [polylines.size()]);
+    Polyline [] newPolylines = polylines.toArray(new Polyline[0]);
     int [] polylinesIndex = new int [polylines.size()];
     List<Polyline> homePolylines = home.getPolylines();
     for (int i = 0; i < polylinesIndex.length; i++) {
@@ -5283,9 +5212,9 @@ public class PlanController extends FurnitureController implements Controller {
       }
       final boolean newBasePlanLocked = basePlanLocked;
 
-      final Label [] labels = newLabels.toArray(new Label [newLabels.size()]);
+      final Label [] labels = newLabels.toArray(new Label[0]);
       final Selectable [] oldSelectedItems =
-          oldSelection.toArray(new Selectable [oldSelection.size()]);
+          oldSelection.toArray(new Selectable[0]);
       final Level labelsLevel = this.home.getSelectedLevel();
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
@@ -5347,14 +5276,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           label.setAngle(oldAngle);
-          selectAndShowItems(Arrays.asList(new Label [] {label}));
+          selectAndShowItems(Collections.singletonList(label));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           label.setAngle(newAngle);
-          selectAndShowItems(Arrays.asList(new Label [] {label}));
+          selectAndShowItems(Collections.singletonList(label));
         }
 
         @Override
@@ -5378,14 +5307,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           label.setElevation(oldElevation);
-          selectAndShowItems(Arrays.asList(new Label [] {label}));
+          selectAndShowItems(Collections.singletonList(label));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           label.setElevation(newElevation);
-          selectAndShowItems(Arrays.asList(new Label [] {label}));
+          selectAndShowItems(Collections.singletonList(label));
         }
 
         @Override
@@ -5410,10 +5339,10 @@ public class PlanController extends FurnitureController implements Controller {
     if (dx != 0 || dy != 0) {
       // Store the moved items in an array
       final Selectable [] itemsArray =
-          movedItems.toArray(new Selectable [movedItems.size()]);
+          movedItems.toArray(new Selectable[0]);
       final boolean allLevelsSelection = home.isAllLevelsSelection();
       final Selectable [] oldSelectedItems =
-          oldSelection.toArray(new Selectable [oldSelection.size()]);
+          oldSelection.toArray(new Selectable[0]);
       UndoableEdit undoableEdit = new AbstractUndoableEdit() {
         @Override
         public void undo() throws CannotUndoException {
@@ -5483,7 +5412,7 @@ public class PlanController extends FurnitureController implements Controller {
           if (piece instanceof HomeDoorOrWindow) {
             ((HomeDoorOrWindow)piece).setBoundToWall(oldDoorOrWindowBoundToWall);
           }
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5498,7 +5427,7 @@ public class PlanController extends FurnitureController implements Controller {
             piece.setDepth(newDepth);
           }
           piece.setElevation(newElevation);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5584,14 +5513,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           moveWallPoint(wall, oldX, oldY, startPoint);
-          selectAndShowItems(Arrays.asList(new Wall [] {wall}));
+          selectAndShowItems(Collections.singletonList(wall));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           moveWallPoint(wall, newX, newY, startPoint);
-          selectAndShowItems(Arrays.asList(new Wall [] {wall}));
+          selectAndShowItems(Collections.singletonList(wall));
         }
 
         @Override
@@ -5616,14 +5545,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           wall.setArcExtent(oldArcExtent);
-          selectAndShowItems(Arrays.asList(new Wall [] {wall}));
+          selectAndShowItems(Collections.singletonList(wall));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           wall.setArcExtent(newArcExtent);
-          selectAndShowItems(Arrays.asList(new Wall [] {wall}));
+          selectAndShowItems(Collections.singletonList(wall));
         }
 
         @Override
@@ -5650,14 +5579,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           moveRoomPoint(room, oldX, oldY, pointIndex);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           moveRoomPoint(room, newX, newY, pointIndex);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5685,7 +5614,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.undo();
           room.setNameXOffset(oldNameXOffset);
           room.setNameYOffset(oldNameYOffset);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5693,7 +5622,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.redo();
           room.setNameXOffset(newNameXOffset);
           room.setNameYOffset(newNameYOffset);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5717,14 +5646,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           room.setNameAngle(oldNameAngle);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           room.setNameAngle(newNameAngle);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5752,7 +5681,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.undo();
           room.setAreaXOffset(oldAreaXOffset);
           room.setAreaYOffset(oldAreaYOffset);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5760,7 +5689,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.redo();
           room.setAreaXOffset(newAreaXOffset);
           room.setAreaYOffset(newAreaYOffset);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5784,14 +5713,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           room.setAreaAngle(oldAreaAngle);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           room.setAreaAngle(newAreaAngle);
-          selectAndShowItems(Arrays.asList(new Room [] {room}));
+          selectAndShowItems(Collections.singletonList(room));
         }
 
         @Override
@@ -5820,14 +5749,14 @@ public class PlanController extends FurnitureController implements Controller {
           if (piece instanceof HomeDoorOrWindow) {
             ((HomeDoorOrWindow)piece).setBoundToWall(oldDoorOrWindowBoundToWall);
           }
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           piece.setAngle(newAngle);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5852,14 +5781,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           piece.setPitch(oldPitch);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           piece.setPitch(newPitch);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5884,14 +5813,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           piece.setRoll(oldRoll);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           piece.setRoll(newRoll);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5915,14 +5844,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           piece.setElevation(oldElevation);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           piece.setElevation(newElevation);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -5975,7 +5904,7 @@ public class PlanController extends FurnitureController implements Controller {
       public void undo() throws CannotUndoException {
         super.undo();
         resetPieceOfFurnitureSize(resizedPiece);
-        selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {resizedPiece.getPieceOfFurniture()}));
+        selectAndShowItems(Collections.singletonList(resizedPiece.getPieceOfFurniture()));
       }
 
       @Override
@@ -5988,7 +5917,7 @@ public class PlanController extends FurnitureController implements Controller {
         if (piece instanceof HomeDoorOrWindow) {
           ((HomeDoorOrWindow)piece).setBoundToWall(doorOrWindowBoundToWall);
         }
-        selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+        selectAndShowItems(Collections.singletonList(piece));
       }
 
       @Override
@@ -6052,14 +5981,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           light.setPower(oldPower);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {light}));
+          selectAndShowItems(Collections.singletonList(light));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           light.setPower(newPower);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {light}));
+          selectAndShowItems(Collections.singletonList(light));
         }
 
         @Override
@@ -6088,7 +6017,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.undo();
           piece.setNameXOffset(oldNameXOffset);
           piece.setNameYOffset(oldNameYOffset);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -6096,7 +6025,7 @@ public class PlanController extends FurnitureController implements Controller {
           super.redo();
           piece.setNameXOffset(newNameXOffset);
           piece.setNameYOffset(newNameYOffset);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -6121,14 +6050,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           piece.setNameAngle(oldNameAngle);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           piece.setNameAngle(newNameAngle);
-          selectAndShowItems(Arrays.asList(new HomePieceOfFurniture [] {piece}));
+          selectAndShowItems(Collections.singletonList(piece));
         }
 
         @Override
@@ -6166,7 +6095,7 @@ public class PlanController extends FurnitureController implements Controller {
           } else {
             moveDimensionLinePoint(dimensionLine, oldX, oldY, startPoint);
           }
-          selectAndShowItems(Arrays.asList(new DimensionLine [] {dimensionLine}));
+          selectAndShowItems(Collections.singletonList(dimensionLine));
         }
 
         @Override
@@ -6176,7 +6105,7 @@ public class PlanController extends FurnitureController implements Controller {
           if (reversed) {
             reverseDimensionLine(dimensionLine);
           }
-          selectAndShowItems(Arrays.asList(new DimensionLine [] {dimensionLine}));
+          selectAndShowItems(Collections.singletonList(dimensionLine));
         }
 
         @Override
@@ -6200,14 +6129,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           dimensionLine.setOffset(oldOffset);
-          selectAndShowItems(Arrays.asList(new DimensionLine [] {dimensionLine}));
+          selectAndShowItems(Collections.singletonList(dimensionLine));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           dimensionLine.setOffset(newOffset);
-          selectAndShowItems(Arrays.asList(new DimensionLine [] {dimensionLine}));
+          selectAndShowItems(Collections.singletonList(dimensionLine));
         }
 
         @Override
@@ -6234,14 +6163,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           polyline.setPoint(oldX, oldY, pointIndex);
-          selectAndShowItems(Arrays.asList(new Polyline [] {polyline}));
+          selectAndShowItems(Collections.singletonList(polyline));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           polyline.setPoint(newX, newY, pointIndex);
-          selectAndShowItems(Arrays.asList(new Polyline [] {polyline}));
+          selectAndShowItems(Collections.singletonList(polyline));
         }
 
         @Override
@@ -6266,14 +6195,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           compass.setNorthDirection(oldNorthDirection);
-          selectAndShowItems(Arrays.asList(new Compass [] {compass}));
+          selectAndShowItems(Collections.singletonList(compass));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           compass.setNorthDirection(newNorthDirection);
-          selectAndShowItems(Arrays.asList(new Compass [] {compass}));
+          selectAndShowItems(Collections.singletonList(compass));
         }
 
         @Override
@@ -6298,14 +6227,14 @@ public class PlanController extends FurnitureController implements Controller {
         public void undo() throws CannotUndoException {
           super.undo();
           compass.setDiameter(oldDiameter);
-          selectAndShowItems(Arrays.asList(new Compass [] {compass}));
+          selectAndShowItems(Collections.singletonList(compass));
         }
 
         @Override
         public void redo() throws CannotRedoException {
           super.redo();
           compass.setDiameter(newDiameter);
-          selectAndShowItems(Arrays.asList(new Compass [] {compass}));
+          selectAndShowItems(Collections.singletonList(compass));
         }
 
         @Override
@@ -6323,7 +6252,7 @@ public class PlanController extends FurnitureController implements Controller {
    */
   private float [][] getPathPoints(GeneralPath path,
                                    boolean removeAlignedPoints) {
-    List<float []> pathPoints = new ArrayList<float[]>();
+    List<float []> pathPoints = new ArrayList<>();
     float [] previousPathPoint = null;
     for (PathIterator it = path.getPathIterator(null); !it.isDone(); it.next()) {
       float [] pathPoint = new float[2];
@@ -6382,7 +6311,7 @@ public class PlanController extends FurnitureController implements Controller {
    * Returns the paths described by the given <code>area</code>.
    */
   private List<GeneralPath> getAreaPaths(Area area) {
-    List<GeneralPath> roomPaths = new ArrayList<GeneralPath>();
+    List<GeneralPath> roomPaths = new ArrayList<>();
     GeneralPath roomPath = new GeneralPath();
     for (PathIterator it = area.getPathIterator(null, 0.5f); !it.isDone(); it.next()) {
       float [] roomPoint = new float[2];
@@ -6749,11 +6678,11 @@ public class PlanController extends FurnitureController implements Controller {
       if (xStart == x) {
         // Apply magnetism to the length of the line joining start point to magnetized point
         float magnetizedLength = unit.getMagnetizedLength(Math.abs(yStart - y), maxLengthDelta);
-        this.y = yStart + (float)(magnetizedLength * Math.signum(y - yStart));
+        this.y = yStart + (magnetizedLength * Math.signum(y - yStart));
       } else if (yStart == y) {
         // Apply magnetism to the length of the line joining start point to magnetized point
         float magnetizedLength = unit.getMagnetizedLength(Math.abs(xStart - x), maxLengthDelta);
-        this.x = xStart + (float)(magnetizedLength * Math.signum(x - xStart));
+        this.x = xStart + (magnetizedLength * Math.signum(x - xStart));
       } else { // xStart != x && yStart != y
         double angleStep = 2 * Math.PI / circleSteps;
         // Caution : pixel coordinate space is indirect !
@@ -6987,16 +6916,16 @@ public class PlanController extends FurnitureController implements Controller {
         // Take into account only points at start and end of the wall
         wallPoints = new float [][] {wallPoints [0], wallPoints [wallPoints.length / 2 - 1],
                                      wallPoints [wallPoints.length / 2], wallPoints [wallPoints.length - 1]};
-        for (int i = 0; i < wallPoints.length; i++) {
-          if (Math.abs(getX() - wallPoints [i][0]) < margin
-              && Math.abs(deltaYToClosestObject) > Math.abs(getY() - wallPoints [i][1])) {
-            xClosestObject = wallPoints [i][0];
-            deltaYToClosestObject = getY() - wallPoints [i][1];
+        for (float[] wallPoint : wallPoints) {
+          if (Math.abs(getX() - wallPoint[0]) < margin
+                  && Math.abs(deltaYToClosestObject) > Math.abs(getY() - wallPoint[1])) {
+            xClosestObject = wallPoint[0];
+            deltaYToClosestObject = getY() - wallPoint[1];
           }
-          if (Math.abs(getY() - wallPoints [i][1]) < margin
-              && Math.abs(deltaXToClosestObject) > Math.abs(getX() - wallPoints [i][0])) {
-            yClosestObject = wallPoints [i][1];
-            deltaXToClosestObject = getX() - wallPoints [i][0];
+          if (Math.abs(getY() - wallPoint[1]) < margin
+                  && Math.abs(deltaXToClosestObject) > Math.abs(getX() - wallPoint[0])) {
+            yClosestObject = wallPoint[1];
+            deltaXToClosestObject = getX() - wallPoint[0];
           }
         }
       }
@@ -7441,7 +7370,7 @@ public class PlanController extends FurnitureController implements Controller {
       this.yLastMouseMove = getYLastMousePress();
       this.mouseMoved = false;
       List<Selectable> selectableItemsUnderCursor = getSelectableItemsAt(getXLastMousePress(), getYLastMousePress());
-      List<Selectable> selectableItemsAndGroupsFurnitureUnderCursor = new ArrayList<Selectable>(selectableItemsUnderCursor);
+      List<Selectable> selectableItemsAndGroupsFurnitureUnderCursor = new ArrayList<>(selectableItemsUnderCursor);
       for (Selectable item : selectableItemsUnderCursor) {
         if (item instanceof HomeFurnitureGroup) {
           for (HomePieceOfFurniture piece : ((HomeFurnitureGroup)item).getAllFurniture()) {
@@ -7459,7 +7388,7 @@ public class PlanController extends FurnitureController implements Controller {
         selectItem(getSelectableItemAt(getXLastMousePress(), getYLastMousePress(), false));
       }
       List<Selectable> selectedItems = home.getSelectedItems();
-      this.movedItems = new ArrayList<Selectable>(selectedItems.size());
+      this.movedItems = new ArrayList<>(selectedItems.size());
       this.basePlanModification = false;
       for (Selectable item : selectedItems) {
         if (isItemMovable(item)) {
@@ -7743,7 +7672,7 @@ public class PlanController extends FurnitureController implements Controller {
         deselectAll();
       }
       // Store current selection
-      this.selectedItemsMousePressed = new ArrayList<Selectable>(home.getSelectedItems());
+      this.selectedItemsMousePressed = new ArrayList<>(home.getSelectedItems());
       List<HomePieceOfFurniture> furniture = home.getFurniture();
       this.ignoreRectangleSelection = false;
       for (Selectable item : this.selectedItemsMousePressed) {
@@ -7829,9 +7758,9 @@ public class PlanController extends FurnitureController implements Controller {
       List<Selectable> selectedItems;
       boolean shiftDown = wasShiftDownLastMousePress();
       if (shiftDown) {
-        selectedItems = new ArrayList<Selectable>(selectedItemsMousePressed);
+        selectedItems = new ArrayList<>(selectedItemsMousePressed);
       } else {
-        selectedItems = new ArrayList<Selectable>();
+        selectedItems = new ArrayList<>();
       }
 
       // For all the items that intersect with rectangle
@@ -7983,7 +7912,7 @@ public class PlanController extends FurnitureController implements Controller {
 
     @Override
     public void moveMouse(float x, float y) {
-      List<Selectable> draggedItemsFeedback = new ArrayList<Selectable>(draggedItems);
+      List<Selectable> draggedItemsFeedback = new ArrayList<>(draggedItems);
       // Update in plan view the location of the feedback of the dragged items
       moveItems(draggedItems, x - this.xLastMouseMove, y - this.yLastMouseMove);
       if (this.draggedPieceOfFurniture != null
@@ -8328,7 +8257,7 @@ public class PlanController extends FurnitureController implements Controller {
       this.wallStartAtEnd = null;
       this.wallEndAtEnd = null;
       this.lastWall = null;
-      this.newWalls = new ArrayList<Wall>();
+      this.newWalls = new ArrayList<>();
       this.lastWallCreationTime = -1;
       deselectAll();
       setDuplicationActivated(wasDuplicationActivatedLastMousePress());
@@ -8448,7 +8377,7 @@ public class PlanController extends FurnitureController implements Controller {
     private void createWallsAroundRoom(Room room) {
       if (room.isSingular()) {
         float [][] roomPoints = room.getPoints();
-        List<float []> pointsList = new ArrayList<float[]>(Arrays.asList(roomPoints));
+        List<float []> pointsList = new ArrayList<>(Arrays.asList(roomPoints));
         // It points are not clockwise reverse their order
         if (!room.isClockwise()) {
           Collections.reverse(pointsList);
@@ -8506,39 +8435,39 @@ public class PlanController extends FurnitureController implements Controller {
               sidePoint [0], sidePoint [1], nextSidePoint [0], nextSidePoint [1], thinThickness, 0).getPoints()));
           lineArea.subtract(wallsArea);
           List<GeneralPath> newWallPaths = getAreaPaths(lineArea);
-          List<Wall> roomSideWalls = new ArrayList<Wall>();
+          List<Wall> roomSideWalls = new ArrayList<>();
           int ignoredWall = 0;
-          for (int j = 0; j < newWallPaths.size(); j++) {
-            float [][] newWallPoints = getPathPoints(newWallPaths.get(j), false);
+          for (GeneralPath newWallPath : newWallPaths) {
+            float[][] newWallPoints = getPathPoints(newWallPath, false);
             if (newWallPoints.length > 4) {
               // Try to remove aligned points
-              newWallPoints = getPathPoints(newWallPaths.get(j), true);
+              newWallPoints = getPathPoints(newWallPath, true);
             }
             if (newWallPoints.length == 4) {
               // Search the two ends of the line
-              float [] point1;
-              float [] point2;
-              if (Point2D.distanceSq(newWallPoints [0][0], newWallPoints [0][1], newWallPoints [1][0], newWallPoints [1][1])
-                  < Point2D.distanceSq(newWallPoints [0][0], newWallPoints [0][1], newWallPoints [3][0], newWallPoints [3][1])) {
-                point1 = new float [] {(newWallPoints [0][0] + newWallPoints [1][0]) / 2, (newWallPoints [0][1] + newWallPoints [1][1]) / 2};
-                point2 = new float [] {(newWallPoints [2][0] + newWallPoints [3][0]) / 2, (newWallPoints [2][1] + newWallPoints [3][1]) / 2};
+              float[] point1;
+              float[] point2;
+              if (Point2D.distanceSq(newWallPoints[0][0], newWallPoints[0][1], newWallPoints[1][0], newWallPoints[1][1])
+                      < Point2D.distanceSq(newWallPoints[0][0], newWallPoints[0][1], newWallPoints[3][0], newWallPoints[3][1])) {
+                point1 = new float[]{(newWallPoints[0][0] + newWallPoints[1][0]) / 2, (newWallPoints[0][1] + newWallPoints[1][1]) / 2};
+                point2 = new float[]{(newWallPoints[2][0] + newWallPoints[3][0]) / 2, (newWallPoints[2][1] + newWallPoints[3][1]) / 2};
               } else {
-                point1 = new float [] {(newWallPoints [0][0] + newWallPoints [3][0]) / 2, (newWallPoints [0][1] + newWallPoints [3][1]) / 2};
-                point2 = new float [] {(newWallPoints [1][0] + newWallPoints [2][0]) / 2, (newWallPoints [1][1] + newWallPoints [2][1]) / 2};
+                point1 = new float[]{(newWallPoints[0][0] + newWallPoints[3][0]) / 2, (newWallPoints[0][1] + newWallPoints[3][1]) / 2};
+                point2 = new float[]{(newWallPoints[1][0] + newWallPoints[2][0]) / 2, (newWallPoints[1][1] + newWallPoints[2][1]) / 2};
               }
-              float [] startPoint;
-              float [] endPoint;
-              if (Point2D.distanceSq(point1 [0], point1 [1], sidePoint [0], sidePoint [1])
-                  < Point2D.distanceSq(point2 [0], point2 [1], sidePoint [0], sidePoint [1])) {
+              float[] startPoint;
+              float[] endPoint;
+              if (Point2D.distanceSq(point1[0], point1[1], sidePoint[0], sidePoint[1])
+                      < Point2D.distanceSq(point2[0], point2[1], sidePoint[0], sidePoint[1])) {
                 startPoint = point1;
                 endPoint = point2;
               } else {
                 startPoint = point2;
                 endPoint = point1;
               }
-              if (Point2D.distanceSq(startPoint [0], startPoint [1], endPoint [0], endPoint [1]) > 0.01) {
-                roomSideWalls.add(createWall(startPoint [0], startPoint [1], endPoint [0], endPoint [1], null,
-                    lastWall != null && Point2D.distanceSq(lastWall.getXEnd(), lastWall.getYEnd(), startPoint [0], startPoint [1]) < 1E-2 ? lastWall : null));
+              if (Point2D.distanceSq(startPoint[0], startPoint[1], endPoint[0], endPoint[1]) > 0.01) {
+                roomSideWalls.add(createWall(startPoint[0], startPoint[1], endPoint[0], endPoint[1], null,
+                        lastWall != null && Point2D.distanceSq(lastWall.getXEnd(), lastWall.getYEnd(), startPoint[0], startPoint[1]) < 1E-2 ? lastWall : null));
               } else {
                 ignoredWall++;
               }
@@ -8565,12 +8494,7 @@ public class PlanController extends FurnitureController implements Controller {
           }
           if (roomSideWalls.size() > 0) {
             // Order walls from the closest to first point to the farthest one
-            Collections.sort(roomSideWalls, new Comparator<Wall>() {
-                public int compare(Wall wall1, Wall wall2) {
-                  return Double.compare(Point2D.distanceSq(wall1.getXStart(), wall1.getYStart(), sidePoint [0], sidePoint [1]),
-                      Point2D.distanceSq(wall2.getXStart(), wall2.getYStart(), sidePoint [0], sidePoint [1]));
-                }
-              });
+            roomSideWalls.sort(Comparator.comparingDouble(wall -> Point2D.distanceSq(wall.getXStart(), wall.getYStart(), sidePoint[0], sidePoint[1])));
             this.newWalls.addAll(roomSideWalls);
             lastWall = roomSideWalls.get(roomSideWalls.size() - 1);
           } else {
@@ -10156,7 +10080,7 @@ public class PlanController extends FurnitureController implements Controller {
     @Override
     public void moveMouse(float x, float y) {
       // Compute the new elevation of the camera
-      float newElevation = (float)(this.oldElevation - (y - getYLastMousePress()));
+      float newElevation = (this.oldElevation - (y - getYLastMousePress()));
       List<Level> levels = home.getLevels();
       float minimumElevation = levels.size() == 0  ? 10  : 10 + levels.get(0).getElevation();
       // Check new elevation is between min and max
@@ -10220,7 +10144,7 @@ public class PlanController extends FurnitureController implements Controller {
       getView().setAlignmentFeedback(DimensionLine.class, null, x, y, false);
       DimensionLine dimensionLine = getMeasuringDimensionLineAt(x, y, this.magnetismEnabled);
       if (dimensionLine != null) {
-        getView().setDimensionLinesFeedback(Arrays.asList(new DimensionLine [] {dimensionLine}));
+        getView().setDimensionLinesFeedback(Collections.singletonList(dimensionLine));
       } else {
         getView().setDimensionLinesFeedback(null);
       }
@@ -10323,7 +10247,7 @@ public class PlanController extends FurnitureController implements Controller {
       DimensionLine dimensionLine = getMeasuringDimensionLineAt(
           getXLastMousePress(), getYLastMousePress(), this.magnetismEnabled);
       if (dimensionLine != null) {
-        getView().setDimensionLinesFeedback(Arrays.asList(new DimensionLine [] {dimensionLine}));
+        getView().setDimensionLinesFeedback(Collections.singletonList(dimensionLine));
       }
       getView().setAlignmentFeedback(DimensionLine.class,
           null, getXLastMousePress(), getYLastMousePress(), false);
@@ -10446,7 +10370,7 @@ public class PlanController extends FurnitureController implements Controller {
     private void validateDrawnDimensionLine() {
       selectItem(this.newDimensionLine);
       // Post dimension line creation to undo support
-      postCreateDimensionLines(Arrays.asList(new DimensionLine [] {this.newDimensionLine}),
+      postCreateDimensionLines(Collections.singletonList(this.newDimensionLine),
           this.oldSelection, this.oldBasePlanLocked, this.oldAllLevelsSelection);
       this.newDimensionLine = null;
       // Change state to DimensionLineCreationState
@@ -10649,7 +10573,7 @@ public class PlanController extends FurnitureController implements Controller {
       float yResizePoint;
       // Compute the closest resize point placed on the extension line and the distance
       // between that point and the dimension line base
-      float alpha1 = (float)(this.selectedDimensionLine.getYEnd() - this.selectedDimensionLine.getYStart())
+      float alpha1 = (this.selectedDimensionLine.getYEnd() - this.selectedDimensionLine.getYStart())
           / (this.selectedDimensionLine.getXEnd() - this.selectedDimensionLine.getXStart());
       // If line is vertical
       if (Math.abs(alpha1) > 1E5) {
@@ -11260,7 +11184,7 @@ public class PlanController extends FurnitureController implements Controller {
           home.deleteRoom(this.newRoom);
         } else {
           // Post room creation to undo support
-          postCreateRooms(Arrays.asList(new Room [] {this.newRoom}),
+          postCreateRooms(Collections.singletonList(this.newRoom),
               this.oldSelection, this.oldBasePlanLocked, this.oldAllLevelsSelection);
         }
       }
@@ -11297,8 +11221,8 @@ public class PlanController extends FurnitureController implements Controller {
           for (HomePieceOfFurniture piece : getVisibleDoorsAndWindowsAtGround(home.getFurniture())) {
             float [][] doorPoints = piece.getPoints();
             int intersectionCount = 0;
-            for (int i = 0; i < doorPoints.length; i++) {
-              if (roomPath.contains(doorPoints [i][0], doorPoints [i][1])) {
+            for (float[] doorPoint : doorPoints) {
+              if (roomPath.contains(doorPoint[0], doorPoint[1])) {
                 intersectionCount++;
               }
             }
@@ -11452,7 +11376,7 @@ public class PlanController extends FurnitureController implements Controller {
      * Returns all the visible doors and windows with a null elevation in the given <code>furniture</code>.
      */
     private List<HomePieceOfFurniture> getVisibleDoorsAndWindowsAtGround(List<HomePieceOfFurniture> furniture) {
-      List<HomePieceOfFurniture> doorsAndWindows = new ArrayList<HomePieceOfFurniture>(furniture.size());
+      List<HomePieceOfFurniture> doorsAndWindows = new ArrayList<>(furniture.size());
       for (HomePieceOfFurniture piece : furniture) {
         if (isPieceOfFurnitureVisibleAtSelectedLevel(piece)
             && piece.getElevation() == 0) {
@@ -12340,7 +12264,7 @@ public class PlanController extends FurnitureController implements Controller {
       if (this.curvedPolyline) {
         newPolyline.setJoinStyle(Polyline.JoinStyle.CURVED);
       }
-      selectItems(Arrays.asList(new Selectable [] {newPolyline}));
+      selectItems(Collections.singletonList(newPolyline));
       return newPolyline;
     }
 
@@ -12371,7 +12295,7 @@ public class PlanController extends FurnitureController implements Controller {
           home.deletePolyline(this.newPolyline);
         } else {
           // Post polyline creation to undo support
-          postCreatePolylines(Arrays.asList(new Polyline [] {this.newPolyline}),
+          postCreatePolylines(Collections.singletonList(this.newPolyline),
               this.oldSelection, this.oldBasePlanLocked, this.oldAllLevelsSelection);
         }
       }
@@ -12602,7 +12526,7 @@ public class PlanController extends FurnitureController implements Controller {
     public void enter() {
       super.enter();
       this.selectedPolyline = (Polyline)home.getSelectedItems().get(0);
-      this.polylines = new ArrayList<Polyline>(home.getPolylines());
+      this.polylines = new ArrayList<>(home.getPolylines());
       this.polylines.remove(this.selectedPolyline);
       float margin = INDICATOR_PIXEL_MARGIN / getScale();
       this.polylinePointIndex = this.selectedPolyline.getPointIndexAt(

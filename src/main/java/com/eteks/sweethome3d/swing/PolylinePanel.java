@@ -90,17 +90,9 @@ public class PolylinePanel extends JPanel implements DialogView {
     this.thicknessSpinner = new NullableSpinner(thicknessSpinnerModel);
     thicknessSpinnerModel.setNullable(controller.getThickness() == null);
     thicknessSpinnerModel.setLength(controller.getThickness());
-    thicknessSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setThickness(thicknessSpinnerModel.getLength());
-        }
-      });
-    controller.addPropertyChangeListener(PolylineController.Property.THICKNESS, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            thicknessSpinnerModel.setLength(controller.getThickness());
-          }
-        });
+    thicknessSpinnerModel.addChangeListener(ev -> controller.setThickness(thicknessSpinnerModel.getLength()));
+    controller.addPropertyChangeListener(PolylineController.Property.THICKNESS,
+            ev -> thicknessSpinnerModel.setLength(controller.getThickness()));
 
     // Create cap style label and combo box bound to controller CAP_STYLE property
     this.arrowsStyleLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -173,31 +165,27 @@ public class PolylinePanel extends JPanel implements DialogView {
           return component;
         }
       });
-    this.arrowsStyleComboBox.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent ev) {
-          ArrowsStyle arrowsStyle = (ArrowsStyle)arrowsStyleComboBox.getSelectedItem();
-          if (arrowsStyle != null) {
-            controller.setStartArrowStyle(arrowsStyle.getStartArrowStyle());
-            controller.setEndArrowStyle(arrowsStyle.getEndArrowStyle());
-          } else {
-            controller.setStartArrowStyle(null);
-            controller.setEndArrowStyle(null);
-          }
+    this.arrowsStyleComboBox.addItemListener(ev -> {
+        ArrowsStyle arrowsStyle = (ArrowsStyle)arrowsStyleComboBox.getSelectedItem();
+        if (arrowsStyle != null) {
+          controller.setStartArrowStyle(arrowsStyle.getStartArrowStyle());
+          controller.setEndArrowStyle(arrowsStyle.getEndArrowStyle());
+        } else {
+          controller.setStartArrowStyle(null);
+          controller.setEndArrowStyle(null);
         }
       });
-    PropertyChangeListener arrowStyleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          ArrowStyle startArrowStyle = controller.getStartArrowStyle();
-          ArrowStyle endArrowStyle = controller.getEndArrowStyle();
-          if (startArrowStyle != null && endArrowStyle != null) {
-            arrowsStyleComboBox.setSelectedItem(new ArrowsStyle(startArrowStyle, endArrowStyle));
-          } else {
-            arrowsStyleComboBox.setSelectedItem(null);
-          }
-          arrowsStyleLabel.setEnabled(controller.isArrowsStyleEditable());
-          arrowsStyleComboBox.setEnabled(controller.isArrowsStyleEditable());
-        }
-      };
+    PropertyChangeListener arrowStyleChangeListener = ev -> {
+      ArrowStyle startArrowStyle = controller.getStartArrowStyle();
+      ArrowStyle endArrowStyle = controller.getEndArrowStyle();
+      if (startArrowStyle != null && endArrowStyle != null) {
+        arrowsStyleComboBox.setSelectedItem(new ArrowsStyle(startArrowStyle, endArrowStyle));
+      } else {
+        arrowsStyleComboBox.setSelectedItem(null);
+      }
+      arrowsStyleLabel.setEnabled(controller.isArrowsStyleEditable());
+      arrowsStyleComboBox.setEnabled(controller.isArrowsStyleEditable());
+    };
     controller.addPropertyChangeListener(PolylineController.Property.START_ARROW_STYLE, 
         arrowStyleChangeListener);
     controller.addPropertyChangeListener(PolylineController.Property.END_ARROW_STYLE, 
@@ -256,18 +244,12 @@ public class PolylinePanel extends JPanel implements DialogView {
           return component;
         }
       });
-    this.joinStyleComboBox.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent ev) {
-          controller.setJoinStyle((Polyline.JoinStyle)joinStyleComboBox.getSelectedItem());
-        }
-      });
-    PropertyChangeListener joinStyleChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          joinStyleLabel.setEnabled(controller.isJoinStyleEditable());
-          joinStyleComboBox.setEnabled(controller.isJoinStyleEditable());
-          joinStyleComboBox.setSelectedItem(controller.getJoinStyle());
-        }
-      };
+    this.joinStyleComboBox.addItemListener(ev -> controller.setJoinStyle((Polyline.JoinStyle)joinStyleComboBox.getSelectedItem()));
+    PropertyChangeListener joinStyleChangeListener = ev -> {
+      joinStyleLabel.setEnabled(controller.isJoinStyleEditable());
+      joinStyleComboBox.setEnabled(controller.isJoinStyleEditable());
+      joinStyleComboBox.setSelectedItem(controller.getJoinStyle());
+    };
     controller.addPropertyChangeListener(PolylineController.Property.JOIN_STYLE, 
         joinStyleChangeListener);
     joinStyleChangeListener.propertyChange(null);
@@ -316,17 +298,9 @@ public class PolylinePanel extends JPanel implements DialogView {
         }
       });
     this.dashStyleComboBox.setSelectedItem(controller.getDashStyle());
-    this.dashStyleComboBox.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent ev) {
-          controller.setDashStyle((Polyline.DashStyle)dashStyleComboBox.getSelectedItem());
-        }
-      });
-    controller.addPropertyChangeListener(PolylineController.Property.DASH_STYLE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            dashStyleComboBox.setSelectedItem(controller.getDashStyle());
-          }
-        });
+    this.dashStyleComboBox.addItemListener(ev -> controller.setDashStyle((Polyline.DashStyle)dashStyleComboBox.getSelectedItem()));
+    controller.addPropertyChangeListener(PolylineController.Property.DASH_STYLE,
+            ev -> dashStyleComboBox.setSelectedItem(controller.getDashStyle()));
     
     // Create color label and its button bound to COLOR controller property
     this.colorLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -335,18 +309,10 @@ public class PolylinePanel extends JPanel implements DialogView {
     this.colorButton.setColorDialogTitle(preferences.getLocalizedString(
         PolylinePanel.class, "colorDialog.title"));
     this.colorButton.setColor(controller.getColor());
-    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setColor(colorButton.getColor());
-          }
-        });
-    controller.addPropertyChangeListener(PolylineController.Property.COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            colorButton.setColor(controller.getColor());
-          }
-        });
+    this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> controller.setColor(colorButton.getColor()));
+    controller.addPropertyChangeListener(PolylineController.Property.COLOR,
+            ev -> colorButton.setColor(controller.getColor()));
 
 
     this.dialogTitle = preferences.getLocalizedString(PolylinePanel.class, "polyline.title");
@@ -482,14 +448,14 @@ public class PolylinePanel extends JPanel implements DialogView {
     public static ArrowsStyle [] getArrowsStyle() {
       if (arrowsStyle == null) {
         ArrowStyle [] arrowStyles = Polyline.ArrowStyle.values();
-        arrowsStyle = new ArrayList<ArrowsStyle>(arrowStyles.length * arrowStyles.length);
+        arrowsStyle = new ArrayList<>(arrowStyles.length * arrowStyles.length);
         for (ArrowStyle startArrowStyle : arrowStyles) {
           for (ArrowStyle endArrowStyle : arrowStyles) {
             arrowsStyle.add(new ArrowsStyle(startArrowStyle, endArrowStyle));
           }
         }
       }
-      return arrowsStyle.toArray(new ArrowsStyle [arrowsStyle.size()]);
+      return arrowsStyle.toArray(new ArrowsStyle[0]);
     }
   }
 }

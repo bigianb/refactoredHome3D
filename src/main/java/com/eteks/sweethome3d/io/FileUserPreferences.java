@@ -158,7 +158,7 @@ public class FileUserPreferences extends UserPreferences {
 
   private static final PreferencesURLContent MISSING_CONTENT;
 
-  private final Map<String, Boolean> ignoredActionTips = new HashMap<String, Boolean>();
+  private final Map<String, Boolean> ignoredActionTips = new HashMap<>();
   private List<ClassLoader>          resourceClassLoaders;
   private final File                 preferencesFolder;
   private final File []              applicationFolders;
@@ -167,7 +167,7 @@ public class FileUserPreferences extends UserPreferences {
   private Executor                   updater;
   private List<Library>              libraries;
 
-  private Map<Content, PreferencesURLContent> copiedContentsCache = new WeakHashMap<Content, PreferencesURLContent>();
+  private Map<Content, PreferencesURLContent> copiedContentsCache = new WeakHashMap<>();
 
   public static final String PLUGIN_LANGUAGE_LIBRARY_FAMILY = "PluginLanguageLibrary";
 
@@ -217,14 +217,10 @@ public class FileUserPreferences extends UserPreferences {
   public FileUserPreferences(File preferencesFolder,
                              File [] applicationFolders,
                              Executor updater) {
-    this.libraries = new ArrayList<Library>();
+    this.libraries = new ArrayList<>();
     this.preferencesFolder = preferencesFolder;
     this.applicationFolders = applicationFolders;
-    Executor defaultExecutor = new Executor() {
-        public void execute(Runnable command) {
-          command.run();
-        }
-      };
+    Executor defaultExecutor = command -> command.run();
     if (updater == null) {
       this.catalogsLoader =
       this.updater = defaultExecutor;
@@ -348,7 +344,7 @@ public class FileUserPreferences extends UserPreferences {
         defaultPreferences.getAutoSaveDelayForRecovery()));
     // Read recent colors list
     String [] recentColors = preferences.get(RECENT_COLORS, "").split(",");
-    List<Integer> recentColorsList = new ArrayList<Integer>(recentColors.length);
+    List<Integer> recentColorsList = new ArrayList<>(recentColors.length);
     for (String color : recentColors) {
       if (color.length() > 0) {
         recentColorsList.add(Integer.decode(color) | 0xFF000000);
@@ -357,7 +353,7 @@ public class FileUserPreferences extends UserPreferences {
     setRecentColors(recentColorsList);
     readRecentTextures(preferences);
     // Read recent homes list
-    List<String> recentHomes = new ArrayList<String>();
+    List<String> recentHomes = new ArrayList<>();
     for (int i = 1; i <= getRecentHomesMaxCount(); i++) {
       String recentHome = preferences.get(RECENT_HOMES + i, null);
       if (recentHome != null) {
@@ -391,15 +387,13 @@ public class FileUserPreferences extends UserPreferences {
 
     setHomeExamples(defaultPreferences.getHomeExamples());
 
-    addPropertyChangeListener(Property.LANGUAGE, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          // Update catalogs with new default locale
-          updateFurnitureDefaultCatalog(catalogsLoader, FileUserPreferences.this.updater);
-          updateTexturesDefaultCatalog(catalogsLoader, FileUserPreferences.this.updater);
-          updateAutoCompletionStrings();
-          setHomeExamples(new DefaultUserPreferences(false, FileUserPreferences.this).getHomeExamples());
-        }
-      });
+    addPropertyChangeListener(Property.LANGUAGE, ev -> {
+      // Update catalogs with new default locale
+      updateFurnitureDefaultCatalog(catalogsLoader, FileUserPreferences.this.updater);
+      updateTexturesDefaultCatalog(catalogsLoader, FileUserPreferences.this.updater);
+      updateAutoCompletionStrings();
+      setHomeExamples(new DefaultUserPreferences(false, FileUserPreferences.this).getHomeExamples());
+    });
 
     if (preferences != portablePreferences) {
       // Switch to portable preferences now that all preferences are read
@@ -414,19 +408,15 @@ public class FileUserPreferences extends UserPreferences {
    */
   private void updateSupportedLanguages() {
     removeLibraries(LANGUAGE_LIBRARY_TYPE);
-    List<ClassLoader> resourceClassLoaders = new ArrayList<ClassLoader>();
+    List<ClassLoader> resourceClassLoaders = new ArrayList<>();
     String [] defaultSupportedLanguages = getDefaultSupportedLanguages();
-    Set<String> supportedLanguages = new TreeSet<String>(Arrays.asList(defaultSupportedLanguages));
+    Set<String> supportedLanguages = new TreeSet<>(Arrays.asList(defaultSupportedLanguages));
 
     File [] languageLibrariesPluginFolders = getLanguageLibrariesPluginFolders();
     if (languageLibrariesPluginFolders != null) {
       for (File languageLibrariesPluginFolder : languageLibrariesPluginFolders) {
         // Try to load sh3l files from language plugin folder
-        File [] pluginLanguageLibraryFiles = languageLibrariesPluginFolder.listFiles(new FileFilter () {
-          public boolean accept(File pathname) {
-            return pathname.isFile();
-          }
-        });
+        File [] pluginLanguageLibraryFiles = languageLibrariesPluginFolder.listFiles(pathname -> pathname.isFile());
 
         if (pluginLanguageLibraryFiles != null) {
           // Treat language files in reverse order so file named with a date or a version
@@ -471,11 +461,9 @@ public class FileUserPreferences extends UserPreferences {
    * Returns the languages included in the given language library file.
    */
   private Set<String> getLanguages(File languageLibraryFile) throws IOException {
-    Set<String> languages = new LinkedHashSet<String>();
-    ZipInputStream zipIn = null;
-    try {
+    Set<String> languages = new LinkedHashSet<>();
+    try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(languageLibraryFile))) {
       // Search if zip file contains some *_xx.properties or *_xx_xx.properties files
-      zipIn = new ZipInputStream(new FileInputStream(languageLibraryFile));
       for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
         String zipEntryName = entry.getName();
         int underscoreIndex = zipEntryName.indexOf('_');
@@ -485,7 +473,7 @@ public class FileUserPreferences extends UserPreferences {
             String language = zipEntryName.substring(underscoreIndex + 1, extensionIndex);
             int countrySeparator = language.indexOf('_');
             if (countrySeparator == 2
-                && language.length() == 5) {
+                    && language.length() == 5) {
               languages.add(language);
             } else if (language.length() == 2) {
               languages.add(language);
@@ -494,10 +482,6 @@ public class FileUserPreferences extends UserPreferences {
         }
       }
       return languages;
-    } finally {
-      if (zipIn != null) {
-        zipIn.close();
-      }
     }
   }
 
@@ -562,43 +546,33 @@ public class FileUserPreferences extends UserPreferences {
   private void updateFurnitureDefaultCatalog(Executor furnitureCatalogLoader,
                                              final Executor updater) {
     final FurnitureCatalog furnitureCatalog = getFurnitureCatalog();
-    furnitureCatalogLoader.execute(new Runnable() {
-        public void run() {
-          updater.execute(new Runnable() {
-              public void run() {
-                // Delete default furniture of current furniture catalog
-                for (FurnitureCategory category : furnitureCatalog.getCategories()) {
-                  for (CatalogPieceOfFurniture piece : category.getFurniture()) {
-                    if (!piece.isModifiable()) {
-                      furnitureCatalog.delete(piece);
-                    }
-                  }
-                }
-              }
-            });
-
-          // Read default furniture catalog
-          final FurnitureCatalog resourceFurnitureCatalog =
-              readFurnitureCatalogFromResource(getFurnitureLibrariesPluginFolders());
-          for (final FurnitureCategory category : resourceFurnitureCatalog.getCategories()) {
-            for (final CatalogPieceOfFurniture piece : category.getFurniture()) {
-              updater.execute(new Runnable() {
-                  public void run() {
-                    furnitureCatalog.add(category, piece);
-                  }
-                });
+    furnitureCatalogLoader.execute(() -> {
+      updater.execute(() -> {
+        // Delete default furniture of current furniture catalog
+        for (FurnitureCategory category : furnitureCatalog.getCategories()) {
+          for (CatalogPieceOfFurniture piece : category.getFurniture()) {
+            if (!piece.isModifiable()) {
+              furnitureCatalog.delete(piece);
             }
-          }
-          if (resourceFurnitureCatalog instanceof DefaultFurnitureCatalog) {
-            updater.execute(new Runnable() {
-                public void run() {
-                  removeLibraries(FURNITURE_LIBRARY_TYPE);
-                  libraries.addAll(((DefaultFurnitureCatalog)resourceFurnitureCatalog).getLibraries());
-                }
-              });
           }
         }
       });
+
+      // Read default furniture catalog
+      final FurnitureCatalog resourceFurnitureCatalog =
+          readFurnitureCatalogFromResource(getFurnitureLibrariesPluginFolders());
+      for (final FurnitureCategory category : resourceFurnitureCatalog.getCategories()) {
+        for (final CatalogPieceOfFurniture piece : category.getFurniture()) {
+          updater.execute(() -> furnitureCatalog.add(category, piece));
+        }
+      }
+      if (resourceFurnitureCatalog instanceof DefaultFurnitureCatalog) {
+        updater.execute(() -> {
+          removeLibraries(FURNITURE_LIBRARY_TYPE);
+          libraries.addAll(((DefaultFurnitureCatalog) resourceFurnitureCatalog).getLibraries());
+        });
+      }
+    });
   }
 
   /**
@@ -628,43 +602,33 @@ public class FileUserPreferences extends UserPreferences {
   private void updateTexturesDefaultCatalog(Executor texturesCatalogLoader,
                                             final Executor updater) {
     final TexturesCatalog texturesCatalog = getTexturesCatalog();
-    texturesCatalogLoader.execute(new Runnable() {
-        public void run() {
-          updater.execute(new Runnable() {
-              public void run() {
-                // Delete default textures of current textures catalog
-                for (TexturesCategory category : texturesCatalog.getCategories()) {
-                  for (CatalogTexture texture : category.getTextures()) {
-                    if (!texture.isModifiable()) {
-                      texturesCatalog.delete(texture);
-                    }
-                  }
-                }
-              }
-            });
-
-          // Read default textures catalog
-          final TexturesCatalog resourceTexturesCatalog =
-              readTexturesCatalogFromResource(getTexturesLibrariesPluginFolders());
-          for (final TexturesCategory category : resourceTexturesCatalog.getCategories()) {
-            for (final CatalogTexture texture : category.getTextures()) {
-              updater.execute(new Runnable() {
-                  public void run() {
-                    texturesCatalog.add(category, texture);
-                  }
-                });
+    texturesCatalogLoader.execute(() -> {
+      updater.execute(() -> {
+        // Delete default textures of current textures catalog
+        for (TexturesCategory category : texturesCatalog.getCategories()) {
+          for (CatalogTexture texture : category.getTextures()) {
+            if (!texture.isModifiable()) {
+              texturesCatalog.delete(texture);
             }
-          }
-          if (resourceTexturesCatalog instanceof DefaultTexturesCatalog) {
-            updater.execute(new Runnable() {
-                public void run() {
-                  removeLibraries(TEXTURES_LIBRARY_TYPE);
-                  libraries.addAll(((DefaultTexturesCatalog)resourceTexturesCatalog).getLibraries());
-                }
-              });
           }
         }
       });
+
+      // Read default textures catalog
+      final TexturesCatalog resourceTexturesCatalog =
+          readTexturesCatalogFromResource(getTexturesLibrariesPluginFolders());
+      for (final TexturesCategory category : resourceTexturesCatalog.getCategories()) {
+        for (final CatalogTexture texture : category.getTextures()) {
+          updater.execute(() -> texturesCatalog.add(category, texture));
+        }
+      }
+      if (resourceTexturesCatalog instanceof DefaultTexturesCatalog) {
+        updater.execute(() -> {
+          removeLibraries(TEXTURES_LIBRARY_TYPE);
+          libraries.addAll(((DefaultTexturesCatalog) resourceTexturesCatalog).getLibraries());
+        });
+      }
+    });
   }
 
   /**
@@ -698,7 +662,7 @@ public class FileUserPreferences extends UserPreferences {
     } catch (IOException ex) {
       return;
     }
-    List<TextureImage> recentTextures = new ArrayList<TextureImage>();
+    List<TextureImage> recentTextures = new ArrayList<>();
     for (int index = 1; true; index++) {
       String textureName = preferences.get(RECENT_TEXTURE_NAME + index, null);
       if (textureName == null) {
@@ -1000,9 +964,7 @@ public class FileUserPreferences extends UserPreferences {
     preferences.put(RECENT_COLORS, recentColors.toString());
     // Write ignored action tips
     i = 1;
-    for (Iterator<Map.Entry<String, Boolean>> it = this.ignoredActionTips.entrySet().iterator();
-         it.hasNext(); ) {
-      Entry<String, Boolean> ignoredActionTipEntry = it.next();
+    for (Entry<String, Boolean> ignoredActionTipEntry : this.ignoredActionTips.entrySet()) {
       if (ignoredActionTipEntry.getValue()) {
         preferences.put(IGNORED_ACTION_TIP + i++, ignoredActionTipEntry.getKey());
       }
@@ -1047,7 +1009,7 @@ public class FileUserPreferences extends UserPreferences {
    * Writes modifiable furniture in <code>preferences</code>.
    */
   private void writeModifiableFurnitureCatalog(Preferences preferences) throws RecorderException {
-    final Set<URL> furnitureContentURLs = new HashSet<URL>();
+    final Set<URL> furnitureContentURLs = new HashSet<>();
     int i = 1;
     for (FurnitureCategory category : getFurnitureCatalog().getCategories()) {
       for (CatalogPieceOfFurniture piece : category.getFurniture()) {
@@ -1139,7 +1101,7 @@ public class FileUserPreferences extends UserPreferences {
    * Writes recent textures and modifiable textures catalog in <code>preferences</code>.
    */
   private void writeRecentAndModifiableTexturesCatalog(Preferences preferences) throws RecorderException {
-    final Set<URL> texturesContentURLs = new HashSet<URL>();
+    final Set<URL> texturesContentURLs = new HashSet<>();
     // Save recent textures
     int i = 1;
     for (TextureImage texture : getRecentTextures()) {
@@ -1415,17 +1377,15 @@ public class FileUserPreferences extends UserPreferences {
       throw new RecorderException("Can't access to application folder");
     }
     File [] obsoleteContentFiles = applicationFolder.listFiles(
-        new FileFilter() {
-          public boolean accept(File applicationFile) {
-            try {
-              URL toURL = applicationFile.toURI().toURL();
-              return applicationFile.getName().startsWith(contentPrefix)
-                 && !contentURLs.contains(toURL);
-            } catch (MalformedURLException ex) {
-              return false;
-            }
-          }
-        });
+            applicationFile -> {
+              try {
+                URL toURL = applicationFile.toURI().toURL();
+                return applicationFile.getName().startsWith(contentPrefix)
+                   && !contentURLs.contains(toURL);
+              } catch (MalformedURLException ex) {
+                return false;
+              }
+            });
     if (obsoleteContentFiles != null) {
       // Delete obsolete contents at program exit to ensure removed contents
       // can still be saved in homes that reference them
@@ -1482,9 +1442,7 @@ public class FileUserPreferences extends UserPreferences {
    */
   @Override
   public void resetIgnoredActionTips() {
-    for (Iterator<Map.Entry<String, Boolean>> it = this.ignoredActionTips.entrySet().iterator();
-         it.hasNext(); ) {
-      Entry<String, Boolean> ignoredActionTipEntry = it.next();
+    for (Entry<String, Boolean> ignoredActionTipEntry : this.ignoredActionTips.entrySet()) {
       ignoredActionTipEntry.setValue(false);
     }
     super.resetIgnoredActionTips();
@@ -1637,7 +1595,7 @@ public class FileUserPreferences extends UserPreferences {
    */
   @Override
   public List<Library> getLibraries() {
-    return Collections.unmodifiableList(new ArrayList<Library>(this.libraries));
+    return Collections.unmodifiableList(new ArrayList<>(this.libraries));
   }
 
   /**

@@ -19,41 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.lang.ref.WeakReference;
-import java.util.Locale;
-
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.ToolTipManager;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.j3d.Component3DManager;
 import com.eteks.sweethome3d.model.AspectRatio;
 import com.eteks.sweethome3d.model.Home;
@@ -61,6 +26,19 @@ import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.tools.ResourceURLContent;
 import com.eteks.sweethome3d.viewcontroller.AbstractPhotoController;
+
+import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
+import java.util.Locale;
 
 /**
  * A panel to edit photo size and quality. 
@@ -100,17 +78,9 @@ public class PhotoSizeAndQualityPanel extends JPanel {
     final SpinnerNumberModel widthSpinnerModel = new SpinnerNumberModel(480, 10, 10000, 10);
     this.widthSpinner = new AutoCommitSpinner(widthSpinnerModel);
     widthSpinnerModel.setValue(controller.getWidth());
-    widthSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setWidth(((Number)widthSpinnerModel.getValue()).intValue());
-        }
-      });
-    controller.addPropertyChangeListener(AbstractPhotoController.Property.WIDTH, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            widthSpinnerModel.setValue(controller.getWidth());
-          }
-        });
+    widthSpinnerModel.addChangeListener(ev -> controller.setWidth(((Number)widthSpinnerModel.getValue()).intValue()));
+    controller.addPropertyChangeListener(AbstractPhotoController.Property.WIDTH,
+            ev -> widthSpinnerModel.setValue(controller.getWidth()));
 
     
     // Create height label and spinner bound to HEIGHT controller property
@@ -118,29 +88,17 @@ public class PhotoSizeAndQualityPanel extends JPanel {
     final SpinnerNumberModel heightSpinnerModel = new SpinnerNumberModel(480, 10, 10000, 10);
     this.heightSpinner = new AutoCommitSpinner(heightSpinnerModel);
     heightSpinnerModel.setValue(controller.getHeight());
-    heightSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setHeight(((Number)heightSpinnerModel.getValue()).intValue());
-        }
-      });
-    controller.addPropertyChangeListener(AbstractPhotoController.Property.HEIGHT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            heightSpinnerModel.setValue(controller.getHeight());
-          }
-        });
+    heightSpinnerModel.addChangeListener(ev -> controller.setHeight(((Number)heightSpinnerModel.getValue()).intValue()));
+    controller.addPropertyChangeListener(AbstractPhotoController.Property.HEIGHT,
+            ev -> heightSpinnerModel.setValue(controller.getHeight()));
 
     // Create apply proportions check box bound to ASPECT_RATIO controller property
     boolean notFreeAspectRatio = controller.getAspectRatio() != AspectRatio.FREE_RATIO;
     this.applyProportionsCheckBox = new JCheckBox();
     this.applyProportionsCheckBox.setSelected(notFreeAspectRatio);
-    this.applyProportionsCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setAspectRatio(applyProportionsCheckBox.isSelected()
-              ? (AspectRatio)aspectRatioComboBox.getSelectedItem()
-              : AspectRatio.FREE_RATIO);
-        }
-      });
+    this.applyProportionsCheckBox.addItemListener(ev -> controller.setAspectRatio(applyProportionsCheckBox.isSelected()
+        ? (AspectRatio)aspectRatioComboBox.getSelectedItem()
+        : AspectRatio.FREE_RATIO));
     this.aspectRatioComboBox = new JComboBox(new Object [] {
         AspectRatio.VIEW_3D_RATIO,
         AspectRatio.SQUARE_RATIO,
@@ -182,22 +140,16 @@ public class PhotoSizeAndQualityPanel extends JPanel {
               cellHasFocus);
         }
       });
-    this.aspectRatioComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setAspectRatio((AspectRatio)aspectRatioComboBox.getSelectedItem());
-        }
-      });
+    this.aspectRatioComboBox.addItemListener(ev -> controller.setAspectRatio((AspectRatio)aspectRatioComboBox.getSelectedItem()));
     this.aspectRatioComboBox.setEnabled(notFreeAspectRatio);
     this.aspectRatioComboBox.setSelectedItem(controller.getAspectRatio());
     controller.addPropertyChangeListener(AbstractPhotoController.Property.ASPECT_RATIO,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            boolean notFreeAspectRatio = controller.getAspectRatio() != AspectRatio.FREE_RATIO;
-            applyProportionsCheckBox.setSelected(notFreeAspectRatio);
-            aspectRatioComboBox.setEnabled(notFreeAspectRatio);
-            aspectRatioComboBox.setSelectedItem(controller.getAspectRatio());
-          }
-        });
+            ev -> {
+              boolean notFreeAspectRatio1 = controller.getAspectRatio() != AspectRatio.FREE_RATIO;
+              applyProportionsCheckBox.setSelected(notFreeAspectRatio1);
+              aspectRatioComboBox.setEnabled(notFreeAspectRatio1);
+              aspectRatioComboBox.setSelectedItem(controller.getAspectRatio());
+            });
 
     // Quality label and slider bound to QUALITY controller property
     this.qualityLabel = new JLabel();
@@ -224,39 +176,31 @@ public class PhotoSizeAndQualityPanel extends JPanel {
     this.qualitySlider.addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(final MouseEvent ev) {
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                float valueUnderMouse = getSliderValueAt(qualitySlider, ev.getX(), preferences);
-                if (qualitySlider.getValue() == Math.round(valueUnderMouse)) {
-                  ToolTipManager toolTipManager = ToolTipManager.sharedInstance();
-                  int initialDelay = toolTipManager.getInitialDelay();
-                  toolTipManager.setInitialDelay(Math.min(initialDelay, 150));
-                  toolTipManager.mouseMoved(ev);
-                  toolTipManager.setInitialDelay(initialDelay);
-                }
-              }
-            });
+          EventQueue.invokeLater(() -> {
+            float valueUnderMouse = getSliderValueAt(qualitySlider, ev.getX(), preferences);
+            if (qualitySlider.getValue() == Math.round(valueUnderMouse)) {
+              ToolTipManager toolTipManager = ToolTipManager.sharedInstance();
+              int initialDelay = toolTipManager.getInitialDelay();
+              toolTipManager.setInitialDelay(Math.min(initialDelay, 150));
+              toolTipManager.mouseMoved(ev);
+              toolTipManager.setInitialDelay(initialDelay);
+            }
+          });
         }
       });
     this.qualitySlider.setPaintTicks(true);    
     this.qualitySlider.setMajorTickSpacing(1);
     this.qualitySlider.setSnapToTicks(true);
     final boolean offScreenImageSupported = Component3DManager.getInstance().isOffScreenImageSupported();
-    this.qualitySlider.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (!offScreenImageSupported) {
-            // Can't support 2 first quality levels if offscreen image isn't supported 
-            qualitySlider.setValue(Math.max(qualitySlider.getMinimum() + 2, qualitySlider.getValue()));
-          }
-          controller.setQuality(qualitySlider.getValue() - qualitySlider.getMinimum());
-        }
-      });
-    controller.addPropertyChangeListener(AbstractPhotoController.Property.QUALITY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            qualitySlider.setValue(qualitySlider.getMinimum() + controller.getQuality());
-          }
-        });
+    this.qualitySlider.addChangeListener(ev -> {
+      if (!offScreenImageSupported) {
+        // Can't support 2 first quality levels if offscreen image isn't supported
+        qualitySlider.setValue(Math.max(qualitySlider.getMinimum() + 2, qualitySlider.getValue()));
+      }
+      controller.setQuality(qualitySlider.getValue() - qualitySlider.getMinimum());
+    });
+    controller.addPropertyChangeListener(AbstractPhotoController.Property.QUALITY,
+            ev -> qualitySlider.setValue(qualitySlider.getMinimum() + controller.getQuality()));
     this.qualitySlider.setValue(this.qualitySlider.getMinimum() + controller.getQuality());
    
     // Listener on 3D view notified when its size changes
@@ -347,7 +291,7 @@ public class PhotoSizeAndQualityPanel extends JPanel {
     private final WeakReference<PhotoSizeAndQualityPanel> photoPanel;
 
     public LanguageChangeListener(PhotoSizeAndQualityPanel photoPanel) {
-      this.photoPanel = new WeakReference<PhotoSizeAndQualityPanel>(photoPanel);
+      this.photoPanel = new WeakReference<>(photoPanel);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {

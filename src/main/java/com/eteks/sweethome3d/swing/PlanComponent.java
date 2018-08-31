@@ -19,56 +19,40 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.AWTKeyStroke;
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Composite;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
-import java.awt.MouseInfo;
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.TexturePaint;
-import java.awt.Toolkit;
-import java.awt.Window;
+import com.eteks.sweethome3d.j3d.*;
+import com.eteks.sweethome3d.model.*;
+import com.eteks.sweethome3d.model.Label;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
+import com.eteks.sweethome3d.viewcontroller.PlanController;
+import com.eteks.sweethome3d.viewcontroller.PlanView;
+import com.eteks.sweethome3d.viewcontroller.View;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+import com.sun.j3d.utils.universe.Viewer;
+import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.freehep.graphicsio.ImageConstants;
+import org.freehep.graphicsio.svg.SVGGraphics2D;
+
+import javax.imageio.ImageIO;
+import javax.media.j3d.*;
+import javax.media.j3d.Light;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.*;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.InternationalFormatter;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.NumberFormatter;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3f;
+import java.awt.*;
 import java.awt.dnd.DragSource;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Arc2D;
-import java.awt.geom.Area;
-import java.awt.geom.CubicCurve2D;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.MemoryImageSource;
@@ -87,126 +71,11 @@ import java.security.AccessControlException;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.imageio.ImageIO;
-import javax.media.j3d.AmbientLight;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Background;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.Group;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.Light;
-import javax.media.j3d.Link;
-import javax.media.j3d.Node;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JApplet;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JToolTip;
-import javax.swing.JViewport;
-import javax.swing.JWindow;
-import javax.swing.KeyStroke;
-import javax.swing.Scrollable;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.border.Border;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.InternationalFormatter;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.NumberFormatter;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
-
-import org.freehep.graphicsio.ImageConstants;
-import org.freehep.graphicsio.svg.SVGGraphics2D;
-
-import com.eteks.sweethome3d.j3d.Component3DManager;
-import com.eteks.sweethome3d.j3d.ModelManager;
-import com.eteks.sweethome3d.j3d.Object3DBranch;
-import com.eteks.sweethome3d.j3d.Object3DBranchFactory;
-import com.eteks.sweethome3d.j3d.TextureManager;
-import com.eteks.sweethome3d.model.BackgroundImage;
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.Compass;
-import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.DimensionLine;
-import com.eteks.sweethome3d.model.Elevatable;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeDoorOrWindow;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
-import com.eteks.sweethome3d.model.HomeLight;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.HomeTexture;
-import com.eteks.sweethome3d.model.Label;
-import com.eteks.sweethome3d.model.LengthUnit;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.ObserverCamera;
-import com.eteks.sweethome3d.model.PieceOfFurniture;
-import com.eteks.sweethome3d.model.Polyline;
-import com.eteks.sweethome3d.model.Room;
-import com.eteks.sweethome3d.model.Sash;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.SelectionEvent;
-import com.eteks.sweethome3d.model.SelectionListener;
-import com.eteks.sweethome3d.model.TextStyle;
-import com.eteks.sweethome3d.model.TextureImage;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
-import com.eteks.sweethome3d.viewcontroller.PlanController;
-import com.eteks.sweethome3d.viewcontroller.PlanView;
-import com.eteks.sweethome3d.viewcontroller.View;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
 
 /**
  * A component displaying the plan of a home.
@@ -686,7 +555,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     this.panningCursor = createCustomCursor("resources/cursors/panning16x16.png",
         "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
     this.duplicationCursor = DragSource.DefaultCopyDrop;
-    this.patternImagesCache = new HashMap<TextureImage, BufferedImage>();
+    this.patternImagesCache = new HashMap<>();
     // Install default colors using same colors as a text field
     super.setForeground(UIManager.getColor("TextField.foreground"));
     super.setBackground(UIManager.getColor("TextField.background"));
@@ -761,282 +630,236 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         }
       }
     }
-    home.addFurnitureListener(new CollectionListener<HomePieceOfFurniture>() {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev) {
-          HomePieceOfFurniture piece = ev.getItem();
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            piece.addPropertyChangeListener(furnitureChangeListener);
-            if (piece instanceof HomeFurnitureGroup) {
-              for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-                childPiece.addPropertyChangeListener(furnitureChangeListener);
-              }
-            }
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            piece.removePropertyChangeListener(furnitureChangeListener);
-            if (piece instanceof HomeFurnitureGroup) {
-              for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-                childPiece.removePropertyChangeListener(furnitureChangeListener);
-              }
-            }
+    home.addFurnitureListener(ev -> {
+      HomePieceOfFurniture piece = ev.getItem();
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        piece.addPropertyChangeListener(furnitureChangeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
+            childPiece.addPropertyChangeListener(furnitureChangeListener);
           }
-          sortedLevelFurniture = null;
-          revalidate();
         }
-      });
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        piece.removePropertyChangeListener(furnitureChangeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
+            childPiece.removePropertyChangeListener(furnitureChangeListener);
+          }
+        }
+      }
+      sortedLevelFurniture = null;
+      revalidate();
+    });
 
     // Add listener to update plan when walls change
-    final PropertyChangeListener wallChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Wall.Property.X_START.name().equals(propertyName)
-              || Wall.Property.X_END.name().equals(propertyName)
-              || Wall.Property.Y_START.name().equals(propertyName)
-              || Wall.Property.Y_END.name().equals(propertyName)
-              || Wall.Property.WALL_AT_START.name().equals(propertyName)
-              || Wall.Property.WALL_AT_END.name().equals(propertyName)
-              || Wall.Property.THICKNESS.name().equals(propertyName)
-              || Wall.Property.ARC_EXTENT.name().equals(propertyName)
-              || Wall.Property.PATTERN.name().equals(propertyName)) {
-            if (home.isAllLevelsSelection()) {
-              otherLevelsWallAreaCache = null;
-              otherLevelsWallsCache = null;
-            }
-            wallAreasCache = null;
-            doorOrWindowWallThicknessAreasCache = null;
-            revalidate();
-          } else if (Wall.Property.LEVEL.name().equals(propertyName)
-              || Wall.Property.HEIGHT.name().equals(propertyName)
-              || Wall.Property.HEIGHT_AT_END.name().equals(propertyName)) {
-            otherLevelsWallAreaCache = null;
-            otherLevelsWallsCache = null;
-            wallAreasCache = null;
-            repaint();
-          }
+    final PropertyChangeListener wallChangeListener = ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Wall.Property.X_START.name().equals(propertyName)
+          || Wall.Property.X_END.name().equals(propertyName)
+          || Wall.Property.Y_START.name().equals(propertyName)
+          || Wall.Property.Y_END.name().equals(propertyName)
+          || Wall.Property.WALL_AT_START.name().equals(propertyName)
+          || Wall.Property.WALL_AT_END.name().equals(propertyName)
+          || Wall.Property.THICKNESS.name().equals(propertyName)
+          || Wall.Property.ARC_EXTENT.name().equals(propertyName)
+          || Wall.Property.PATTERN.name().equals(propertyName)) {
+        if (home.isAllLevelsSelection()) {
+          otherLevelsWallAreaCache = null;
+          otherLevelsWallsCache = null;
         }
-      };
+        wallAreasCache = null;
+        doorOrWindowWallThicknessAreasCache = null;
+        revalidate();
+      } else if (Wall.Property.LEVEL.name().equals(propertyName)
+          || Wall.Property.HEIGHT.name().equals(propertyName)
+          || Wall.Property.HEIGHT_AT_END.name().equals(propertyName)) {
+        otherLevelsWallAreaCache = null;
+        otherLevelsWallsCache = null;
+        wallAreasCache = null;
+        repaint();
+      }
+    };
     for (Wall wall : home.getWalls()) {
       wall.addPropertyChangeListener(wallChangeListener);
     }
-    home.addWallsListener(new CollectionListener<Wall> () {
-        public void collectionChanged(CollectionEvent<Wall> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(wallChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(wallChangeListener);
-          }
-          otherLevelsWallAreaCache = null;
-          otherLevelsWallsCache = null;
-          wallAreasCache = null;
-          doorOrWindowWallThicknessAreasCache = null;
-          revalidate();
-        }
-      });
+    home.addWallsListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(wallChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(wallChangeListener);
+      }
+      otherLevelsWallAreaCache = null;
+      otherLevelsWallsCache = null;
+      wallAreasCache = null;
+      doorOrWindowWallThicknessAreasCache = null;
+      revalidate();
+    });
 
     // Add listener to update plan when rooms change
-    final PropertyChangeListener roomChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Room.Property.POINTS.name().equals(propertyName)
-              || Room.Property.NAME.name().equals(propertyName)
-              || Room.Property.NAME_X_OFFSET.name().equals(propertyName)
-              || Room.Property.NAME_Y_OFFSET.name().equals(propertyName)
-              || Room.Property.NAME_STYLE.name().equals(propertyName)
-              || Room.Property.NAME_ANGLE.name().equals(propertyName)
-              || Room.Property.AREA_VISIBLE.name().equals(propertyName)
-              || Room.Property.AREA_X_OFFSET.name().equals(propertyName)
-              || Room.Property.AREA_Y_OFFSET.name().equals(propertyName)
-              || Room.Property.AREA_STYLE.name().equals(propertyName)
-              || Room.Property.AREA_ANGLE.name().equals(propertyName)) {
-            sortedLevelRooms = null;
-            otherLevelsRoomsCache = null;
-            otherLevelsRoomAreaCache = null;
-            revalidate();
-          } else if (preferences.isRoomFloorColoredOrTextured()
-                     && (Room.Property.FLOOR_COLOR.name().equals(propertyName)
-                         || Room.Property.FLOOR_TEXTURE.name().equals(propertyName)
-                         || Room.Property.FLOOR_VISIBLE.name().equals(propertyName))) {
-            repaint();
-          }
-        }
-      };
+    final PropertyChangeListener roomChangeListener = ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Room.Property.POINTS.name().equals(propertyName)
+          || Room.Property.NAME.name().equals(propertyName)
+          || Room.Property.NAME_X_OFFSET.name().equals(propertyName)
+          || Room.Property.NAME_Y_OFFSET.name().equals(propertyName)
+          || Room.Property.NAME_STYLE.name().equals(propertyName)
+          || Room.Property.NAME_ANGLE.name().equals(propertyName)
+          || Room.Property.AREA_VISIBLE.name().equals(propertyName)
+          || Room.Property.AREA_X_OFFSET.name().equals(propertyName)
+          || Room.Property.AREA_Y_OFFSET.name().equals(propertyName)
+          || Room.Property.AREA_STYLE.name().equals(propertyName)
+          || Room.Property.AREA_ANGLE.name().equals(propertyName)) {
+        sortedLevelRooms = null;
+        otherLevelsRoomsCache = null;
+        otherLevelsRoomAreaCache = null;
+        revalidate();
+      } else if (preferences.isRoomFloorColoredOrTextured()
+                 && (Room.Property.FLOOR_COLOR.name().equals(propertyName)
+                     || Room.Property.FLOOR_TEXTURE.name().equals(propertyName)
+                     || Room.Property.FLOOR_VISIBLE.name().equals(propertyName))) {
+        repaint();
+      }
+    };
     for (Room room : home.getRooms()) {
       room.addPropertyChangeListener(roomChangeListener);
     }
-    home.addRoomsListener(new CollectionListener<Room> () {
-        public void collectionChanged(CollectionEvent<Room> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(roomChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(roomChangeListener);
-          }
-          sortedLevelRooms = null;
-          otherLevelsRoomsCache = null;
-          otherLevelsRoomAreaCache = null;
-          revalidate();
-        }
-      });
+    home.addRoomsListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(roomChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(roomChangeListener);
+      }
+      sortedLevelRooms = null;
+      otherLevelsRoomsCache = null;
+      otherLevelsRoomAreaCache = null;
+      revalidate();
+    });
 
      // Add listener to update plan when polylines change
-     final PropertyChangeListener changeListener = new PropertyChangeListener() {
-         public void propertyChange(PropertyChangeEvent ev) {
-           String propertyName = ev.getPropertyName();
-           if (Polyline.Property.COLOR.name().equals(propertyName)
-               || Polyline.Property.DASH_STYLE.name().equals(propertyName)) {
-             repaint();
-           } else {
-             revalidate();
-           }
-         }
-       };
+     final PropertyChangeListener changeListener = ev -> {
+       String propertyName = ev.getPropertyName();
+       if (Polyline.Property.COLOR.name().equals(propertyName)
+           || Polyline.Property.DASH_STYLE.name().equals(propertyName)) {
+         repaint();
+       } else {
+         revalidate();
+       }
+     };
      for (Polyline polyline : home.getPolylines()) {
        polyline.addPropertyChangeListener(changeListener);
      }
-     home.addPolylinesListener(new CollectionListener<Polyline>() {
-        public void collectionChanged(CollectionEvent<Polyline> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(changeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(changeListener);
-          }
-          revalidate();
-        }
-      });
+     home.addPolylinesListener(ev -> {
+       if (ev.getType() == CollectionEvent.Type.ADD) {
+         ev.getItem().addPropertyChangeListener(changeListener);
+       } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+         ev.getItem().removePropertyChangeListener(changeListener);
+       }
+       revalidate();
+     });
 
     // Add listener to update plan when dimension lines change
-    final PropertyChangeListener dimensionLineChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          revalidate();
-        }
-      };
+    final PropertyChangeListener dimensionLineChangeListener = ev -> revalidate();
     for (DimensionLine dimensionLine : home.getDimensionLines()) {
       dimensionLine.addPropertyChangeListener(dimensionLineChangeListener);
     }
-    home.addDimensionLinesListener(new CollectionListener<DimensionLine> () {
-        public void collectionChanged(CollectionEvent<DimensionLine> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(dimensionLineChangeListener);
-          }
-          revalidate();
-        }
-      });
+    home.addDimensionLinesListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(dimensionLineChangeListener);
+      }
+      revalidate();
+    });
 
     // Add listener to update plan when labels change
-    final PropertyChangeListener labelChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          revalidate();
-        }
-      };
+    final PropertyChangeListener labelChangeListener = ev -> revalidate();
     for (Label label : home.getLabels()) {
       label.addPropertyChangeListener(labelChangeListener);
     }
-    home.addLabelsListener(new CollectionListener<Label> () {
-        public void collectionChanged(CollectionEvent<Label> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(labelChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(labelChangeListener);
-          }
-          revalidate();
-        }
-      });
+    home.addLabelsListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(labelChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(labelChangeListener);
+      }
+      revalidate();
+    });
 
     // Add listener to update plan when levels change
-    final PropertyChangeListener levelChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Level.Property.BACKGROUND_IMAGE.name().equals(propertyName)) {
-            backgroundImageCache = null;
-            revalidate();
-          } else if (Level.Property.ELEVATION.name().equals(propertyName)
-                     || Level.Property.ELEVATION_INDEX.name().equals(propertyName)
-                     || Level.Property.VIEWABLE.name().equals(propertyName)) {
-            backgroundImageCache = null;
-            otherLevelsWallAreaCache = null;
-            otherLevelsWallsCache = null;
-            otherLevelsRoomsCache = null;
-            otherLevelsRoomAreaCache = null;
-            wallAreasCache = null;
-            doorOrWindowWallThicknessAreasCache = null;
-            sortedLevelFurniture = null;
-            sortedLevelRooms = null;
-            repaint();
-          }
-        }
-      };
+    final PropertyChangeListener levelChangeListener = ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Level.Property.BACKGROUND_IMAGE.name().equals(propertyName)) {
+        backgroundImageCache = null;
+        revalidate();
+      } else if (Level.Property.ELEVATION.name().equals(propertyName)
+                 || Level.Property.ELEVATION_INDEX.name().equals(propertyName)
+                 || Level.Property.VIEWABLE.name().equals(propertyName)) {
+        backgroundImageCache = null;
+        otherLevelsWallAreaCache = null;
+        otherLevelsWallsCache = null;
+        otherLevelsRoomsCache = null;
+        otherLevelsRoomAreaCache = null;
+        wallAreasCache = null;
+        doorOrWindowWallThicknessAreasCache = null;
+        sortedLevelFurniture = null;
+        sortedLevelRooms = null;
+        repaint();
+      }
+    };
     for (Level level : home.getLevels()) {
       level.addPropertyChangeListener(levelChangeListener);
     }
-    home.addLevelsListener(new CollectionListener<Level> () {
-        public void collectionChanged(CollectionEvent<Level> ev) {
-          Level level = ev.getItem();
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            level.addPropertyChangeListener(levelChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            level.removePropertyChangeListener(levelChangeListener);
-          }
-          revalidate();
-        }
-      });
+    home.addLevelsListener(ev -> {
+      Level level = ev.getItem();
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        level.addPropertyChangeListener(levelChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        level.removePropertyChangeListener(levelChangeListener);
+      }
+      revalidate();
+    });
 
-    home.addPropertyChangeListener(Home.Property.CAMERA, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          revalidate();
-        }
-      });
-    home.getObserverCamera().addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Camera.Property.X.name().equals(propertyName)
-              || Camera.Property.Y.name().equals(propertyName)
-              || Camera.Property.FIELD_OF_VIEW.name().equals(propertyName)
-              || Camera.Property.YAW.name().equals(propertyName)
-              || ObserverCamera.Property.WIDTH.name().equals(propertyName)
-              || ObserverCamera.Property.DEPTH.name().equals(propertyName)
-              || ObserverCamera.Property.HEIGHT.name().equals(propertyName)) {
-            revalidate();
-          }
-        }
-      });
-    home.getCompass().addPropertyChangeListener(new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          String propertyName = ev.getPropertyName();
-          if (Compass.Property.X.name().equals(propertyName)
-              || Compass.Property.Y.name().equals(propertyName)
-              || Compass.Property.NORTH_DIRECTION.name().equals(propertyName)
-              || Compass.Property.DIAMETER.name().equals(propertyName)
-              || Compass.Property.VISIBLE.name().equals(propertyName)) {
-            revalidate();
-          }
-        }
-      });
-    home.addSelectionListener(new SelectionListener () {
-        public void selectionChanged(SelectionEvent ev) {
-          repaint();
-        }
-      });
+    home.addPropertyChangeListener(Home.Property.CAMERA, ev -> revalidate());
+    home.getObserverCamera().addPropertyChangeListener(ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Camera.Property.X.name().equals(propertyName)
+          || Camera.Property.Y.name().equals(propertyName)
+          || Camera.Property.FIELD_OF_VIEW.name().equals(propertyName)
+          || Camera.Property.YAW.name().equals(propertyName)
+          || ObserverCamera.Property.WIDTH.name().equals(propertyName)
+          || ObserverCamera.Property.DEPTH.name().equals(propertyName)
+          || ObserverCamera.Property.HEIGHT.name().equals(propertyName)) {
+        revalidate();
+      }
+    });
+    home.getCompass().addPropertyChangeListener(ev -> {
+      String propertyName = ev.getPropertyName();
+      if (Compass.Property.X.name().equals(propertyName)
+          || Compass.Property.Y.name().equals(propertyName)
+          || Compass.Property.NORTH_DIRECTION.name().equals(propertyName)
+          || Compass.Property.DIAMETER.name().equals(propertyName)
+          || Compass.Property.VISIBLE.name().equals(propertyName)) {
+        revalidate();
+      }
+    });
+    home.addSelectionListener(ev -> repaint());
     home.addPropertyChangeListener(Home.Property.BACKGROUND_IMAGE,
-      new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          backgroundImageCache = null;
-          repaint();
-        }
-      });
-    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          backgroundImageCache = null;
-          otherLevelsWallAreaCache = null;
-          otherLevelsWallsCache = null;
-          otherLevelsRoomsCache = null;
-          otherLevelsRoomAreaCache = null;
-          wallAreasCache = null;
-          doorOrWindowWallThicknessAreasCache = null;
-          sortedLevelRooms = null;
-          sortedLevelFurniture = null;
-          repaint();
-        }
-      });
+            ev -> {
+              backgroundImageCache = null;
+              repaint();
+            });
+    home.addPropertyChangeListener(Home.Property.SELECTED_LEVEL, ev -> {
+      backgroundImageCache = null;
+      otherLevelsWallAreaCache = null;
+      otherLevelsWallsCache = null;
+      otherLevelsRoomsCache = null;
+      otherLevelsRoomAreaCache = null;
+      wallAreasCache = null;
+      doorOrWindowWallThicknessAreasCache = null;
+      sortedLevelRooms = null;
+      sortedLevelFurniture = null;
+      repaint();
+    });
     UserPreferencesChangeListener preferencesListener = new UserPreferencesChangeListener(this);
     preferences.addPropertyChangeListener(UserPreferences.Property.UNIT, preferencesListener);
     preferences.addPropertyChangeListener(UserPreferences.Property.LANGUAGE, preferencesListener);
@@ -1063,7 +886,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    */
   private List<HomePieceOfFurniture> getFurnitureWithoutGroups(HomePieceOfFurniture piece) {
     if (piece instanceof HomeFurnitureGroup) {
-      List<HomePieceOfFurniture> pieces = new ArrayList<HomePieceOfFurniture>();
+      List<HomePieceOfFurniture> pieces = new ArrayList<>();
       for (HomePieceOfFurniture groupPiece : ((HomeFurnitureGroup)piece).getFurniture()) {
         pieces.addAll(getFurnitureWithoutGroups(groupPiece));
       }
@@ -1081,7 +904,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     private WeakReference<PlanComponent>  planComponent;
 
     public UserPreferencesChangeListener(PlanComponent planComponent) {
-      this.planComponent = new WeakReference<PlanComponent>(planComponent);
+      this.planComponent = new WeakReference<>(planComponent);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
@@ -1265,43 +1088,41 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     };
     addMouseListener(mouseListener);
     addMouseMotionListener(mouseListener);
-    addMouseWheelListener(new MouseWheelListener() {
-        public void mouseWheelMoved(MouseWheelEvent ev) {
-          if (ev.getModifiers() == getToolkit().getMenuShortcutKeyMask()) {
-            float mouseX = 0;
-            float mouseY = 0;
-            int deltaX = 0;
-            int deltaY = 0;
-            if (getParent() instanceof JViewport) {
-              mouseX = convertXPixelToModel(ev.getX());
-              mouseY = convertYPixelToModel(ev.getY());
-              Rectangle viewRectangle = ((JViewport)getParent()).getViewRect();
-              deltaX = ev.getX() - viewRectangle.x;
-              deltaY = ev.getY() - viewRectangle.y;
-            }
-
-            float oldScale = getScale();
-            controller.zoom((float)(ev.getWheelRotation() < 0
-                ? Math.pow(1.05, -ev.getWheelRotation())
-                : Math.pow(0.95, ev.getWheelRotation())));
-
-            if (getScale() != oldScale && getParent() instanceof JViewport) {
-              // If scale changed, update viewport position to keep the same coordinates under mouse cursor
-              ((JViewport)getParent()).setViewPosition(new Point());
-              moveView(mouseX - convertXPixelToModel(deltaX), mouseY - convertYPixelToModel(deltaY));
-            }
-          } else if (getMouseWheelListeners().length == 1) {
-            // If this listener is the only one registered on this component
-            // redispatch event to its parent (for default scroll bar management)
-            getParent().dispatchEvent(
-              new MouseWheelEvent(getParent(), ev.getID(), ev.getWhen(),
-                  ev.getModifiersEx() | ev.getModifiers(),
-                  ev.getX() - getX(), ev.getY() - getY(),
-                  ev.getClickCount(), ev.isPopupTrigger(), ev.getScrollType(),
-                  ev.getScrollAmount(), ev.getWheelRotation()));
-          }
+    addMouseWheelListener(ev -> {
+      if (ev.getModifiers() == getToolkit().getMenuShortcutKeyMask()) {
+        float mouseX = 0;
+        float mouseY = 0;
+        int deltaX = 0;
+        int deltaY = 0;
+        if (getParent() instanceof JViewport) {
+          mouseX = convertXPixelToModel(ev.getX());
+          mouseY = convertYPixelToModel(ev.getY());
+          Rectangle viewRectangle = ((JViewport)getParent()).getViewRect();
+          deltaX = ev.getX() - viewRectangle.x;
+          deltaY = ev.getY() - viewRectangle.y;
         }
-      });
+
+        float oldScale = getScale();
+        controller.zoom((float)(ev.getWheelRotation() < 0
+            ? Math.pow(1.05, -ev.getWheelRotation())
+            : Math.pow(0.95, ev.getWheelRotation())));
+
+        if (getScale() != oldScale && getParent() instanceof JViewport) {
+          // If scale changed, update viewport position to keep the same coordinates under mouse cursor
+          ((JViewport)getParent()).setViewPosition(new Point());
+          moveView(mouseX - convertXPixelToModel(deltaX), mouseY - convertYPixelToModel(deltaY));
+        }
+      } else if (getMouseWheelListeners().length == 1) {
+        // If this listener is the only one registered on this component
+        // redispatch event to its parent (for default scroll bar management)
+        getParent().dispatchEvent(
+          new MouseWheelEvent(getParent(), ev.getID(), ev.getWhen(),
+              ev.getModifiersEx() | ev.getModifiers(),
+              ev.getX() - getX(), ev.getY() - getY(),
+              ev.getClickCount(), ev.isPopupTrigger(), ev.getScrollType(),
+              ev.getScrollAmount(), ev.getWheelRotation()));
+      }
+    });
   }
 
   /**
@@ -1317,14 +1138,12 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       });
 
     if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      addPropertyChangeListener("Frame.active", new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (!home.getSelectedItems().isEmpty()) {
-              // Repaint to update selection color
-              repaint();
-            }
-          }
-        });
+      addPropertyChangeListener("Frame.active", ev -> {
+        if (!home.getSelectedItems().isEmpty()) {
+          // Repaint to update selection color
+          repaint();
+        }
+      });
     }
   }
 
@@ -1333,26 +1152,24 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    */
   private void addControllerListener(final PlanController controller) {
     controller.addPropertyChangeListener(PlanController.Property.BASE_PLAN_MODIFICATION_STATE,
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            boolean wallsDoorsOrWindowsModification = controller.isBasePlanModificationState();
-            if (wallsDoorsOrWindowsModification) {
-              // Limit base plan modification state to walls creation/handling and doors or windows handling
-              if (controller.getMode() != PlanController.Mode.WALL_CREATION) {
-                for (Selectable item : (draggedItemsFeedback != null ? draggedItemsFeedback : home.getSelectedItems())) {
-                  if (!(item instanceof Wall)
-                      && !(item instanceof HomePieceOfFurniture && ((HomePieceOfFurniture)item).isDoorOrWindow())) {
-                    wallsDoorsOrWindowsModification = false;
+            ev -> {
+              boolean wallsDoorsOrWindowsModification = controller.isBasePlanModificationState();
+              if (wallsDoorsOrWindowsModification) {
+                // Limit base plan modification state to walls creation/handling and doors or windows handling
+                if (controller.getMode() != PlanController.Mode.WALL_CREATION) {
+                  for (Selectable item : (draggedItemsFeedback != null ? draggedItemsFeedback : home.getSelectedItems())) {
+                    if (!(item instanceof Wall)
+                        && !(item instanceof HomePieceOfFurniture && ((HomePieceOfFurniture)item).isDoorOrWindow())) {
+                      wallsDoorsOrWindowsModification = false;
+                    }
                   }
                 }
               }
-            }
-            if (PlanComponent.this.wallsDoorsOrWindowsModification != wallsDoorsOrWindowsModification) {
-              PlanComponent.this.wallsDoorsOrWindowsModification = wallsDoorsOrWindowsModification;
-              repaint();
-            }
-          }
-        });
+              if (PlanComponent.this.wallsDoorsOrWindowsModification != wallsDoorsOrWindowsModification) {
+                PlanComponent.this.wallsDoorsOrWindowsModification = wallsDoorsOrWindowsModification;
+                repaint();
+              }
+            });
   }
 
   /**
@@ -1598,7 +1415,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    */
   private void createToolTipTextFields(UserPreferences preferences,
                                        final PlanController controller) {
-    this.toolTipEditableTextFields = new HashMap<PlanController.EditableProperty, JFormattedTextField>();
+    this.toolTipEditableTextFields = new HashMap<>();
     Font toolTipFont = UIManager.getFont("ToolTip.font");
     for (final PlanController.EditableProperty editableProperty : PlanController.EditableProperty.values()) {
       final JFormattedTextField textField = new JFormattedTextField() {
@@ -1931,7 +1748,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       transform.rotate(angle);
       transform.translate(-halfTextLength, 0);
       GeneralPath textBoundsPath = new GeneralPath(textBounds);
-      List<float []> textPoints = new ArrayList<float[]>(4);
+      List<float []> textPoints = new ArrayList<>(4);
       for (PathIterator it = textBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
         float [] pathPoint = new float[2];
         if (it.currentSegment(pathPoint) != PathIterator.SEG_CLOSE) {
@@ -1947,7 +1764,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    */
   protected Font getFont(Font defaultFont, TextStyle textStyle) {
     if (this.fonts == null) {
-      this.fonts = new WeakHashMap<TextStyle, Font>();
+      this.fonts = new WeakHashMap<>();
     }
     Font font = this.fonts.get(textStyle);
     if (font == null) {
@@ -1978,7 +1795,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    */
   protected FontMetrics getFontMetrics(Font defaultFont, TextStyle textStyle) {
     if (this.fontsMetrics == null) {
-      this.fontsMetrics = new WeakHashMap<TextStyle, FontMetrics>();
+      this.fontsMetrics = new WeakHashMap<>();
     }
     FontMetrics fontMetrics = this.fontsMetrics.get(textStyle);
     if (fontMetrics == null) {
@@ -2374,14 +2191,12 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         if (backgroundImageLoader == null) {
           backgroundImageLoader = Executors.newSingleThreadExecutor();
         }
-        backgroundImageLoader.execute(new Runnable() {
-            public void run() {
-              if (backgroundImageCache == null) {
-                backgroundImageCache = readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory);
-                revalidate();
-              }
-            }
-          });
+        backgroundImageLoader.execute(() -> {
+          if (backgroundImageCache == null) {
+            backgroundImageCache = readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory);
+            revalidate();
+          }
+        });
       } else {
         // Paint image at specified scale with 0.7 alpha
         AffineTransform previousTransform = g2D.getTransform();
@@ -2471,7 +2286,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       if (this.otherLevelsRoomsCache == null
           || this.otherLevelsWallsCache == null) {
         int selectedLevelIndex = levels.indexOf(selectedLevel);
-        otherLevels = new ArrayList<Level>();
+        otherLevels = new ArrayList<>();
         if (level0) {
           // Search levels at the same elevation above level0
           int nextElevationLevelIndex = selectedLevelIndex;
@@ -2509,7 +2324,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         if (this.otherLevelsRoomsCache == null) {
           if (!otherLevels.isEmpty()) {
             // Search viewable floors in levels above level0 or ceilings in levels below level0
-            List<Room> otherLevelsRooms = new ArrayList<Room>();
+            List<Room> otherLevelsRooms = new ArrayList<>();
             for (Room room : this.home.getRooms()) {
               for (Level otherLevel : otherLevels) {
                 if (room.getLevel() == otherLevel
@@ -2532,7 +2347,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         if (this.otherLevelsWallsCache == null) {
           if (!otherLevels.isEmpty()) {
             // Search viewable walls in other levels
-            List<Wall> otherLevelswalls = new ArrayList<Wall>();
+            List<Wall> otherLevelswalls = new ArrayList<>();
             for (Wall wall : this.home.getWalls()) {
               if (!isViewableAtSelectedLevel(wall)) {
                 for (Level otherLevel : otherLevels) {
@@ -2817,18 +2632,14 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     List<Selectable> selectedItems = this.home.getSelectedItems();
     if (this.sortedLevelFurniture == null) {
       // Sort home furniture in elevation order
-      this.sortedLevelFurniture = new ArrayList<HomePieceOfFurniture>();
+      this.sortedLevelFurniture = new ArrayList<>();
       for (HomePieceOfFurniture piece : this.home.getFurniture()) {
         if (isViewableAtSelectedLevel(piece)) {
           this.sortedLevelFurniture.add(piece);
         }
       }
       Collections.sort(this.sortedLevelFurniture,
-          new Comparator<HomePieceOfFurniture>() {
-            public int compare(HomePieceOfFurniture piece1, HomePieceOfFurniture piece2) {
-              return Float.compare(piece1.getGroundElevation(), piece2.getGroundElevation());
-            }
-          });
+              (piece1, piece2) -> Float.compare(piece1.getGroundElevation(), piece2.getGroundElevation()));
     }
 
     Color selectionColor = getSelectionColor();
@@ -2928,26 +2739,24 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
                           Color foregroundColor, PaintMode paintMode) {
     if (this.sortedLevelRooms == null) {
       // Sort home rooms in floor / floor-ceiling / ceiling order
-      this.sortedLevelRooms = new ArrayList<Room>();
+      this.sortedLevelRooms = new ArrayList<>();
       for (Room room : this.home.getRooms()) {
         if (isViewableAtSelectedLevel(room)) {
           this.sortedLevelRooms.add(room);
         }
       }
       Collections.sort(this.sortedLevelRooms,
-          new Comparator<Room>() {
-            public int compare(Room room1, Room room2) {
-              if (room1.isFloorVisible() == room2.isFloorVisible()
-                  && room1.isCeilingVisible() == room2.isCeilingVisible()) {
-                return 0; // Keep default order if the rooms have the same visibility
-              } else if (!room2.isFloorVisible()
-                         || room2.isCeilingVisible()) {
-                return 1;
-              } else {
-                return -1;
-              }
-            }
-          });
+              (room1, room2) -> {
+                if (room1.isFloorVisible() == room2.isFloorVisible()
+                    && room1.isCeilingVisible() == room2.isCeilingVisible()) {
+                  return 0; // Keep default order if the rooms have the same visibility
+                } else if (!room2.isFloorVisible()
+                           || room2.isCeilingVisible()) {
+                  return 1;
+                } else {
+                  return -1;
+                }
+              });
     }
 
     Color defaultFillPaint = paintMode == PaintMode.PRINT
@@ -2971,7 +2780,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
             final HomeTexture floorTexture = room.getFloorTexture();
             if (floorTexture != null) {
               if (this.floorTextureImagesCache == null) {
-                this.floorTextureImagesCache = new WeakHashMap<HomeTexture, BufferedImage>();
+                this.floorTextureImagesCache = new WeakHashMap<>();
               }
               BufferedImage textureImage = this.floorTextureImagesCache.get(floorTexture);
               if (textureImage == null
@@ -2985,15 +2794,13 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
                           && OperatingSystem.isJavaVersionGreaterOrEqual("1.7"))) {
                   // Prefer to share textures images with texture manager if it's available
                   TextureManager.getInstance().loadTexture(floorTexture.getImage(), waitForTexture,
-                      new TextureManager.TextureObserver() {
-                        public void textureUpdated(Texture texture) {
-                          floorTextureImagesCache.put(floorTexture,
-                              ((ImageComponent2D)texture.getImage(0)).getImage());
-                          if (!waitForTexture) {
-                            repaint();
-                          }
-                        }
-                      });
+                          texture -> {
+                            floorTextureImagesCache.put(floorTexture,
+                                ((ImageComponent2D)texture.getImage(0)).getImage());
+                            if (!waitForTexture) {
+                              repaint();
+                            }
+                          });
                 } else {
                   // Use icon manager if texture manager should be ignored
                   Icon textureIcon = IconManager.getInstance().getIcon(floorTexture.getImage(),
@@ -3657,7 +3464,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    * Returns the walls that belong to the selected level in home.
    */
   private Collection<Wall> getDrawableWallsInSelectedLevel(Collection<Wall> walls) {
-    List<Wall> wallsInSelectedLevel = new ArrayList<Wall>();
+    List<Wall> wallsInSelectedLevel = new ArrayList<>();
     for (Wall wall : walls) {
       if (isViewableAtSelectedLevel(wall)) {
         wallsInSelectedLevel.add(wall);
@@ -3682,12 +3489,12 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         break;
       }
     }
-    Map<Collection<Wall>, Area> wallAreas = new LinkedHashMap<Collection<Wall>, Area>();
+    Map<Collection<Wall>, Area> wallAreas = new LinkedHashMap<>();
     if (samePattern) {
       wallAreas.put(walls, getItemsArea(walls));
     } else {
       // Create walls sublists by pattern
-      Map<TextureImage, Collection<Wall>> sortedWalls = new LinkedHashMap<TextureImage, Collection<Wall>>();
+      Map<TextureImage, Collection<Wall>> sortedWalls = new LinkedHashMap<>();
       for (Wall wall : walls) {
         TextureImage wallPattern = wall.getPattern();
         if (wallPattern == null) {
@@ -3695,7 +3502,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         }
         Collection<Wall> patternWalls = sortedWalls.get(wallPattern);
         if (patternWalls == null) {
-          patternWalls = new ArrayList<Wall>();
+          patternWalls = new ArrayList<>();
           sortedWalls.put(wallPattern, patternWalls);
         }
         patternWalls.add(wall);
@@ -3932,7 +3739,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       }
 
       if (this.doorOrWindowWallThicknessAreasCache == null) {
-        this.doorOrWindowWallThicknessAreasCache = new WeakHashMap<HomeDoorOrWindow, Area>();
+        this.doorOrWindowWallThicknessAreasCache = new WeakHashMap<>();
       }
       this.doorOrWindowWallThicknessAreasCache.put(doorOrWindow, doorOrWindowWallArea);
 
@@ -4180,7 +3987,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
                                         Color backgroundColor, Color foregroundColor,
                                         PaintMode paintMode) {
     if (this.furnitureTopViewIconsCache == null) {
-      this.furnitureTopViewIconsCache = new WeakHashMap<HomePieceOfFurniture, PieceOfFurnitureTopViewIcon>();
+      this.furnitureTopViewIconsCache = new WeakHashMap<>();
     }
     PieceOfFurnitureTopViewIcon icon = this.furnitureTopViewIconsCache.get(piece);
     if (icon == null
@@ -4812,19 +4619,19 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
           // Take into account only points at start and end of the wall
           wallPoints = new float [][] {wallPoints [0], wallPoints [wallPoints.length / 2 - 1],
                                        wallPoints [wallPoints.length / 2], wallPoints [wallPoints.length - 1]};
-          for (int i = 0; i < wallPoints.length; i++) {
-            if (Math.abs(x - wallPoints [i][0]) < margin
-                && (alignedWall == null
-                    || !equalsWallPoint(wallPoints [i][0], wallPoints [i][1], alignedWall))) {
-              if (Math.abs(deltaYToClosestWall) > Math.abs(y - wallPoints [i][1])) {
-                deltaYToClosestWall = y - wallPoints [i][1];
+          for (float[] wallPoint : wallPoints) {
+            if (Math.abs(x - wallPoint[0]) < margin
+                    && (alignedWall == null
+                    || !equalsWallPoint(wallPoint[0], wallPoint[1], alignedWall))) {
+              if (Math.abs(deltaYToClosestWall) > Math.abs(y - wallPoint[1])) {
+                deltaYToClosestWall = y - wallPoint[1];
               }
             }
-            if (Math.abs(y - wallPoints [i][1]) < margin
-                && (alignedWall == null
-                    || !equalsWallPoint(wallPoints [i][0], wallPoints [i][1], alignedWall))) {
-              if (Math.abs(deltaXToClosestWall) > Math.abs(x - wallPoints [i][0])) {
-                deltaXToClosestWall = x - wallPoints [i][0];
+            if (Math.abs(y - wallPoint[1]) < margin
+                    && (alignedWall == null
+                    || !equalsWallPoint(wallPoint[0], wallPoint[1], alignedWall))) {
+              if (Math.abs(deltaXToClosestWall) > Math.abs(x - wallPoint[0])) {
+                deltaXToClosestWall = x - wallPoint[0];
               }
             }
           }
@@ -4865,7 +4672,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    * Returns the items viewed in the plan at the selected level.
    */
   private <T extends Elevatable> Collection<T> getViewedItems(Collection<T> homeItems, List<T> otherLevelItems) {
-    List<T> viewedWalls = new ArrayList<T>();
+    List<T> viewedWalls = new ArrayList<>();
     if (otherLevelItems != null) {
       viewedWalls.addAll(otherLevelItems);
     }
@@ -4956,14 +4763,14 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         // Take into account only points at start and end of the wall
         wallPoints = new float [][] {wallPoints [0], wallPoints [wallPoints.length / 2 - 1],
                                      wallPoints [wallPoints.length / 2], wallPoints [wallPoints.length - 1]};
-        for (int i = 0; i < wallPoints.length; i++) {
-          if (Math.abs(x - wallPoints [i][0]) < margin
-              && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints [i][1])) {
-            deltaYToClosestObject = y - wallPoints [i][1];
+        for (float[] wallPoint : wallPoints) {
+          if (Math.abs(x - wallPoint[0]) < margin
+                  && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoint[1])) {
+            deltaYToClosestObject = y - wallPoint[1];
           }
-          if (Math.abs(y - wallPoints [i][1]) < margin
-              && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints [i][0])) {
-            deltaXToClosestObject = x - wallPoints [i][0];
+          if (Math.abs(y - wallPoint[1]) < margin
+                  && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoint[0])) {
+            deltaXToClosestObject = x - wallPoint[0];
           }
         }
       }
@@ -5016,14 +4823,14 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       float deltaYToClosestObject = Float.POSITIVE_INFINITY;
       for (Room room : getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache)) {
         float [][] roomPoints = room.getPoints();
-        for (int i = 0; i < roomPoints.length; i++) {
-          if (Math.abs(x - roomPoints [i][0]) < margin
-              && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints [i][1])) {
-            deltaYToClosestObject = y - roomPoints [i][1];
+        for (float[] roomPoint : roomPoints) {
+          if (Math.abs(x - roomPoint[0]) < margin
+                  && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoint[1])) {
+            deltaYToClosestObject = y - roomPoint[1];
           }
-          if (Math.abs(y - roomPoints [i][1]) < margin
-              && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints [i][0])) {
-            deltaXToClosestObject = x - roomPoints [i][0];
+          if (Math.abs(y - roomPoint[1]) < margin
+                  && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoint[0])) {
+            deltaXToClosestObject = x - roomPoint[0];
           }
         }
       }
@@ -5070,14 +4877,14 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         // Take into account only points at start and end of the wall
         wallPoints = new float [][] {wallPoints [0], wallPoints [wallPoints.length / 2 - 1],
                                      wallPoints [wallPoints.length / 2], wallPoints [wallPoints.length - 1]};
-        for (int i = 0; i < wallPoints.length; i++) {
-          if (Math.abs(x - wallPoints [i][0]) < margin
-              && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints [i][1])) {
-            deltaYToClosestObject = y - wallPoints [i][1];
+        for (float[] wallPoint : wallPoints) {
+          if (Math.abs(x - wallPoint[0]) < margin
+                  && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoint[1])) {
+            deltaYToClosestObject = y - wallPoint[1];
           }
-          if (Math.abs(y - wallPoints [i][1]) < margin
-              && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints [i][0])) {
-            deltaXToClosestObject = x - wallPoints [i][0];
+          if (Math.abs(y - wallPoint[1]) < margin
+                  && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoint[0])) {
+            deltaXToClosestObject = x - wallPoint[0];
           }
         }
       }
@@ -5086,14 +4893,14 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         if (piece.isVisible()
             && isViewableAtSelectedLevel(piece)) {
           float [][] piecePoints = piece.getPoints();
-          for (int i = 0; i < piecePoints.length; i++) {
-            if (Math.abs(x - piecePoints [i][0]) < margin
-                && Math.abs(deltaYToClosestObject) > Math.abs(y - piecePoints [i][1])) {
-              deltaYToClosestObject = y - piecePoints [i][1];
+          for (float[] piecePoint : piecePoints) {
+            if (Math.abs(x - piecePoint[0]) < margin
+                    && Math.abs(deltaYToClosestObject) > Math.abs(y - piecePoint[1])) {
+              deltaYToClosestObject = y - piecePoint[1];
             }
-            if (Math.abs(y - piecePoints [i][1]) < margin
-                && Math.abs(deltaXToClosestObject) > Math.abs(x - piecePoints [i][0])) {
-              deltaXToClosestObject = x - piecePoints [i][0];
+            if (Math.abs(y - piecePoint[1]) < margin
+                    && Math.abs(deltaXToClosestObject) > Math.abs(x - piecePoint[0])) {
+              deltaXToClosestObject = x - piecePoint[0];
             }
 
           }
@@ -5330,20 +5137,18 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     // make the selection visible the latest possible to avoid multiple changes
     if (!this.selectionScrollUpdated) {
       this.selectionScrollUpdated = true;
-      EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            selectionScrollUpdated = false;
-            Rectangle2D selectionBounds = getSelectionBounds(true);
-            if (selectionBounds != null) {
-              Rectangle pixelBounds = getShapePixelBounds(selectionBounds);
-              pixelBounds.grow(5, 5);
-              Rectangle visibleRectangle = getVisibleRect();
-              if (!pixelBounds.intersects(visibleRectangle)) {
-                scrollRectToVisible(pixelBounds);
-              }
-            }
+      EventQueue.invokeLater(() -> {
+        selectionScrollUpdated = false;
+        Rectangle2D selectionBounds = getSelectionBounds(true);
+        if (selectionBounds != null) {
+          Rectangle pixelBounds = getShapePixelBounds(selectionBounds);
+          pixelBounds.grow(5, 5);
+          Rectangle visibleRectangle = getVisibleRect();
+          if (!pixelBounds.intersects(visibleRectangle)) {
+            scrollRectToVisible(pixelBounds);
           }
-        });
+        }
+      });
     }
   }
 
@@ -5354,7 +5159,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     if (includeCamera) {
       return getItemsBounds(getGraphics(), this.home.getSelectedItems());
     } else {
-      List<Selectable> selectedItems = new ArrayList<Selectable>(this.home.getSelectedItems());
+      List<Selectable> selectedItems = new ArrayList<>(this.home.getSelectedItems());
       selectedItems.remove(this.home.getCamera());
       return getItemsBounds(getGraphics(), selectedItems);
     }
@@ -6009,13 +5814,11 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
           public void ancestorAdded(AncestorEvent ev) {
             removeAncestorListener(this);
             if (getParent() instanceof JViewport) {
-              ((JViewport)getParent()).addChangeListener(new ChangeListener() {
-                  public void stateChanged(ChangeEvent ev) {
-                    mouseLocation = MouseInfo.getPointerInfo().getLocation();
-                    SwingUtilities.convertPointFromScreen(mouseLocation, PlanComponent.this);
-                    repaint();
-                  }
-                });
+              ((JViewport)getParent()).addChangeListener(ev1 -> {
+                mouseLocation = MouseInfo.getPointerInfo().getLocation();
+                SwingUtilities.convertPointFromScreen(mouseLocation, PlanComponent.this);
+                repaint();
+              });
             }
           }
 
@@ -6330,11 +6133,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
           if (isTextureManagerAvailable()) {
             // Prefer to share textures images with texture manager if it's available
             TextureManager.getInstance().loadTexture(this.pieceTexture.getImage(), true,
-                new TextureManager.TextureObserver() {
-                  public void textureUpdated(Texture texture) {
-                    setTexturedIcon(c, ((ImageComponent2D)texture.getImage(0)).getImage(), pieceTexture.getAngle());
-                  }
-                });
+                    texture -> setTexturedIcon(c, ((ImageComponent2D)texture.getImage(0)).getImage(), pieceTexture.getAngle()));
           } else {
             Icon textureIcon = IconManager.getInstance().getIcon(this.pieceTexture.getImage(), null);
             if (IconManager.getInstance().isErrorIcon(textureIcon)) {
@@ -6420,13 +6219,11 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
                 if (iconsCreationExecutor == null) {
                   iconsCreationExecutor = Executors.newSingleThreadExecutor();
                 }
-                iconsCreationExecutor.execute(new Runnable() {
-                    public void run() {
-                      setIcon(createIcon((Object3DBranch)object3dFactory.createObject3D(null, normalizedPiece, true),
-                          pieceWidth, pieceDepth, pieceHeight, iconSize));
-                      waitingComponent.repaint();
-                    }
-                  });
+                iconsCreationExecutor.execute(() -> {
+                  setIcon(createIcon((Object3DBranch)object3dFactory.createObject3D(null, normalizedPiece, true),
+                      pieceWidth, pieceDepth, pieceHeight, iconSize));
+                  waitingComponent.repaint();
+                });
               } else {
                 setIcon(createIcon((Object3DBranch)object3dFactory.createObject3D(null, normalizedPiece, true),
                     pieceWidth, pieceDepth, pieceHeight, iconSize));
@@ -6508,7 +6305,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       modelTransformGroup.addChild(pieceNode);
       // Replace model textures by clones because Java 3D doesn't accept all the time
       // to share textures between offscreen and onscreen environments
-      cloneTexture(pieceNode, new IdentityHashMap<Texture, Texture>());
+      cloneTexture(pieceNode, new IdentityHashMap<>());
 
       BranchGroup model = new BranchGroup();
       model.setCapability(BranchGroup.ALLOW_DETACH);

@@ -27,12 +27,12 @@ public interface ThreadedTaskView extends View {
   /**
    * Executes <code>runnable</code> asynchronously in the toolkit event thread.
    */
-  public abstract void invokeLater(Runnable runnable);
+  void invokeLater(Runnable runnable);
 
   /**
    * Sets the running status of the threaded task. 
    * If <code>taskRunning</code> is <code>true</code>, a waiting dialog will be shown.
    */
-  public abstract void setTaskRunning(boolean taskRunning,
-                                      View executingView);
+  void setTaskRunning(boolean taskRunning,
+                      View executingView);
 }

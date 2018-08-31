@@ -19,32 +19,16 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
-
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.ObserverCameraController;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
 
 /**
  * Observer camera editing panel.
@@ -98,17 +82,9 @@ public class ObserverCameraPanel extends JPanel implements DialogView {
         new NullableSpinner.NullableSpinnerLengthModel(preferences, -maximumLength, maximumLength);
     this.xSpinner = new NullableSpinner(xSpinnerModel);
     xSpinnerModel.setLength(controller.getX());
-    final PropertyChangeListener xChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          xSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener xChangeListener = ev -> xSpinnerModel.setLength((Float)ev.getNewValue());
     controller.addPropertyChangeListener(ObserverCameraController.Property.X, xChangeListener);
-    xSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setX(xSpinnerModel.getLength());
-        }
-      });
+    xSpinnerModel.addChangeListener(ev -> controller.setX(xSpinnerModel.getLength()));
     
     // Create Y label and its spinner bound to Y controller property
     this.yLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -117,17 +93,9 @@ public class ObserverCameraPanel extends JPanel implements DialogView {
         new NullableSpinner.NullableSpinnerLengthModel(preferences, -maximumLength, maximumLength);
     this.ySpinner = new NullableSpinner(ySpinnerModel);
     ySpinnerModel.setLength(controller.getY());
-    final PropertyChangeListener yChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          ySpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener yChangeListener = ev -> ySpinnerModel.setLength((Float)ev.getNewValue());
     controller.addPropertyChangeListener(ObserverCameraController.Property.Y, yChangeListener);
-    ySpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setY(ySpinnerModel.getLength());
-        }
-      });
+    ySpinnerModel.addChangeListener(ev -> controller.setY(ySpinnerModel.getLength()));
 
     // Create camera elevation label and spinner bound to ELEVATION controller property
     this.elevationLabel = new JLabel(String.format(SwingTools.getLocalizedLabelText(preferences, 
@@ -137,16 +105,8 @@ public class ObserverCameraPanel extends JPanel implements DialogView {
         new NullableSpinner.NullableSpinnerLengthModel(preferences, controller.getMinimumElevation(), maximumElevation);
     this.elevationSpinner = new NullableSpinner(elevationSpinnerModel);    
     elevationSpinnerModel.setLength(controller.getElevation());
-    elevationSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setElevation(elevationSpinnerModel.getLength());
-        }
-      });
-    PropertyChangeListener elevationChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          elevationSpinnerModel.setLength(controller.getElevation());
-        }
-      };
+    elevationSpinnerModel.addChangeListener(ev -> controller.setElevation(elevationSpinnerModel.getLength()));
+    PropertyChangeListener elevationChangeListener = ev -> elevationSpinnerModel.setLength(controller.getElevation());
     controller.addPropertyChangeListener(ObserverCameraController.Property.ELEVATION, elevationChangeListener);
     
     // Create yaw label and spinner bound to YAW controller property
@@ -154,78 +114,44 @@ public class ObserverCameraPanel extends JPanel implements DialogView {
         ObserverCameraPanel.class, "yawLabel.text"));
     final SpinnerNumberModel yawSpinnerModel = new SpinnerNumberModel(new Float(0), new Float(-10000), new Float(10000), new Float(5));
     this.yawSpinner = new AutoCommitSpinner(yawSpinnerModel, new DecimalFormat("0.#"));
-    yawSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getYaw())));
-    yawSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setYaw((float)Math.toRadians(((Number)yawSpinnerModel.getValue()).floatValue()));
-        }
-      });
-    controller.addPropertyChangeListener(ObserverCameraController.Property.YAW, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            yawSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getYaw())));
-          }
-        });
+    yawSpinnerModel.setValue((float) Math.toDegrees(controller.getYaw()));
+    yawSpinnerModel.addChangeListener(ev -> controller.setYaw((float)Math.toRadians(((Number)yawSpinnerModel.getValue()).floatValue())));
+    controller.addPropertyChangeListener(ObserverCameraController.Property.YAW,
+            ev -> yawSpinnerModel.setValue((float) Math.toDegrees(controller.getYaw())));
     
     // Create pitch label and spinner bound to SPIN controller property
     this.pitchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         ObserverCameraPanel.class, "pitchLabel.text"));
     final SpinnerNumberModel pitchSpinnerModel = new SpinnerNumberModel(new Float(0), new Float(-90), new Float(90), new Float(5));
     this.pitchSpinner = new AutoCommitSpinner(pitchSpinnerModel, new DecimalFormat("0.#"));
-    pitchSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getPitch())));
-    pitchSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setPitch((float)Math.toRadians(((Number)pitchSpinnerModel.getValue()).floatValue()));
-        }
-      });
-    controller.addPropertyChangeListener(ObserverCameraController.Property.PITCH, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            pitchSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getPitch())));
-          }
-        });
+    pitchSpinnerModel.setValue((float) Math.toDegrees(controller.getPitch()));
+    pitchSpinnerModel.addChangeListener(ev -> controller.setPitch((float)Math.toRadians(((Number)pitchSpinnerModel.getValue()).floatValue())));
+    controller.addPropertyChangeListener(ObserverCameraController.Property.PITCH,
+            ev -> pitchSpinnerModel.setValue((float) Math.toDegrees(controller.getPitch())));
     
     // Create field of view label and spinner bound to FIELD_OF_VIEW controller property
     this.fieldOfViewLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         ObserverCameraPanel.class, "fieldOfViewLabel.text"));
     final SpinnerNumberModel fieldOfViewSpinnerModel = new SpinnerNumberModel(new Float(10), new Float(2), new Float(120), new Float(1));
     this.fieldOfViewSpinner = new AutoCommitSpinner(fieldOfViewSpinnerModel, new DecimalFormat("0.#"));
-    fieldOfViewSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getFieldOfView())));
-    fieldOfViewSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.setFieldOfView((float)Math.toRadians(((Number)fieldOfViewSpinnerModel.getValue()).floatValue()));
-        }
-      });
-    controller.addPropertyChangeListener(ObserverCameraController.Property.FIELD_OF_VIEW, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            fieldOfViewSpinnerModel.setValue(new Float((float)Math.toDegrees(controller.getFieldOfView())));
-          }
-        });
+    fieldOfViewSpinnerModel.setValue((float) Math.toDegrees(controller.getFieldOfView()));
+    fieldOfViewSpinnerModel.addChangeListener(ev -> controller.setFieldOfView((float)Math.toRadians(((Number)fieldOfViewSpinnerModel.getValue()).floatValue())));
+    controller.addPropertyChangeListener(ObserverCameraController.Property.FIELD_OF_VIEW,
+            ev -> fieldOfViewSpinnerModel.setValue((float) Math.toDegrees(controller.getFieldOfView())));
     
     this.adjustObserverCameraElevationCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences, 
         ObserverCameraPanel.class, "adjustObserverCameraElevationCheckBox.text"), controller.isElevationAdjusted());
-    this.adjustObserverCameraElevationCheckBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setElevationAdjusted(adjustObserverCameraElevationCheckBox.isSelected());
-        }
-      });
-    controller.addPropertyChangeListener(ObserverCameraController.Property.OBSERVER_CAMERA_ELEVATION_ADJUSTED, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            adjustObserverCameraElevationCheckBox.setSelected(controller.isElevationAdjusted());
-          }
-        });
+    this.adjustObserverCameraElevationCheckBox.addItemListener(ev -> controller.setElevationAdjusted(adjustObserverCameraElevationCheckBox.isSelected()));
+    controller.addPropertyChangeListener(ObserverCameraController.Property.OBSERVER_CAMERA_ELEVATION_ADJUSTED,
+            ev -> adjustObserverCameraElevationCheckBox.setSelected(controller.isElevationAdjusted()));
 
-    controller.addPropertyChangeListener(ObserverCameraController.Property.MINIMUM_ELEVATION, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            if (elevationSpinnerModel.getLength() != null) {
-              elevationSpinnerModel.setLength(Math.max(elevationSpinnerModel.getLength(), controller.getMinimumElevation()));
-            }
-            elevationSpinnerModel.setMinimum(controller.getMinimumElevation());
-          }
-        });
+    controller.addPropertyChangeListener(ObserverCameraController.Property.MINIMUM_ELEVATION,
+            ev -> {
+              if (elevationSpinnerModel.getLength() != null) {
+                elevationSpinnerModel.setLength(Math.max(elevationSpinnerModel.getLength(), controller.getMinimumElevation()));
+              }
+              elevationSpinnerModel.setMinimum(controller.getMinimumElevation());
+            });
 
     this.dialogTitle = preferences.getLocalizedString(
         ObserverCameraPanel.class, "observerCamera.title");

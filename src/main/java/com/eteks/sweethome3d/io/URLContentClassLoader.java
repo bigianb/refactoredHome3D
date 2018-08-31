@@ -42,9 +42,7 @@ class URLContentClassLoader extends ClassLoader {
     try {
       // Return a stream managed by URLContent to be able to delete the writable files accessed with jar protocol
       return new URLContent(new URL("jar:" + this.url.toURI() + "!/" + name)).openStream();
-    } catch (IOException ex) {
-      return null;
-    } catch (URISyntaxException ex) {
+    } catch (IOException | URISyntaxException ex) {
       return null;
     }
   }

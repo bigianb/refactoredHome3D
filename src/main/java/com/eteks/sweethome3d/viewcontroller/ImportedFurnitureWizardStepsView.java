@@ -29,6 +29,6 @@ public interface ImportedFurnitureWizardStepsView extends View {
   /**
    * Returns the icon content of the chosen piece.
    */
-  public abstract Content getIcon();
+  Content getIcon();
 
 }

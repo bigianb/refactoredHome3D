@@ -299,9 +299,7 @@ public class ModelPreviewComponent extends JComponent {
       } catch (ClassNotFoundException ex) {
         throw new UnsupportedOperationException("Java 3D 1.5 required to display an offscreen 3D view");
       } catch (Exception ex) {
-        UnsupportedOperationException ex2 = new UnsupportedOperationException();
-        ex2.initCause(ex);
-        throw ex2;
+        throw new UnsupportedOperationException(ex);
       }
     } else {
       this.component3D = Component3DManager.getInstance().getOnscreenCanvas3D(graphicsConfiguration,
@@ -568,7 +566,7 @@ public class ModelPreviewComponent extends JComponent {
                   {matrix [0], matrix [1], matrix [2], matrix [3]},
                   {matrix [4], matrix [5], matrix [6], matrix [7]},
                   {matrix [8], matrix [9], matrix [10], matrix [11]}}));
-              previewedPiece.setModelTransformations(transformationsList.toArray(new Transformation [transformationsList.size()]));
+              previewedPiece.setModelTransformations(transformationsList.toArray(new Transformation[0]));
             } else {
               if (yawChangeSupported) {
                 // Mouse move along X axis changes yaw
@@ -654,9 +652,7 @@ public class ModelPreviewComponent extends JComponent {
         // Call JCanvas3D#getOffscreenCanvas3D by reflection to be able to run under Java 3D 1.3
         canvas3D = (Canvas3D)Class.forName("com.sun.j3d.exp.swing.JCanvas3D").getMethod("getOffscreenCanvas3D").invoke(this.component3D);
       } catch (Exception ex) {
-        UnsupportedOperationException ex2 = new UnsupportedOperationException();
-        ex2.initCause(ex);
-        throw ex2;
+        throw new UnsupportedOperationException(ex);
       }
     }
     // Create a universe bound to component 3D

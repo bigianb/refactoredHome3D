@@ -165,7 +165,7 @@ public class TextureChoiceController implements Controller {
    * @since 4.4 
    */
   public void addRecentTexture(TextureImage texture) {
-    List<TextureImage> recentTextures = new ArrayList<TextureImage>(this.preferences.getRecentTextures());
+    List<TextureImage> recentTextures = new ArrayList<>(this.preferences.getRecentTextures());
     for (int i = 0; i < recentTextures.size(); i++) {
       TextureImage recentTexture = recentTextures.get(i);
       if (recentTexture.getImage().equals(texture.getImage())) {

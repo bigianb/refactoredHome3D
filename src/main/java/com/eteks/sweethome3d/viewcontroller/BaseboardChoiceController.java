@@ -78,11 +78,7 @@ public class BaseboardChoiceController implements Controller {
           this.preferences.getLocalizedString(BaseboardChoiceController.class, "baseboardTextureTitle"), 
           this.preferences, this.viewFactory, this.contentManager);
       this.textureController.addPropertyChangeListener(TextureChoiceController.Property.TEXTURE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              setPaint(BaseboardPaint.TEXTURED);
-            }
-          });
+              ev -> setPaint(BaseboardPaint.TEXTURED));
     }
     return this.textureController;
   }

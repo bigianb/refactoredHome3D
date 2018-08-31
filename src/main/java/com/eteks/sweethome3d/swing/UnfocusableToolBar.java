@@ -19,18 +19,12 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Component;
-import java.awt.ComponentOrientation;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.AbstractButton;
-import javax.swing.JComponent;
-import javax.swing.JToolBar;
-
-import com.eteks.sweethome3d.tools.OperatingSystem;
 
 /**
  * A tool bar where all components are maintained unfocusable.
@@ -44,12 +38,8 @@ public class UnfocusableToolBar extends JToolBar {
   public UnfocusableToolBar() {
     // Update toolBar buttons when component orientation changes 
     // and when buttons are added or removed to it  
-    addPropertyChangeListener("componentOrientation", 
-        new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent evt) {
-            updateToolBarButtons();
-          }
-        });
+    addPropertyChangeListener("componentOrientation",
+            evt -> updateToolBarButtons());
     addContainerListener(new ContainerListener() {
         public void componentAdded(ContainerEvent ev) {
           updateToolBarButtons();

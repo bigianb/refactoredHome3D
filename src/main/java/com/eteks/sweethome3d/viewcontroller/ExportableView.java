@@ -32,7 +32,7 @@ public interface ExportableView extends View {
   /**
    * Data types.
    */
-  public static class FormatType {
+  class FormatType {
     // Don't qualify FormatType as an enumeration to be able to extend FormatType class
     public static final FormatType SVG  = new FormatType("SVG");
     public static final FormatType CSV  = new FormatType("CSV");
@@ -51,18 +51,18 @@ public interface ExportableView extends View {
     public String toString() {
       return this.name;
     }
-  };
+  }
   
   /**
    * Returns <code>true</code> if this view is able to export at the given format.
    */
-  public abstract boolean isFormatTypeSupported(FormatType formatType);
+  boolean isFormatTypeSupported(FormatType formatType);
 
   /**
    * Exports data of the view at the given format.
    * Caution : this method can be called from a separate thread.
    */
-  public abstract void exportData(OutputStream out, 
-                                  FormatType formatType, 
-                                  Properties settings) throws IOException;
+  void exportData(OutputStream out,
+                  FormatType formatType,
+                  Properties settings) throws IOException;
 }

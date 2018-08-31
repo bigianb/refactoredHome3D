@@ -37,7 +37,7 @@ public interface HomeView extends View {
   /**
    * The actions proposed by the view to user.
    */
-  public enum ActionType {
+  enum ActionType {
       NEW_HOME, NEW_HOME_FROM_EXAMPLE, CLOSE, OPEN, DELETE_RECENT_HOMES, SAVE, SAVE_AS, SAVE_AND_COMPRESS,
       PAGE_SETUP, PRINT_PREVIEW, PRINT, PRINT_TO_PDF, PREFERENCES, EXIT, 
       UNDO, REDO, CUT, COPY, PASTE, PASTE_TO_GROUP, PASTE_STYLE, DELETE, SELECT_ALL, SELECT_ALL_AT_ALL_LEVELS,
@@ -74,101 +74,101 @@ public interface HomeView extends View {
       VIEW_FROM_TOP, VIEW_FROM_OBSERVER, MODIFY_OBSERVER, STORE_POINT_OF_VIEW, DELETE_POINTS_OF_VIEW, CREATE_PHOTOS_AT_POINTS_OF_VIEW, DETACH_3D_VIEW, ATTACH_3D_VIEW,  
       DISPLAY_ALL_LEVELS, DISPLAY_SELECTED_LEVEL, MODIFY_3D_ATTRIBUTES, CREATE_PHOTO, CREATE_VIDEO, EXPORT_TO_OBJ,
       HELP, ABOUT}
-  public enum SaveAnswer {SAVE, CANCEL, DO_NOT_SAVE}
-  public enum OpenDamagedHomeAnswer {REMOVE_DAMAGED_ITEMS, REPLACE_DAMAGED_ITEMS, DO_NOT_OPEN_HOME}
+  enum SaveAnswer {SAVE, CANCEL, DO_NOT_SAVE}
+  enum OpenDamagedHomeAnswer {REMOVE_DAMAGED_ITEMS, REPLACE_DAMAGED_ITEMS, DO_NOT_OPEN_HOME}
 
   /**
    * Enables or disables the action matching <code>actionType</code>.
    */
-  public abstract void setEnabled(ActionType actionType,
-                                  boolean enabled);
+  void setEnabled(ActionType actionType,
+                  boolean enabled);
 
   /**
    * Sets the name and tool tip of undo and redo actions. If a parameter is <code>null</code>,
    * the properties will be reset to their initial values.
    */
-  public abstract void setUndoRedoName(String undoText,
-                                       String redoText);
+  void setUndoRedoName(String undoText,
+                       String redoText);
 
   /**
    * Enables or disables transfer between components.  
    */
-  public abstract void setTransferEnabled(boolean enabled);
+  void setTransferEnabled(boolean enabled);
 
 
   /**
    * Detaches the given <code>view</code> from home view.
    */
-  public abstract void detachView(View view);
+  void detachView(View view);
                 
   /**
    * Attaches the given <code>view</code> to home view.
    */
-  public abstract void attachView(View view);
+  void attachView(View view);
   
   /**
    * Displays a content chooser open dialog to choose the name of a home.
    */
-  public abstract String showOpenDialog();
+  String showOpenDialog();
 
   /**
    * Displays a dialog that lets user choose what he wants 
    * to do with a damaged home he tries to open it. 
    * @since 4.4 
    */
-  public abstract OpenDamagedHomeAnswer confirmOpenDamagedHome(String homeName, 
-                                                               Home damagedHome, 
-                                                               List<Content> invalidContent);
+  OpenDamagedHomeAnswer confirmOpenDamagedHome(String homeName,
+                                               Home damagedHome,
+                                               List<Content> invalidContent);
 
   /**
    * Displays a dialog to let the user choose a home example.
    * @since 5.5
    */
-  public abstract String showNewHomeFromExampleDialog();
+  String showNewHomeFromExampleDialog();
   
   /**
    * Displays a content chooser open dialog to choose a language library.
    */
-  public abstract String showImportLanguageLibraryDialog();
+  String showImportLanguageLibraryDialog();
 
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
    * an existing language library or not. 
    */
-  public abstract boolean confirmReplaceLanguageLibrary(String languageLibraryName);
+  boolean confirmReplaceLanguageLibrary(String languageLibraryName);
 
   /**
    * Displays a content chooser open dialog to choose a furniture library.
    */
-  public abstract String showImportFurnitureLibraryDialog();
+  String showImportFurnitureLibraryDialog();
 
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
    * an existing furniture library or not. 
    */
-  public abstract boolean confirmReplaceFurnitureLibrary(String furnitureLibraryName);
+  boolean confirmReplaceFurnitureLibrary(String furnitureLibraryName);
 
   /**
    * Displays a content chooser open dialog to choose a textures library.
    */
-  public abstract String showImportTexturesLibraryDialog();
+  String showImportTexturesLibraryDialog();
 
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
    * an existing textures library or not. 
    */
-  public abstract boolean confirmReplaceTexturesLibrary(String texturesLibraryName);
+  boolean confirmReplaceTexturesLibrary(String texturesLibraryName);
 
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
    * an existing plug-in or not. 
    */
-  public abstract boolean confirmReplacePlugin(String pluginName);
+  boolean confirmReplacePlugin(String pluginName);
 
   /**
    * Displays a content chooser save dialog to choose the name of a home.
    */
-  public abstract String showSaveDialog(String homeName);
+  String showSaveDialog(String homeName);
 
   /**
    * Displays a dialog that lets user choose whether he wants to save
@@ -177,49 +177,49 @@ public interface HomeView extends View {
    * {@link SaveAnswer#DO_NOT_SAVE} if user don't want to save home,
    * or {@link SaveAnswer#CANCEL} if doesn't want to continue current operation.
    */
-  public abstract SaveAnswer confirmSave(String homeName);
+  SaveAnswer confirmSave(String homeName);
 
   /**
    * Displays a dialog that let user choose whether he wants to save
    * a home that was created with a newer version of Sweet Home 3D.
    * @return <code>true</code> if user confirmed to save.
    */
-  public abstract boolean confirmSaveNewerHome(String homeName);
+  boolean confirmSaveNewerHome(String homeName);
 
   /**
    * Displays a dialog that let user choose whether he wants to delete 
    * the selected furniture from catalog or not.
    * @return <code>true</code> if user confirmed to delete.
    */
-  public abstract boolean confirmDeleteCatalogSelection();
+  boolean confirmDeleteCatalogSelection();
   
   /**
    * Displays a dialog that let user choose whether he wants to exit 
    * application or not.
    * @return <code>true</code> if user confirmed to exit.
    */
-  public abstract boolean confirmExit();
+  boolean confirmExit();
   
   /**
    * Displays <code>message</code> in an error message box.
    */
-  public abstract void showError(String message);
+  void showError(String message);
 
   /**
    * Displays <code>message</code> in a message box.
    */
-  public abstract void showMessage(String message);
+  void showMessage(String message);
 
   /**
    * Displays the tip matching <code>actionTipKey</code> and 
    * returns <code>true</code> if the user chose not to display again the tip.
    */
-  public abstract boolean showActionTipMessage(String actionTipKey);
+  boolean showActionTipMessage(String actionTipKey);
   
   /**
    * Displays an about dialog.
    */
-  public abstract void showAboutDialog();
+  void showAboutDialog();
 
   /**
    * Shows a print dialog to print the home displayed by this pane.  
@@ -229,86 +229,86 @@ public interface HomeView extends View {
    *    or an {@link InterruptedRecorderException InterruptedRecorderException}
    *    exception if it was interrupted.
    */
-  public abstract Callable<Void> showPrintDialog();
+  Callable<Void> showPrintDialog();
 
   /**
    * Shows a content chooser save dialog to print a home in a PDF file.
    */
-  public abstract String showPrintToPDFDialog(String homeName);
+  String showPrintToPDFDialog(String homeName);
 
   /**
    * Prints a home to a given PDF file. This method may be overridden
    * to write to another kind of output stream.
    * Caution !!! This method may be called from a threaded task.  
    */
-  public abstract void printToPDF(String pdfFile) throws RecorderException;
+  void printToPDF(String pdfFile) throws RecorderException;
 
   /**
    * Shows a content chooser save dialog to export furniture list in a CSV file.
    */
-  public abstract String showExportToCSVDialog(String name);
+  String showExportToCSVDialog(String name);
 
   /**
    * Exports furniture list to a given SVG file.
    * Caution !!! This method may be called from a threaded task.  
    */
-  public abstract void exportToCSV(String csvName) throws RecorderException;
+  void exportToCSV(String csvName) throws RecorderException;
 
   /**
    * Shows a content chooser save dialog to export a home plan in a SVG file.
    */
-  public abstract String showExportToSVGDialog(String name);
+  String showExportToSVGDialog(String name);
 
   /**
    * Exports the plan objects to a given SVG file.
    * Caution !!! This method may be called from a threaded task.  
    */
-  public abstract void exportToSVG(String svgName) throws RecorderException;
+  void exportToSVG(String svgName) throws RecorderException;
 
   /**
    * Shows a content chooser save dialog to export a 3D home in a OBJ file.
    */
-  public abstract String showExportToOBJDialog(String homeName);
+  String showExportToOBJDialog(String homeName);
   
   /**
    * Exports the 3D home objects to a given OBJ file.
    * Caution !!! This method may be called from a threaded task.  
    */
-  public abstract void exportToOBJ(String objFile) throws RecorderException;
+  void exportToOBJ(String objFile) throws RecorderException;
 
   /**
    * Displays a dialog that lets the user choose a name for the current camera.
    */
-  public abstract String showStoreCameraDialog(String cameraName);
+  String showStoreCameraDialog(String cameraName);
 
   /**
    * Displays a dialog showing the list of cameras stored in home 
    * and returns the ones selected by the user to be deleted.  
    */
-  public abstract List<Camera> showDeletedCamerasDialog();
+  List<Camera> showDeletedCamerasDialog();
   
    /**
    * Returns <code>true</code> if clipboard contains data that
    * components are able to handle.
    */
-  public abstract boolean isClipboardEmpty();
+   boolean isClipboardEmpty();
   
   /**
    * Returns the list of selectable items that are currently in clipboard
    * or <code>null</code> if clipboard doesn't contain any selectable item.
    * @since 5.0
    */
-  public abstract List<Selectable> getClipboardItems();
+  List<Selectable> getClipboardItems();
 
   /**
    * Displays the given message and returns <code>false</code> if the user 
    * doesn't want to be informed of the displayed updates and <code>showOnlyMessage</code> is <code>false</code>. 
    */
-  public abstract boolean showUpdatesMessage(String updatesMessage, boolean showOnlyMessage);
+  boolean showUpdatesMessage(String updatesMessage, boolean showOnlyMessage);
   
   /**
    * Execute <code>runnable</code> asynchronously in the thread 
    * that manages toolkit events.  
    */
-  public abstract void invokeLater(Runnable runnable);
+  void invokeLater(Runnable runnable);
 }

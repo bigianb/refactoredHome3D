@@ -19,25 +19,8 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.ResourceURLContent;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.ChangedCharSetException;
@@ -46,9 +29,16 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.ResourceURLContent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.*;
+import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.util.*;
 
 /**
  * A MVC controller for Sweet Home 3D help view.
@@ -81,7 +71,7 @@ public class HelpController implements Controller {
     this.preferences = preferences;
     this.viewFactory = viewFactory;    
     this.propertyChangeSupport = new PropertyChangeSupport(this);
-    this.history = new ArrayList<URL>();
+    this.history = new ArrayList<>();
     this.historyIndex = -1;
     showPage(getHelpIndexPageURL());
   }
@@ -229,7 +219,7 @@ public class HelpController implements Controller {
     private WeakReference<HelpController> helpController;
 
     public LanguageChangeListener(HelpController helpController) {
-      this.helpController = new WeakReference<HelpController>(helpController);
+      this.helpController = new WeakReference<>(helpController);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -426,10 +416,10 @@ public class HelpController implements Controller {
    * and not to create components.
    */
   private List<HelpDocument> searchInHelpDocuments(URL helpIndex, String [] searchedWords) {
-    List<URL> parsedDocuments = new ArrayList<URL>(); 
+    List<URL> parsedDocuments = new ArrayList<>();
     parsedDocuments.add(helpIndex);
     
-    List<HelpDocument> helpDocuments = new ArrayList<HelpDocument>();
+    List<HelpDocument> helpDocuments = new ArrayList<>();
     // Parse all the URLs added to parsedDocuments at each loop
     for (int i = 0; i < parsedDocuments.size(); i++) {
       try {
@@ -454,11 +444,7 @@ public class HelpController implements Controller {
       }
     }
     // Sort by relevance
-    Collections.sort(helpDocuments, new Comparator<HelpDocument>() {
-        public int compare(HelpDocument document1, HelpDocument document2) {
-          return document2.getRelevance() - document1.getRelevance();
-        }
-      });
+    Collections.sort(helpDocuments, (document1, document2) -> document2.getRelevance() - document1.getRelevance());
     return helpDocuments;
   }
 
@@ -467,7 +453,7 @@ public class HelpController implements Controller {
    */
   private class HelpDocument extends HTMLDocument {
     // Documents set referenced in this file 
-    private Set<URL>     referencedDocuments = new HashSet<URL>();
+    private Set<URL>     referencedDocuments = new HashSet<>();
     private String []    searchedWords;
     private int          relevance;
     private String       title = "";

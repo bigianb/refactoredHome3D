@@ -19,54 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
-import java.security.AccessControlException;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
-
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.j3d.Component3DManager;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.TextureImage;
@@ -75,6 +27,18 @@ import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.UserPreferencesController;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
+import java.security.AccessControlException;
+import java.util.*;
+import java.util.List;
 
 /**
  * User preferences panel.
@@ -179,17 +143,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
         });
       this.languageComboBox.setMaximumRowCount(Integer.MAX_VALUE);
       this.languageComboBox.setSelectedItem(controller.getLanguage());
-      this.languageComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setLanguage((String)languageComboBox.getSelectedItem());
-          }
-        });
+      this.languageComboBox.addItemListener(ev -> controller.setLanguage((String)languageComboBox.getSelectedItem()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.LANGUAGE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              languageComboBox.setSelectedItem(controller.getLanguage());
-            }
-          });
+              ev -> languageComboBox.setSelectedItem(controller.getLanguage()));
       preferences.addPropertyChangeListener(UserPreferences.Property.SUPPORTED_LANGUAGES,
           new SupportedLanguagesChangeListener(this));
     }
@@ -230,17 +186,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           }
         });
       this.unitComboBox.setSelectedItem(controller.getUnit());
-      this.unitComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setUnit((LengthUnit)unitComboBox.getSelectedItem());
-          }
-        });
+      this.unitComboBox.addItemListener(ev -> controller.setUnit((LengthUnit)unitComboBox.getSelectedItem()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.UNIT,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              unitComboBox.setSelectedItem(controller.getUnit());
-            }
-          });
+              ev -> unitComboBox.setSelectedItem(controller.getUnit()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.CURRENCY)) {
@@ -278,38 +226,26 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           }
         });
       this.currencyComboBox.setSelectedItem(controller.getCurrency());
-      this.currencyComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setCurrency((String)currencyComboBox.getSelectedItem());
-          }
-        });
+      this.currencyComboBox.addItemListener(ev -> controller.setCurrency((String)currencyComboBox.getSelectedItem()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.CURRENCY,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              currencyComboBox.setSelectedItem(controller.getCurrency());
-              if (valueAddedTaxCheckBox != null) {
-                valueAddedTaxCheckBox.setEnabled(controller.getCurrency() != null);
-              }
-            }
-          });
+              ev -> {
+                currencyComboBox.setSelectedItem(controller.getCurrency());
+                if (valueAddedTaxCheckBox != null) {
+                  valueAddedTaxCheckBox.setEnabled(controller.getCurrency() != null);
+                }
+              });
 
       if (controller.isPropertyEditable(UserPreferencesController.Property.VALUE_ADDED_TAX_ENABLED)) {
         this.valueAddedTaxCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
             UserPreferencesPanel.class, "valueAddedTaxCheckBox.text"));
         this.valueAddedTaxCheckBox.setEnabled(controller.getCurrency() != null);
         this.valueAddedTaxCheckBox.setSelected(controller.isValueAddedTaxEnabled());
-        this.valueAddedTaxCheckBox.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-              controller.setValueAddedTaxEnabled(valueAddedTaxCheckBox.isSelected());
-            }
-          });
+        this.valueAddedTaxCheckBox.addChangeListener(ev -> controller.setValueAddedTaxEnabled(valueAddedTaxCheckBox.isSelected()));
         controller.addPropertyChangeListener(UserPreferencesController.Property.VALUE_ADDED_TAX_ENABLED,
-            new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent ev) {
+                ev -> {
                   valueAddedTaxCheckBox.setEnabled(controller.getCurrency() != null);
                   valueAddedTaxCheckBox.setSelected(controller.isValueAddedTaxEnabled());
-                }
-              });
+                });
       }
     }
 
@@ -327,19 +263,11 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       furnitureCatalogViewButtonGroup.add(this.treeRadioButton);
       furnitureCatalogViewButtonGroup.add(this.listRadioButton);
 
-      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setFurnitureCatalogViewedInTree(treeRadioButton.isSelected());
-          }
-        };
+      ItemListener furnitureCatalogViewChangeListener = ev -> controller.setFurnitureCatalogViewedInTree(treeRadioButton.isSelected());
       this.treeRadioButton.addItemListener(furnitureCatalogViewChangeListener);
       this.listRadioButton.addItemListener(furnitureCatalogViewChangeListener);
       controller.addPropertyChangeListener(UserPreferencesController.Property.FURNITURE_CATALOG_VIEWED_IN_TREE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              treeRadioButton.setSelected(controller.isFurnitureCatalogViewedInTree());
-            }
-          });
+              ev -> treeRadioButton.setSelected(controller.isFurnitureCatalogViewedInTree()));
     }
 
     boolean no3D;
@@ -360,17 +288,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       if (!OperatingSystem.isMacOSX()
           || OperatingSystem.isMacOSXLeopardOrSuperior()) {
         this.navigationPanelCheckBox.setSelected(controller.isNavigationPanelVisible());
-        this.navigationPanelCheckBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent ev) {
-              controller.setNavigationPanelVisible(navigationPanelCheckBox.isSelected());
-            }
-          });
+        this.navigationPanelCheckBox.addItemListener(ev -> controller.setNavigationPanelVisible(navigationPanelCheckBox.isSelected()));
         controller.addPropertyChangeListener(UserPreferencesController.Property.NAVIGATION_PANEL_VISIBLE,
-            new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                navigationPanelCheckBox.setSelected(controller.isNavigationPanelVisible());
-              }
-            });
+                ev -> navigationPanelCheckBox.setSelected(controller.isNavigationPanelVisible()));
       } else {
         // No support for navigation panel under Mac OS X Tiger (too unstable)
         this.navigationPanelCheckBox.setEnabled(false);
@@ -384,17 +304,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           UserPreferencesPanel.class, "aerialViewCenteredOnSelectionLabel.text"));
       this.aerialViewCenteredOnSelectionCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "aerialViewCenteredOnSelectionCheckBox.text"), controller.isAerialViewCenteredOnSelectionEnabled());
-      this.aerialViewCenteredOnSelectionCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setAerialViewCenteredOnSelectionEnabled(aerialViewCenteredOnSelectionCheckBox.isSelected());
-          }
-        });
+      this.aerialViewCenteredOnSelectionCheckBox.addItemListener(ev -> controller.setAerialViewCenteredOnSelectionEnabled(aerialViewCenteredOnSelectionCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              aerialViewCenteredOnSelectionCheckBox.setSelected(controller.isAerialViewCenteredOnSelectionEnabled());
-            }
-          });
+              ev -> aerialViewCenteredOnSelectionCheckBox.setSelected(controller.isAerialViewCenteredOnSelectionEnabled()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.OBSERVER_CAMERA_SELECTED_AT_CHANGE)
@@ -404,17 +316,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           UserPreferencesPanel.class, "observerCameraSelectedAtChangeLabel.text"));
       this.observerCameraSelectedAtChangeCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "observerCameraSelectedAtChangeCheckBox.text"), controller.isObserverCameraSelectedAtChange());
-      this.observerCameraSelectedAtChangeCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setObserverCameraSelectedAtChange(observerCameraSelectedAtChangeCheckBox.isSelected());
-          }
-        });
+      this.observerCameraSelectedAtChangeCheckBox.addItemListener(ev -> controller.setObserverCameraSelectedAtChange(observerCameraSelectedAtChangeCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.OBSERVER_CAMERA_SELECTED_AT_CHANGE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              observerCameraSelectedAtChangeCheckBox.setSelected(controller.isObserverCameraSelectedAtChange());
-            }
-          });
+              ev -> observerCameraSelectedAtChangeCheckBox.setSelected(controller.isObserverCameraSelectedAtChange()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.MAGNETISM_ENABLED)) {
@@ -423,17 +327,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           UserPreferencesPanel.class, "magnetismLabel.text"));
       this.magnetismCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "magnetismCheckBox.text"), controller.isMagnetismEnabled());
-      this.magnetismCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setMagnetismEnabled(magnetismCheckBox.isSelected());
-          }
-        });
+      this.magnetismCheckBox.addItemListener(ev -> controller.setMagnetismEnabled(magnetismCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.MAGNETISM_ENABLED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              magnetismCheckBox.setSelected(controller.isMagnetismEnabled());
-            }
-          });
+              ev -> magnetismCheckBox.setSelected(controller.isMagnetismEnabled()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.RULERS_VISIBLE)) {
@@ -442,17 +338,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           UserPreferencesPanel.class, "rulersLabel.text"));
       this.rulersCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "rulersCheckBox.text"), controller.isRulersVisible());
-      this.rulersCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setRulersVisible(rulersCheckBox.isSelected());
-          }
-        });
+      this.rulersCheckBox.addItemListener(ev -> controller.setRulersVisible(rulersCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.RULERS_VISIBLE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              rulersCheckBox.setSelected(controller.isRulersVisible());
-            }
-          });
+              ev -> rulersCheckBox.setSelected(controller.isRulersVisible()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.GRID_VISIBLE)) {
@@ -461,17 +349,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           UserPreferencesPanel.class, "gridLabel.text"));
       this.gridCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "gridCheckBox.text"), controller.isGridVisible());
-      this.gridCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setGridVisible(gridCheckBox.isSelected());
-          }
-        });
+      this.gridCheckBox.addItemListener(ev -> controller.setGridVisible(gridCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.GRID_VISIBLE,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              gridCheckBox.setSelected(controller.isGridVisible());
-            }
-          });
+              ev -> gridCheckBox.setSelected(controller.isGridVisible()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.DEFAULT_FONT_NAME)) {
@@ -479,20 +359,16 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       this.defaultFontNameLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "defaultFontNameLabel.text"));
       this.defaultFontNameComboBox = new FontNameComboBox(preferences);
-      this.defaultFontNameComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            String selectedItem = (String)defaultFontNameComboBox.getSelectedItem();
-            controller.setDefaultFontName(selectedItem == FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME
-                ? null : selectedItem);
-          }
-        });
-      PropertyChangeListener fontNameChangeListener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            String defaultFontName = controller.getDefaultFontName();
-            defaultFontNameComboBox.setSelectedItem(defaultFontName == null
-                ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : defaultFontName);
-          }
-        };
+      this.defaultFontNameComboBox.addItemListener(ev -> {
+        String selectedItem = (String)defaultFontNameComboBox.getSelectedItem();
+        controller.setDefaultFontName(selectedItem == FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME
+            ? null : selectedItem);
+      });
+      PropertyChangeListener fontNameChangeListener = ev -> {
+        String defaultFontName = controller.getDefaultFontName();
+        defaultFontNameComboBox.setSelectedItem(defaultFontName == null
+            ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : defaultFontName);
+      };
       controller.addPropertyChangeListener(UserPreferencesController.Property.DEFAULT_FONT_NAME, fontNameChangeListener);
       fontNameChangeListener.propertyChange(null);
     }
@@ -521,17 +397,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
             }
           });
         this.iconSizeComboBox.setSelectedItem(controller.getFurnitureModelIconSize());
-        this.iconSizeComboBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent ev) {
-              controller.setFurnitureModelIconSize((Integer)iconSizeComboBox.getSelectedItem());
-            }
-          });
+        this.iconSizeComboBox.addItemListener(ev -> controller.setFurnitureModelIconSize((Integer)iconSizeComboBox.getSelectedItem()));
         controller.addPropertyChangeListener(UserPreferencesController.Property.FURNITURE_MODEL_ICON_SIZE,
-            new PropertyChangeListener() {
-              public void propertyChange(PropertyChangeEvent ev) {
-                iconSizeComboBox.setSelectedItem(controller.getFurnitureModelIconSize());
-              }
-            });
+                ev -> iconSizeComboBox.setSelectedItem(controller.getFurnitureModelIconSize()));
       }
 
       if (no3D) {
@@ -543,20 +411,14 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           furnitureAppearanceButtonGroup.add(this.catalogIconRadioButton);
           furnitureAppearanceButtonGroup.add(this.topViewRadioButton);
 
-          ItemListener furnitureAppearanceChangeListener = new ItemListener() {
-              public void itemStateChanged(ItemEvent ev) {
-                controller.setFurnitureViewedFromTop(topViewRadioButton.isSelected());
-              }
-            };
+          ItemListener furnitureAppearanceChangeListener = ev -> controller.setFurnitureViewedFromTop(topViewRadioButton.isSelected());
           this.catalogIconRadioButton.addItemListener(furnitureAppearanceChangeListener);
           this.topViewRadioButton.addItemListener(furnitureAppearanceChangeListener);
           controller.addPropertyChangeListener(UserPreferencesController.Property.FURNITURE_VIEWED_FROM_TOP,
-              new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent ev) {
-                  topViewRadioButton.setSelected(controller.isFurnitureViewedFromTop());
-                  iconSizeComboBox.setEnabled(controller.isFurnitureViewedFromTop());
-                }
-              });
+                  ev -> {
+                    topViewRadioButton.setSelected(controller.isFurnitureViewedFromTop());
+                    iconSizeComboBox.setEnabled(controller.isFurnitureViewedFromTop());
+                  });
           this.iconSizeComboBox.setEnabled(controller.isFurnitureViewedFromTop());
         } else {
           this.catalogIconRadioButton.setEnabled(false);
@@ -578,19 +440,11 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       ButtonGroup roomRenderingButtonGroup = new ButtonGroup();
       roomRenderingButtonGroup.add(this.monochromeRadioButton);
       roomRenderingButtonGroup.add(this.floorColorOrTextureRadioButton);
-      ItemListener roomRenderingChangeListener = new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setRoomFloorColoredOrTextured(floorColorOrTextureRadioButton.isSelected());
-          }
-        };
+      ItemListener roomRenderingChangeListener = ev -> controller.setRoomFloorColoredOrTextured(floorColorOrTextureRadioButton.isSelected());
       this.monochromeRadioButton.addItemListener(roomRenderingChangeListener);
       this.floorColorOrTextureRadioButton.addItemListener(roomRenderingChangeListener);
       controller.addPropertyChangeListener(UserPreferencesController.Property.ROOM_FLOOR_COLORED_OR_TEXTURED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              floorColorOrTextureRadioButton.setSelected(controller.isRoomFloorColoredOrTextured());
-            }
-          });
+              ev -> floorColorOrTextureRadioButton.setSelected(controller.isRoomFloorColoredOrTextured()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.NEW_WALL_PATTERN)) {
@@ -604,17 +458,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       this.newWallPatternComboBox.setSelectedItem(newWallPattern != null
           ? newWallPattern
           : controller.getWallPattern());
-      this.newWallPatternComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setNewWallPattern((TextureImage)newWallPatternComboBox.getSelectedItem());
-          }
-        });
+      this.newWallPatternComboBox.addItemListener(ev -> controller.setNewWallPattern((TextureImage)newWallPatternComboBox.getSelectedItem()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.NEW_WALL_PATTERN,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              newWallPatternComboBox.setSelectedItem(controller.getNewWallPattern());
-            }
-          });
+              ev -> newWallPatternComboBox.setSelectedItem(controller.getNewWallPattern()));
     } else if (controller.isPropertyEditable(UserPreferencesController.Property.WALL_PATTERN)) {
       // Create wall pattern label and combo box bound to controller WALL_PATTERN property
       this.wallPatternLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
@@ -623,17 +469,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       this.wallPatternComboBox = new JComboBox(new DefaultComboBoxModel(patterns.toArray()));
       this.wallPatternComboBox.setRenderer(getPatternRenderer());
       this.wallPatternComboBox.setSelectedItem(controller.getWallPattern());
-      this.wallPatternComboBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setWallPattern((TextureImage)wallPatternComboBox.getSelectedItem());
-          }
-        });
+      this.wallPatternComboBox.addItemListener(ev -> controller.setWallPattern((TextureImage)wallPatternComboBox.getSelectedItem()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.WALL_PATTERN,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              wallPatternComboBox.setSelectedItem(controller.getWallPattern());
-            }
-          });
+              ev -> wallPatternComboBox.setSelectedItem(controller.getWallPattern()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.NEW_WALL_THICKNESS)) {
@@ -643,17 +481,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       final SpinnerLengthModel newWallThicknessSpinnerModel = new SpinnerLengthModel(0.5f, 0.125f, controller);
       this.newWallThicknessSpinner = new AutoCommitLengthSpinner(newWallThicknessSpinnerModel, controller);
       newWallThicknessSpinnerModel.setValue(controller.getNewWallThickness());
-      newWallThicknessSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setNewWallThickness(((Number)newWallThicknessSpinnerModel.getValue()).floatValue());
-          }
-        });
+      newWallThicknessSpinnerModel.addChangeListener(ev -> controller.setNewWallThickness(((Number)newWallThicknessSpinnerModel.getValue()).floatValue()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.NEW_WALL_THICKNESS,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              newWallThicknessSpinnerModel.setValue(controller.getNewWallThickness());
-            }
-          });
+              ev -> newWallThicknessSpinnerModel.setValue(controller.getNewWallThickness()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.NEW_WALL_HEIGHT)) {
@@ -663,17 +493,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       final SpinnerLengthModel newWallHeightSpinnerModel = new SpinnerLengthModel(10f, 2f, controller);
       this.newWallHeightSpinner = new AutoCommitLengthSpinner(newWallHeightSpinnerModel, controller);
       newWallHeightSpinnerModel.setValue(controller.getNewWallHeight());
-      newWallHeightSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setNewWallHeight(((Number)newWallHeightSpinnerModel.getValue()).floatValue());
-          }
-        });
+      newWallHeightSpinnerModel.addChangeListener(ev -> controller.setNewWallHeight(((Number)newWallHeightSpinnerModel.getValue()).floatValue()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.NEW_WALL_HEIGHT,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              newWallHeightSpinnerModel.setValue(controller.getNewWallHeight());
-            }
-          });
+              ev -> newWallHeightSpinnerModel.setValue(controller.getNewWallHeight()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.NEW_FLOOR_THICKNESS)) {
@@ -683,34 +505,18 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       final SpinnerLengthModel newFloorThicknessSpinnerModel = new SpinnerLengthModel(0.5f, 0.125f, controller);
       this.newFloorThicknessSpinner = new AutoCommitLengthSpinner(newFloorThicknessSpinnerModel, controller);
       newFloorThicknessSpinnerModel.setValue(controller.getNewFloorThickness());
-      newFloorThicknessSpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setNewFloorThickness(((Number)newFloorThicknessSpinnerModel.getValue()).floatValue());
-          }
-        });
+      newFloorThicknessSpinnerModel.addChangeListener(ev -> controller.setNewFloorThickness(((Number)newFloorThicknessSpinnerModel.getValue()).floatValue()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.NEW_FLOOR_THICKNESS,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              newFloorThicknessSpinnerModel.setValue(controller.getNewFloorThickness());
-            }
-          });
+              ev -> newFloorThicknessSpinnerModel.setValue(controller.getNewFloorThickness()));
     }
 
     if (controller.isPropertyEditable(UserPreferencesController.Property.CHECK_UPDATES_ENABLED)) {
       // Create check box bound to controller CHECK_UPDATES_ENABLED property
       this.checkUpdatesCheckBox = new JCheckBox(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "checkUpdatesCheckBox.text"), controller.isCheckUpdatesEnabled());
-      this.checkUpdatesCheckBox.addItemListener(new ItemListener() {
-          public void itemStateChanged(ItemEvent ev) {
-            controller.setCheckUpdatesEnabled(checkUpdatesCheckBox.isSelected());
-          }
-        });
+      this.checkUpdatesCheckBox.addItemListener(ev -> controller.setCheckUpdatesEnabled(checkUpdatesCheckBox.isSelected()));
       controller.addPropertyChangeListener(UserPreferencesController.Property.CHECK_UPDATES_ENABLED,
-          new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent ev) {
-              checkUpdatesCheckBox.setSelected(controller.isCheckUpdatesEnabled());
-            }
-          });
+              ev -> checkUpdatesCheckBox.setSelected(controller.isCheckUpdatesEnabled()));
 
       this.checkUpdatesNowButton = new JButton(new ResourceAction.ButtonAction(
           new ResourceAction(preferences, UserPreferencesPanel.class, "CHECK_UPDATES_NOW", true) {
@@ -737,7 +543,7 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
 
           @Override
           public Object getPreviousValue() {
-            if (((Number)getValue()).intValue() - ((Number)getStepSize()).intValue() < ((Number)getMinimum()).intValue()) {
+            if (((Number)getValue()).intValue() - getStepSize().intValue() < ((Number)getMinimum()).intValue()) {
               return super.getMinimum();
             } else {
               return super.getPreviousValue();
@@ -748,21 +554,9 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       this.autoSaveDelayForRecoveryUnitLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
           UserPreferencesPanel.class, "autoSaveDelayForRecoveryUnitLabel.text"));
       updateAutoSaveDelayForRecoveryComponents(controller);
-      this.autoSaveDelayForRecoveryCheckBox.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setAutoSaveForRecoveryEnabled(autoSaveDelayForRecoveryCheckBox.isSelected());
-          }
-        });
-      autoSaveDelayForRecoverySpinnerModel.addChangeListener(new ChangeListener() {
-          public void stateChanged(ChangeEvent ev) {
-            controller.setAutoSaveDelayForRecovery(((Number)autoSaveDelayForRecoverySpinnerModel.getValue()).intValue() * 60000);
-          }
-        });
-      PropertyChangeListener listener = new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateAutoSaveDelayForRecoveryComponents(controller);
-          }
-        };
+      this.autoSaveDelayForRecoveryCheckBox.addChangeListener(ev -> controller.setAutoSaveForRecoveryEnabled(autoSaveDelayForRecoveryCheckBox.isSelected()));
+      autoSaveDelayForRecoverySpinnerModel.addChangeListener(ev -> controller.setAutoSaveDelayForRecovery(((Number)autoSaveDelayForRecoverySpinnerModel.getValue()).intValue() * 60000));
+      PropertyChangeListener listener = ev -> updateAutoSaveDelayForRecoveryComponents(controller);
       controller.addPropertyChangeListener(UserPreferencesController.Property.AUTO_SAVE_DELAY_FOR_RECOVERY, listener);
       controller.addPropertyChangeListener(UserPreferencesController.Property.AUTO_SAVE_FOR_RECOVERY_ENABLED, listener);
     }
@@ -1268,11 +1062,7 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       super(new Float(1f), new Float(0f), new Float(100000f), new Float(centimeterStepSize));
       // Add a listener to update step when unit changes
       controller.addPropertyChangeListener(UserPreferencesController.Property.UNIT,
-        new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateStepsAndLength(centimeterStepSize, inchStepSize, controller);
-          }
-        });
+              ev -> updateStepsAndLength(centimeterStepSize, inchStepSize, controller));
       updateStepsAndLength(centimeterStepSize, inchStepSize, controller);
     }
 
@@ -1295,11 +1085,7 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       super(model, controller.getUnit().getFormat());
       // Add a listener to update format when unit changes
       controller.addPropertyChangeListener(UserPreferencesController.Property.UNIT,
-        new PropertyChangeListener () {
-          public void propertyChange(PropertyChangeEvent ev) {
-            setFormat((DecimalFormat)controller.getUnit().getFormat());
-          }
-        });
+              ev -> setFormat(controller.getUnit().getFormat()));
     }
   }
 }

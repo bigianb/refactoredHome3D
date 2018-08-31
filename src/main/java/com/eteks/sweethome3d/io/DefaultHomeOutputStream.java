@@ -267,9 +267,7 @@ public class DefaultHomeOutputStream extends FilterOutputStream {
             }
           }
         } catch (URISyntaxException ex) {
-          IOException ex2 = new IOException();
-          ex2.initCause(ex);
-          throw ex2;
+          throw new IOException(ex);
         }
       }
     } else {
@@ -407,9 +405,7 @@ public class DefaultHomeOutputStream extends FilterOutputStream {
               try {
                 subEntryName = "/" + new File(resourceUrlContent.getURL().toURI()).getName();
               } catch (URISyntaxException ex) {
-                IOException ex2 = new IOException();
-                ex2.initCause(ex);
-                throw ex2;
+                throw new IOException(ex);
               }
             }
           }

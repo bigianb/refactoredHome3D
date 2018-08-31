@@ -31,7 +31,7 @@ import java.util.Stack;
  * @author Emmanuel Puybaret
  */
 public class XMLWriter extends FilterWriter {
-  private Stack<String> elements = new Stack<String>();
+  private Stack<String> elements = new Stack<>();
   private boolean emptyElement;
   private boolean elementWithText;
   

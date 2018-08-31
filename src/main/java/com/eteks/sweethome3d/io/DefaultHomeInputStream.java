@@ -405,16 +405,14 @@ public class DefaultHomeInputStream extends FilterInputStream {
    * <code>validEntries</code> will contain the valid entries.
    */
   private boolean isZipFileValidUsingDictionnary(File file, List<ZipEntry> validEntries) throws IOException {
-    ZipFile zipFile = null;
     boolean validZipFile = true;
-    try {
-      zipFile = new ZipFile(file);
+    try (ZipFile zipFile = new ZipFile(file)) {
       for (Enumeration<? extends ZipEntry> enumEntries = zipFile.entries(); enumEntries.hasMoreElements(); ) {
         try {
           ZipEntry zipEntry = enumEntries.nextElement();
           InputStream zipIn = zipFile.getInputStream(zipEntry);
           // Read the entry to check it's ok
-          byte [] buffer = new byte [8192];
+          byte[] buffer = new byte[8192];
           while (zipIn.read(buffer) != -1) {
           }
           zipIn.close();
@@ -426,10 +424,6 @@ public class DefaultHomeInputStream extends FilterInputStream {
       }
     } catch (Exception ex) {
       validZipFile = false;
-    } finally {
-      if (zipFile != null) {
-        zipFile.close();
-      }
     }
     return validZipFile;
   }
@@ -470,11 +464,7 @@ public class DefaultHomeInputStream extends FilterInputStream {
       throw new IOException("No valid entries");
     }
     File tempfile = OperatingSystem.createTemporaryFile("part", ".sh3d");
-    ZipOutputStream zipOut = null;
-    ZipFile zipFile = null;
-    try {
-      zipFile = new ZipFile(file);
-      zipOut = new ZipOutputStream(new FileOutputStream(tempfile));
+    try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(tempfile)); ZipFile zipFile = new ZipFile(file)) {
       zipOut.setLevel(0);
       for (ZipEntry zipEntry : validEntries) {
         InputStream zipIn = zipFile.getInputStream(zipEntry);
@@ -482,13 +472,6 @@ public class DefaultHomeInputStream extends FilterInputStream {
         zipIn.close();
       }
       return tempfile;
-    } finally {
-      if (zipOut != null) {
-        zipOut.close();
-      }
-      if (zipFile != null) {
-        zipFile.close();
-      }
     }
   }
 

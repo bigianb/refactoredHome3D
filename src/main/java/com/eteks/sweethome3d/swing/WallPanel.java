@@ -19,44 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.eteks.sweethome3d.model.HomeTexture;
 import com.eteks.sweethome3d.model.TextureImage;
 import com.eteks.sweethome3d.model.UserPreferences;
@@ -66,6 +28,14 @@ import com.eteks.sweethome3d.viewcontroller.BaseboardChoiceController;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.WallController;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wall editing panel.
@@ -150,20 +120,16 @@ public class WallPanel extends JPanel implements DialogView {
     this.xStartSpinner = new NullableSpinner(xStartSpinnerModel);
     xStartSpinnerModel.setNullable(controller.getXStart() == null);
     xStartSpinnerModel.setLength(controller.getXStart());
-    final PropertyChangeListener xStartChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          xStartSpinnerModel.setNullable(ev.getNewValue() == null);
-          xStartSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener xStartChangeListener = ev -> {
+      xStartSpinnerModel.setNullable(ev.getNewValue() == null);
+      xStartSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.X_START, xStartChangeListener);
-    xStartSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.X_START, xStartChangeListener);
-          controller.setXStart(xStartSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.X_START, xStartChangeListener);
-        }
-      });
+    xStartSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.X_START, xStartChangeListener);
+      controller.setXStart(xStartSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.X_START, xStartChangeListener);
+    });
     
     // Create Y start label and its spinner bound to Y_START controller property
     this.yStartLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -173,20 +139,16 @@ public class WallPanel extends JPanel implements DialogView {
     this.yStartSpinner = new NullableSpinner(yStartSpinnerModel);
     yStartSpinnerModel.setNullable(controller.getYStart() == null);
     yStartSpinnerModel.setLength(controller.getYStart());
-    final PropertyChangeListener yStartChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          yStartSpinnerModel.setNullable(ev.getNewValue() == null);
-          yStartSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener yStartChangeListener = ev -> {
+      yStartSpinnerModel.setNullable(ev.getNewValue() == null);
+      yStartSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.Y_START, yStartChangeListener);
-    yStartSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.Y_START, yStartChangeListener);
-          controller.setYStart(yStartSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.Y_START, yStartChangeListener);
-        }
-      });
+    yStartSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.Y_START, yStartChangeListener);
+      controller.setYStart(yStartSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.Y_START, yStartChangeListener);
+    });
     
     // Create X end label and its spinner bound to X_END controller property
     this.xEndLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -196,20 +158,16 @@ public class WallPanel extends JPanel implements DialogView {
     this.xEndSpinner = new NullableSpinner(xEndSpinnerModel);
     xEndSpinnerModel.setNullable(controller.getXEnd() == null);
     xEndSpinnerModel.setLength(controller.getXEnd());
-    final PropertyChangeListener xEndChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          xEndSpinnerModel.setNullable(ev.getNewValue() == null);
-          xEndSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener xEndChangeListener = ev -> {
+      xEndSpinnerModel.setNullable(ev.getNewValue() == null);
+      xEndSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.X_END, xEndChangeListener);
-    xEndSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.X_END, xEndChangeListener);
-          controller.setXEnd(xEndSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.X_END, xEndChangeListener);
-        }
-      });
+    xEndSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.X_END, xEndChangeListener);
+      controller.setXEnd(xEndSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.X_END, xEndChangeListener);
+    });
     
     // Create Y end label and its spinner bound to Y_END controller property
     this.yEndLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -219,20 +177,16 @@ public class WallPanel extends JPanel implements DialogView {
     this.yEndSpinner = new NullableSpinner(yEndSpinnerModel);
     yEndSpinnerModel.setNullable(controller.getYEnd() == null);
     yEndSpinnerModel.setLength(controller.getYEnd());
-    final PropertyChangeListener yEndChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          yEndSpinnerModel.setNullable(ev.getNewValue() == null);
-          yEndSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener yEndChangeListener = ev -> {
+      yEndSpinnerModel.setNullable(ev.getNewValue() == null);
+      yEndSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.Y_END, yEndChangeListener);
-    yEndSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.Y_END, yEndChangeListener);
-          controller.setYEnd(yEndSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.Y_END, yEndChangeListener);
-        }
-      });
+    yEndSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.Y_END, yEndChangeListener);
+      controller.setYEnd(yEndSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.Y_END, yEndChangeListener);
+    });
 
     // Create distance to end point label and its spinner bound to DISTANCE_TO_END_POINT controller property
     this.distanceToEndPointLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -243,68 +197,50 @@ public class WallPanel extends JPanel implements DialogView {
     this.distanceToEndPointSpinner = new NullableSpinner(distanceToEndPointSpinnerModel);
     distanceToEndPointSpinnerModel.setNullable(controller.getLength() == null);
     distanceToEndPointSpinnerModel.setLength(controller.getDistanceToEndPoint());
-    final PropertyChangeListener distanceToEndPointChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          distanceToEndPointSpinnerModel.setNullable(ev.getNewValue() == null);
-          distanceToEndPointSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener distanceToEndPointChangeListener = ev -> {
+      distanceToEndPointSpinnerModel.setNullable(ev.getNewValue() == null);
+      distanceToEndPointSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.DISTANCE_TO_END_POINT, 
         distanceToEndPointChangeListener);
-    distanceToEndPointSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.DISTANCE_TO_END_POINT, 
-              distanceToEndPointChangeListener);
-          controller.setDistanceToEndPoint(distanceToEndPointSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.DISTANCE_TO_END_POINT, 
-              distanceToEndPointChangeListener);
-        }
-      });
+    distanceToEndPointSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.DISTANCE_TO_END_POINT,
+          distanceToEndPointChangeListener);
+      controller.setDistanceToEndPoint(distanceToEndPointSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.DISTANCE_TO_END_POINT,
+          distanceToEndPointChangeListener);
+    });
 
     // Left side color and texture buttons bound to left side controller properties
     this.leftSideColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "leftSideColorRadioButton.text"));
-    this.leftSideColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (leftSideColorRadioButton.isSelected()) {
-            controller.setLeftSidePaint(WallController.WallPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateLeftSideColorRadioButtons(controller);
-          }
-        });
+    this.leftSideColorRadioButton.addChangeListener(ev -> {
+      if (leftSideColorRadioButton.isSelected()) {
+        controller.setLeftSidePaint(WallController.WallPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_PAINT,
+            ev -> updateLeftSideColorRadioButtons(controller));
     
     this.leftSideColorButton = new ColorButton(preferences);
     this.leftSideColorButton.setColorDialogTitle(preferences.getLocalizedString(
         WallPanel.class, "leftSideColorDialog.title"));
     this.leftSideColorButton.setColor(controller.getLeftSideColor());
-    this.leftSideColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setLeftSideColor(leftSideColorButton.getColor());
-            controller.setLeftSidePaint(WallController.WallPaint.COLORED);
-          }
-        });
-    controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            leftSideColorButton.setColor(controller.getLeftSideColor());
-          }
-        });
+    this.leftSideColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> {
+              controller.setLeftSideColor(leftSideColorButton.getColor());
+              controller.setLeftSidePaint(WallController.WallPaint.COLORED);
+            });
+    controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_COLOR,
+            ev -> leftSideColorButton.setColor(controller.getLeftSideColor()));
 
     this.leftSideTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "leftSideTextureRadioButton.text"));
-    this.leftSideTextureRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (leftSideTextureRadioButton.isSelected()) {
-            controller.setLeftSidePaint(WallController.WallPaint.TEXTURED);
-          }
-        }
-      });
+    this.leftSideTextureRadioButton.addChangeListener(ev -> {
+      if (leftSideTextureRadioButton.isSelected()) {
+        controller.setLeftSidePaint(WallController.WallPaint.TEXTURED);
+      }
+    });
     
     this.leftSideTextureComponent = (JComponent)controller.getLeftSideTextureController().getView();
 
@@ -316,30 +252,22 @@ public class WallPanel extends JPanel implements DialogView {
     // Left side shininess radio buttons bound to LEFT_SIDE_SHININESS controller property
     this.leftSideMattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "leftSideMattRadioButton.text"));
-    this.leftSideMattRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (leftSideMattRadioButton.isSelected()) {
-            controller.setLeftSideShininess(0f);
-          }
-        }
-      });
-    PropertyChangeListener leftSideShininessListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          updateLeftSideShininessRadioButtons(controller);
-        }
-      };
+    this.leftSideMattRadioButton.addChangeListener(ev -> {
+      if (leftSideMattRadioButton.isSelected()) {
+        controller.setLeftSideShininess(0f);
+      }
+    });
+    PropertyChangeListener leftSideShininessListener = ev -> updateLeftSideShininessRadioButtons(controller);
     controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_SHININESS, 
         leftSideShininessListener);
 
     this.leftSideShinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "leftSideShinyRadioButton.text"));
-    this.leftSideShinyRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (leftSideShinyRadioButton.isSelected()) {
-            controller.setLeftSideShininess(0.25f);
-          }
-        }
-      });
+    this.leftSideShinyRadioButton.addChangeListener(ev -> {
+      if (leftSideShinyRadioButton.isSelected()) {
+        controller.setLeftSideShininess(0.25f);
+      }
+    });
     controller.addPropertyChangeListener(WallController.Property.LEFT_SIDE_SHININESS, 
         leftSideShininessListener);
     
@@ -361,47 +289,33 @@ public class WallPanel extends JPanel implements DialogView {
     // Right side color and texture buttons bound to right side controller properties
     this.rightSideColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "rightSideColorRadioButton.text"));
-    this.rightSideColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          if (rightSideColorRadioButton.isSelected()) {
-            controller.setRightSidePaint(WallController.WallPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateRightSideColorRadioButtons(controller);
-          }
-        });
+    this.rightSideColorRadioButton.addChangeListener(e -> {
+      if (rightSideColorRadioButton.isSelected()) {
+        controller.setRightSidePaint(WallController.WallPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_PAINT,
+            ev -> updateRightSideColorRadioButtons(controller));
 
     this.rightSideColorButton = new ColorButton(preferences);
     this.rightSideColorButton.setColor(controller.getRightSideColor());
     this.rightSideColorButton.setColorDialogTitle(preferences.getLocalizedString(
         WallPanel.class, "rightSideColorDialog.title"));
-    this.rightSideColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setRightSideColor(rightSideColorButton.getColor());
-            controller.setRightSidePaint(WallController.WallPaint.COLORED);
-          }
-        });
-    controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            rightSideColorButton.setColor(controller.getRightSideColor());
-          }
-        });
+    this.rightSideColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> {
+              controller.setRightSideColor(rightSideColorButton.getColor());
+              controller.setRightSidePaint(WallController.WallPaint.COLORED);
+            });
+    controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_COLOR,
+            ev -> rightSideColorButton.setColor(controller.getRightSideColor()));
     
     this.rightSideTextureRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "rightSideTextureRadioButton.text"));
-    this.rightSideTextureRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          if (rightSideTextureRadioButton.isSelected()) {
-            controller.setRightSidePaint(WallController.WallPaint.TEXTURED);
-          }
-        }
-      });
+    this.rightSideTextureRadioButton.addChangeListener(e -> {
+      if (rightSideTextureRadioButton.isSelected()) {
+        controller.setRightSidePaint(WallController.WallPaint.TEXTURED);
+      }
+    });
   
     this.rightSideTextureComponent = (JComponent)controller.getRightSideTextureController().getView();
 
@@ -413,30 +327,22 @@ public class WallPanel extends JPanel implements DialogView {
     // Right side shininess radio buttons bound to LEFT_SIDE_SHININESS controller property
     this.rightSideMattRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "rightSideMattRadioButton.text"));
-    this.rightSideMattRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (rightSideMattRadioButton.isSelected()) {
-            controller.setRightSideShininess(0f);
-          }
-        }
-      });
-    PropertyChangeListener rightSideShininessListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          updateRightSideShininessRadioButtons(controller);
-        }
-      };
+    this.rightSideMattRadioButton.addChangeListener(ev -> {
+      if (rightSideMattRadioButton.isSelected()) {
+        controller.setRightSideShininess(0f);
+      }
+    });
+    PropertyChangeListener rightSideShininessListener = ev -> updateRightSideShininessRadioButtons(controller);
     controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_SHININESS, 
         rightSideShininessListener);
 
     this.rightSideShinyRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "rightSideShinyRadioButton.text"));
-    this.rightSideShinyRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (rightSideShinyRadioButton.isSelected()) {
-            controller.setRightSideShininess(0.25f);
-          }
-        }
-      });
+    this.rightSideShinyRadioButton.addChangeListener(ev -> {
+      if (rightSideShinyRadioButton.isSelected()) {
+        controller.setRightSideShininess(0.25f);
+      }
+    });
     controller.addPropertyChangeListener(WallController.Property.RIGHT_SIDE_SHININESS, 
         rightSideShininessListener);
     
@@ -497,61 +403,39 @@ public class WallPanel extends JPanel implements DialogView {
         }
       });
     this.patternComboBox.setSelectedItem(controller.getPattern());
-    this.patternComboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          controller.setPattern((TextureImage)patternComboBox.getSelectedItem());
-        }
-      });
-    controller.addPropertyChangeListener(WallController.Property.PATTERN, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            patternComboBox.setSelectedItem(controller.getPattern());
-          }
-        });
+    this.patternComboBox.addItemListener(ev -> controller.setPattern((TextureImage)patternComboBox.getSelectedItem()));
+    controller.addPropertyChangeListener(WallController.Property.PATTERN,
+            ev -> patternComboBox.setSelectedItem(controller.getPattern()));
     
     this.topColorLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "topColorLabel.text"));
     this.topDefaultColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "topDefaultColorRadioButton.text"));
-    this.topDefaultColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (topDefaultColorRadioButton.isSelected()) {
-            controller.setTopPaint(WallController.WallPaint.DEFAULT);
-          }
-        }
-      });
+    this.topDefaultColorRadioButton.addChangeListener(ev -> {
+      if (topDefaultColorRadioButton.isSelected()) {
+        controller.setTopPaint(WallController.WallPaint.DEFAULT);
+      }
+    });
     this.topColorRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "topColorRadioButton.text"));
-    this.topColorRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (topColorRadioButton.isSelected()) {
-            controller.setTopPaint(WallController.WallPaint.COLORED);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(WallController.Property.TOP_PAINT, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateTopColorRadioButtons(controller);
-          }
-        });
+    this.topColorRadioButton.addChangeListener(ev -> {
+      if (topColorRadioButton.isSelected()) {
+        controller.setTopPaint(WallController.WallPaint.COLORED);
+      }
+    });
+    controller.addPropertyChangeListener(WallController.Property.TOP_PAINT,
+            ev -> updateTopColorRadioButtons(controller));
     this.topColorButton = new ColorButton(preferences);
     this.topColorButton.setColorDialogTitle(preferences.getLocalizedString(
         WallPanel.class, "topColorDialog.title"));
     this.topColorButton.setColor(controller.getTopColor());
-    this.topColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            controller.setTopColor(topColorButton.getColor());
-            controller.setTopPaint(WallController.WallPaint.COLORED);
-          }
-        });
-    controller.addPropertyChangeListener(WallController.Property.TOP_COLOR, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            topColorButton.setColor(controller.getTopColor());
-          }
-        });
+    this.topColorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY,
+            ev -> {
+              controller.setTopColor(topColorButton.getColor());
+              controller.setTopPaint(WallController.WallPaint.COLORED);
+            });
+    controller.addPropertyChangeListener(WallController.Property.TOP_COLOR,
+            ev -> topColorButton.setColor(controller.getTopColor()));
     
     ButtonGroup topColorGroup = new ButtonGroup();
     topColorGroup.add(this.topDefaultColorRadioButton);
@@ -561,19 +445,13 @@ public class WallPanel extends JPanel implements DialogView {
     // Create height label and its spinner bound to RECTANGULAR_WALL_HEIGHT controller property
     this.rectangularWallRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "rectangularWallRadioButton.text"));
-    this.rectangularWallRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (rectangularWallRadioButton.isSelected()) {
-            controller.setShape(WallController.WallShape.RECTANGULAR_WALL);
-          }
-        }
-      });
-    controller.addPropertyChangeListener(WallController.Property.SHAPE, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            updateWallShapeRadioButtons(controller);
-          }
-        });
+    this.rectangularWallRadioButton.addChangeListener(ev -> {
+      if (rectangularWallRadioButton.isSelected()) {
+        controller.setShape(WallController.WallShape.RECTANGULAR_WALL);
+      }
+    });
+    controller.addPropertyChangeListener(WallController.Property.SHAPE,
+            ev -> updateWallShapeRadioButtons(controller));
 
     this.rectangularWallHeightLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
             WallPanel.class, "rectangularWallHeightLabel.text", unitName));
@@ -582,33 +460,27 @@ public class WallPanel extends JPanel implements DialogView {
     this.rectangularWallHeightSpinner = new NullableSpinner(rectangularWallHeightSpinnerModel);
     rectangularWallHeightSpinnerModel.setNullable(controller.getRectangularWallHeight() == null);
     rectangularWallHeightSpinnerModel.setLength(controller.getRectangularWallHeight());
-    final PropertyChangeListener rectangularWallHeightChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          rectangularWallHeightSpinnerModel.setNullable(ev.getNewValue() == null);
-          rectangularWallHeightSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener rectangularWallHeightChangeListener = ev -> {
+      rectangularWallHeightSpinnerModel.setNullable(ev.getNewValue() == null);
+      rectangularWallHeightSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.RECTANGULAR_WALL_HEIGHT, 
         rectangularWallHeightChangeListener);
-    rectangularWallHeightSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.RECTANGULAR_WALL_HEIGHT, 
-              rectangularWallHeightChangeListener);
-          controller.setRectangularWallHeight(rectangularWallHeightSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.RECTANGULAR_WALL_HEIGHT, 
-              rectangularWallHeightChangeListener);
-        }
-      });
+    rectangularWallHeightSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.RECTANGULAR_WALL_HEIGHT,
+          rectangularWallHeightChangeListener);
+      controller.setRectangularWallHeight(rectangularWallHeightSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.RECTANGULAR_WALL_HEIGHT,
+          rectangularWallHeightChangeListener);
+    });
    
     this.slopingWallRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "slopingWallRadioButton.text"));
-    this.slopingWallRadioButton.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          if (slopingWallRadioButton.isSelected()) {
-            controller.setShape(WallController.WallShape.SLOPING_WALL);
-          }
-        }
-      });
+    this.slopingWallRadioButton.addChangeListener(ev -> {
+      if (slopingWallRadioButton.isSelected()) {
+        controller.setShape(WallController.WallShape.SLOPING_WALL);
+      }
+    });
     ButtonGroup wallHeightButtonGroup = new ButtonGroup();
     wallHeightButtonGroup.add(this.rectangularWallRadioButton);
     wallHeightButtonGroup.add(this.slopingWallRadioButton);
@@ -622,23 +494,19 @@ public class WallPanel extends JPanel implements DialogView {
     this.slopingWallHeightAtStartSpinner = new NullableSpinner(slopingWallHeightAtStartSpinnerModel);
     slopingWallHeightAtStartSpinnerModel.setNullable(controller.getSlopingWallHeightAtStart() == null);
     slopingWallHeightAtStartSpinnerModel.setLength(controller.getSlopingWallHeightAtStart());
-    final PropertyChangeListener slopingWallHeightAtStartChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          slopingWallHeightAtStartSpinnerModel.setNullable(ev.getNewValue() == null);
-          slopingWallHeightAtStartSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener slopingWallHeightAtStartChangeListener = ev -> {
+      slopingWallHeightAtStartSpinnerModel.setNullable(ev.getNewValue() == null);
+      slopingWallHeightAtStartSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_START, 
         slopingWallHeightAtStartChangeListener);
-    slopingWallHeightAtStartSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_START, 
-              slopingWallHeightAtStartChangeListener);
-          controller.setSlopingWallHeightAtStart(slopingWallHeightAtStartSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_START, 
-              slopingWallHeightAtStartChangeListener);
-        }
-      });
+    slopingWallHeightAtStartSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_START,
+          slopingWallHeightAtStartChangeListener);
+      controller.setSlopingWallHeightAtStart(slopingWallHeightAtStartSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_START,
+          slopingWallHeightAtStartChangeListener);
+    });
     
     // Create height at end label and its spinner bound to SLOPING_WALL_HEIGHT_AT_END controller property
     this.slopingWallHeightAtEndLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -648,23 +516,19 @@ public class WallPanel extends JPanel implements DialogView {
     this.slopingWallHeightAtEndSpinner = new NullableSpinner(slopingWallHeightAtEndSpinnerModel);
     slopingWallHeightAtEndSpinnerModel.setNullable(controller.getSlopingWallHeightAtEnd() == null);
     slopingWallHeightAtEndSpinnerModel.setLength(controller.getSlopingWallHeightAtEnd());
-    final PropertyChangeListener slopingWallHeightAtEndChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          slopingWallHeightAtEndSpinnerModel.setNullable(ev.getNewValue() == null);
-          slopingWallHeightAtEndSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener slopingWallHeightAtEndChangeListener = ev -> {
+      slopingWallHeightAtEndSpinnerModel.setNullable(ev.getNewValue() == null);
+      slopingWallHeightAtEndSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_END, 
         slopingWallHeightAtEndChangeListener);
-    slopingWallHeightAtEndSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_END, 
-              slopingWallHeightAtEndChangeListener);
-          controller.setSlopingWallHeightAtEnd(slopingWallHeightAtEndSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_END, 
-              slopingWallHeightAtEndChangeListener);
-        }
-      });
+    slopingWallHeightAtEndSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_END,
+          slopingWallHeightAtEndChangeListener);
+      controller.setSlopingWallHeightAtEnd(slopingWallHeightAtEndSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.SLOPING_WALL_HEIGHT_AT_END,
+          slopingWallHeightAtEndChangeListener);
+    });
 
     // Create thickness label and its spinner bound to THICKNESS controller property
     this.thicknessLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
@@ -674,49 +538,41 @@ public class WallPanel extends JPanel implements DialogView {
     this.thicknessSpinner = new NullableSpinner(thicknessSpinnerModel);
     thicknessSpinnerModel.setNullable(controller.getThickness() == null);
     thicknessSpinnerModel.setLength(controller.getThickness());
-    final PropertyChangeListener thicknessChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          thicknessSpinnerModel.setNullable(ev.getNewValue() == null);
-          thicknessSpinnerModel.setLength((Float)ev.getNewValue());
-        }
-      };
+    final PropertyChangeListener thicknessChangeListener = ev -> {
+      thicknessSpinnerModel.setNullable(ev.getNewValue() == null);
+      thicknessSpinnerModel.setLength((Float)ev.getNewValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.THICKNESS, 
         thicknessChangeListener);
-    thicknessSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.THICKNESS, 
-              thicknessChangeListener);
-          controller.setThickness(thicknessSpinnerModel.getLength());
-          controller.addPropertyChangeListener(WallController.Property.THICKNESS, 
-              thicknessChangeListener);
-        }
-      });
+    thicknessSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.THICKNESS,
+          thicknessChangeListener);
+      controller.setThickness(thicknessSpinnerModel.getLength());
+      controller.addPropertyChangeListener(WallController.Property.THICKNESS,
+          thicknessChangeListener);
+    });
     
     // Create arc extent label and its spinner bound to ARC_EXTENT_IN_DEGREES controller property
     this.arcExtentLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
         WallPanel.class, "arcExtentLabel.text", unitName));
     final NullableSpinner.NullableSpinnerNumberModel arcExtentSpinnerModel = 
-        new NullableSpinner.NullableSpinnerNumberModel(new Float(0), new Float(-270), new Float(270), new Float(5));
+        new NullableSpinner.NullableSpinnerNumberModel((float) 0, (float) -270, 270f, 5f);
     this.arcExtentSpinner = new NullableSpinner(arcExtentSpinnerModel);
     arcExtentSpinnerModel.setNullable(controller.getArcExtentInDegrees() == null);
     arcExtentSpinnerModel.setValue(controller.getArcExtentInDegrees());
-    final PropertyChangeListener arcExtentChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          arcExtentSpinnerModel.setNullable(ev.getNewValue() == null);
-          arcExtentSpinnerModel.setValue(((Number)ev.getNewValue()).floatValue());
-        }
-      };
+    final PropertyChangeListener arcExtentChangeListener = ev -> {
+      arcExtentSpinnerModel.setNullable(ev.getNewValue() == null);
+      arcExtentSpinnerModel.setValue(((Number)ev.getNewValue()).floatValue());
+    };
     controller.addPropertyChangeListener(WallController.Property.ARC_EXTENT_IN_DEGREES, 
         arcExtentChangeListener);
-    arcExtentSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          controller.removePropertyChangeListener(WallController.Property.ARC_EXTENT_IN_DEGREES, 
-              arcExtentChangeListener);
-          controller.setArcExtentInDegrees(((Number)arcExtentSpinnerModel.getValue()).floatValue());
-          controller.addPropertyChangeListener(WallController.Property.ARC_EXTENT_IN_DEGREES, 
-              arcExtentChangeListener);
-        }
-      });
+    arcExtentSpinnerModel.addChangeListener(ev -> {
+      controller.removePropertyChangeListener(WallController.Property.ARC_EXTENT_IN_DEGREES,
+          arcExtentChangeListener);
+      controller.setArcExtentInDegrees(((Number)arcExtentSpinnerModel.getValue()).floatValue());
+      controller.addPropertyChangeListener(WallController.Property.ARC_EXTENT_IN_DEGREES,
+          arcExtentChangeListener);
+    });
     
     // wallOrientationLabel shows an HTML explanation of wall orientation with an image URL in resource
     this.wallOrientationLabel = new JLabel(preferences.getLocalizedString(
@@ -1075,15 +931,13 @@ public class WallPanel extends JPanel implements DialogView {
         GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
 
     // Make startPointPanel and endPointPanel visible depending on editable points property
-    controller.addPropertyChangeListener(WallController.Property.EDITABLE_POINTS, 
-        new PropertyChangeListener() {
-          public void propertyChange(PropertyChangeEvent ev) {
-            startPointPanel.setVisible(controller.isEditablePoints());
-            endPointPanel.setVisible(controller.isEditablePoints());
-            arcExtentLabel.setVisible(controller.isEditablePoints());
-            arcExtentSpinner.setVisible(controller.isEditablePoints());
-          }
-        });
+    controller.addPropertyChangeListener(WallController.Property.EDITABLE_POINTS,
+            ev -> {
+              startPointPanel.setVisible(controller.isEditablePoints());
+              endPointPanel.setVisible(controller.isEditablePoints());
+              arcExtentLabel.setVisible(controller.isEditablePoints());
+              arcExtentSpinner.setVisible(controller.isEditablePoints());
+            });
     startPointPanel.setVisible(controller.isEditablePoints());
     endPointPanel.setVisible(controller.isEditablePoints());
     this.arcExtentLabel.setVisible(controller.isEditablePoints());

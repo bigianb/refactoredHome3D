@@ -73,7 +73,7 @@ public class FurnitureCatalogController implements Controller {
     this.preferences = preferences;
     this.viewFactory = viewFactory;
     this.contentManager = contentManager;
-    this.selectionListeners = new ArrayList<SelectionListener>();
+    this.selectionListeners = new ArrayList<>();
     this.selectedFurniture  = Collections.emptyList();
     
     this.catalog.addFurnitureListener(new FurnitureCatalogChangeListener(this));
@@ -90,7 +90,7 @@ public class FurnitureCatalogController implements Controller {
     private WeakReference<FurnitureCatalogController> furnitureCatalogController;
     
     public FurnitureCatalogChangeListener(FurnitureCatalogController furnitureCatalogController) {
-      this.furnitureCatalogController = new WeakReference<FurnitureCatalogController>(furnitureCatalogController);
+      this.furnitureCatalogController = new WeakReference<>(furnitureCatalogController);
     }
     
     public void collectionChanged(CollectionEvent<CatalogPieceOfFurniture> ev) {
@@ -111,7 +111,7 @@ public class FurnitureCatalogController implements Controller {
     private WeakReference<FurnitureCatalogController> controller;
 
     public FurnitureCatalogViewChangeListener(FurnitureCatalogController controller) {
-      this.controller = new WeakReference<FurnitureCatalogController>(controller);
+      this.controller = new WeakReference<>(controller);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {
@@ -164,13 +164,13 @@ public class FurnitureCatalogController implements Controller {
    * Updates the selected furniture in catalog and notifies listeners selection change.
    */
   public void setSelectedFurniture(List<CatalogPieceOfFurniture> selectedFurniture) {
-    this.selectedFurniture = new ArrayList<CatalogPieceOfFurniture>(selectedFurniture);
+    this.selectedFurniture = new ArrayList<>(selectedFurniture);
     if (!this.selectionListeners.isEmpty()) {
       SelectionEvent selectionEvent = new SelectionEvent(this, getSelectedFurniture());
       // Work on a copy of selectionListeners to ensure a listener 
       // can modify safely listeners list
       SelectionListener [] listeners = this.selectionListeners.
-        toArray(new SelectionListener [this.selectionListeners.size()]);
+        toArray(new SelectionListener[0]);
       for (SelectionListener listener : listeners) {
         listener.selectionChanged(selectionEvent);
       }
@@ -183,8 +183,8 @@ public class FurnitureCatalogController implements Controller {
   private void deselectPieceOfFurniture(CatalogPieceOfFurniture piece) {
     int pieceSelectionIndex = this.selectedFurniture.indexOf(piece);
     if (pieceSelectionIndex != -1) {
-      List<CatalogPieceOfFurniture> selectedItems = 
-          new ArrayList<CatalogPieceOfFurniture>(getSelectedFurniture());
+      List<CatalogPieceOfFurniture> selectedItems =
+              new ArrayList<>(getSelectedFurniture());
       selectedItems.remove(pieceSelectionIndex);
       setSelectedFurniture(selectedItems);
     }
@@ -213,7 +213,7 @@ public class FurnitureCatalogController implements Controller {
    * Listener that keeps track of the furniture added to catalog.
    */
   private class AddedFurnitureSelector implements CollectionListener<CatalogPieceOfFurniture> {
-    private List<CatalogPieceOfFurniture> addedFurniture = new ArrayList<CatalogPieceOfFurniture>();
+    private List<CatalogPieceOfFurniture> addedFurniture = new ArrayList<>();
 
     public void collectionChanged(CollectionEvent<CatalogPieceOfFurniture> ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {

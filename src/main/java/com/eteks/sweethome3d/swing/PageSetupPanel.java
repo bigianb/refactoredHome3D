@@ -19,43 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.print.PageFormat;
-import java.awt.print.Paper;
-import java.awt.print.PrinterJob;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.security.AccessControlException;
-
-import javax.swing.ActionMap;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
 import com.eteks.sweethome3d.j3d.Component3DManager;
 import com.eteks.sweethome3d.model.HomePrint;
 import com.eteks.sweethome3d.model.UserPreferences;
@@ -64,6 +27,20 @@ import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.PageSetupController;
 import com.eteks.sweethome3d.viewcontroller.View;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.ItemListener;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.PrinterJob;
+import java.beans.PropertyChangeListener;
+import java.security.AccessControlException;
 
 /**
  * Home page setup editing panel.
@@ -197,46 +174,26 @@ public class PageSetupPanel extends JPanel implements DialogView {
     
     updateComponents(controller.getPrint());    
 
-    final PropertyChangeListener printChangeListener = new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent ev) {
-        updateComponents(controller.getPrint());
-      }
-    };
-    this.pageFormatButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          // Show the page setup dialog
-          PrinterJob printerJob = PrinterJob.getPrinterJob();
-          pageFormat = printerJob.pageDialog(pageFormat);
-          updateController(controller);
-        }
-      });
-    ItemListener itemListener = new ItemListener() {
-        public void itemStateChanged(ItemEvent ev) {
-          updateController(controller);
-        }
-      };
+    final PropertyChangeListener printChangeListener = ev -> updateComponents(controller.getPrint());
+    this.pageFormatButton.addActionListener(ev -> {
+      // Show the page setup dialog
+      PrinterJob printerJob = PrinterJob.getPrinterJob();
+      pageFormat = printerJob.pageDialog(pageFormat);
+      updateController(controller);
+    });
+    ItemListener itemListener = ev -> updateController(controller);
     this.furniturePrintedCheckBox.addItemListener(itemListener);
     this.planPrintedCheckBox.addItemListener(itemListener);
-    userPlanScaleSpinnerModel.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          updateController(controller);
-        }
-      });
-    this.bestFitPlanScaleRadioButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          updateController(controller);
-        }
-      });
-    this.userPlanScaleRadioButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          if (userPlanScaleRadioButton.isSelected() 
-              && userPlanScaleSpinnerModel.getValue() == null) {
-            userPlanScaleSpinnerModel.setValue(DEFAULT_SCALE);
-          } else {
-            updateController(controller);
-          }
-        }
-      });    
+    userPlanScaleSpinnerModel.addChangeListener(ev -> updateController(controller));
+    this.bestFitPlanScaleRadioButton.addActionListener(ev -> updateController(controller));
+    this.userPlanScaleRadioButton.addActionListener(ev -> {
+      if (userPlanScaleRadioButton.isSelected()
+          && userPlanScaleSpinnerModel.getValue() == null) {
+        userPlanScaleSpinnerModel.setValue(DEFAULT_SCALE);
+      } else {
+        updateController(controller);
+      }
+    });
     this.view3DPrintedCheckBox.addItemListener(itemListener);
     controller.addPropertyChangeListener(PageSetupController.Property.PRINT, printChangeListener);
     
@@ -314,7 +271,7 @@ public class PageSetupPanel extends JPanel implements DialogView {
       this.view3DPrintedCheckBox.setSelected(homePrint.isView3DPrinted() && offscreenCanvas3DSupported);
       userPlanScaleSpinnerModel.setNullable(homePrint.getPlanScale() == null);
       userPlanScaleSpinnerModel.setValue(homePrint.getPlanScale() != null
-          ? new Integer(Math.round(1 / homePrint.getPlanScale()))
+          ? Math.round(1 / homePrint.getPlanScale())
           : null);
       String headerFormat = homePrint.getHeaderFormat();
       this.headerFormatTextField.setText(headerFormat != null ? headerFormat : "");

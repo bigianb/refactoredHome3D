@@ -19,38 +19,27 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Stroke;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import com.eteks.sweethome3d.model.Content;
+import com.eteks.sweethome3d.model.Polyline;
+import com.eteks.sweethome3d.model.TextureImage;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import javax.jnlp.BasicService;
+import javax.jnlp.ServiceManager;
+import javax.jnlp.UnavailableServiceException;
+import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.border.AbstractBorder;
+import javax.swing.border.Border;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
@@ -59,57 +48,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.AccessControlException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.jnlp.BasicService;
-import javax.jnlp.ServiceManager;
-import javax.jnlp.UnavailableServiceException;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JToggleButton;
-import javax.swing.JToolTip;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.Border;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.text.JTextComponent;
-
-import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.Polyline;
-import com.eteks.sweethome3d.model.TextureImage;
-import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.tools.OperatingSystem;
 
 /**
  * Gathers some useful tools for Swing.
@@ -405,23 +346,17 @@ public class SwingTools {
 
       public void focusGained(FocusEvent ev) {
         if (this.selectionStartBeforeFocusLost != -1) {
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                // Reselect the same characters in text field
-                textComponent.setSelectionStart(selectionStartBeforeFocusLost);
-                textComponent.setSelectionEnd(selectionEndBeforeFocusLost);
-              }
-            });
+          EventQueue.invokeLater(() -> {
+            // Reselect the same characters in text field
+            textComponent.setSelectionStart(selectionStartBeforeFocusLost);
+            textComponent.setSelectionEnd(selectionEndBeforeFocusLost);
+          });
         } else if (!this.mousePressedInTextField
                    && ev.getOppositeComponent() != null
                    && SwingUtilities.getWindowAncestor(ev.getOppositeComponent())
                        == SwingUtilities.getWindowAncestor(textComponent)) {
-          EventQueue.invokeLater(new Runnable() {
-              public void run() {
-                // Select all characters when text field got the focus because of a transfer
-                textComponent.selectAll();
-              }
-            });
+          // Select all characters when text field got the focus because of a transfer
+          EventQueue.invokeLater(textComponent::selectAll);
         }
         this.mousePressedInTextField = false;
       }
@@ -438,7 +373,7 @@ public class SwingTools {
   public static void deselectAllRadioButtons(JRadioButton ... radioButtons) {
     for (JRadioButton radioButton : radioButtons) {
       if (radioButton != null) {
-        ButtonGroup group = ((JToggleButton.ToggleButtonModel)radioButton.getModel()).getGroup();
+        ButtonGroup group = radioButton.getModel().getGroup();
         group.remove(radioButton);
         radioButton.setSelected(false);
         group.add(radioButton);
@@ -488,12 +423,10 @@ public class SwingTools {
     if (!focusedComponent.requestFocusInWindow()) {
       // Prefer to call requestFocusInWindow in a timer with a small delay
       // than calling it with EnventQueue#invokeLater to ensure it always works
-      new Timer(50, new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            focusedComponent.requestFocusInWindow();
-            ((Timer)ev.getSource()).stop();
-          }
-        }).start();
+      new Timer(50, ev -> {
+        focusedComponent.requestFocusInWindow();
+        ((Timer)ev.getSource()).stop();
+      }).start();
     }
   }
 
@@ -534,7 +467,7 @@ public class SwingTools {
                                               Color backgroundColor,
                                               Color foregroundColor) {
     if (patternImages == null) {
-      patternImages = new HashMap<TextureImage, BufferedImage>();
+      patternImages = new HashMap<>();
     }
     BufferedImage image = new BufferedImage(
         (int)pattern.getWidth(), (int)pattern.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -605,45 +538,37 @@ public class SwingTools {
       splashScreenWindow.setLocationRelativeTo(null);
       splashScreenWindow.setVisible(true);
 
-      Executors.newSingleThreadExecutor().execute(new Runnable() {
-          public void run() {
-            try {
-              Thread.sleep(500);
-              while (splashScreenWindow.isVisible()) {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                      // If a JFrame or JDialog is showing, dispose splash window
-                      try {
-                        for (Window window : (Window[])Window.class.getMethod("getWindows").invoke(null)) {
-                          if ((window instanceof JFrame || window instanceof JDialog)
-                              && window.isShowing()) {
-                            splashScreenWindow.dispose();
-                            break;
-                          }
-                        }
-                      } catch (Exception ex) {
-                        // Even if splash screen will disappear quicker,
-                        // use Frame#getFrames under Java 1.5 where Window#getWindows doesn't exist
-                        for (Frame frame : Frame.getFrames()) {
-                          if (frame.isShowing()) {
-                            splashScreenWindow.dispose();
-                            break;
-                          }
-                        }
-                      }
-                    }
-                  });
-                Thread.sleep(200);
-              }
-            } catch (InterruptedException ex) {
-              EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  splashScreenWindow.dispose();
+      Executors.newSingleThreadExecutor().execute(() -> {
+        try {
+          Thread.sleep(500);
+          while (splashScreenWindow.isVisible()) {
+            EventQueue.invokeLater(() -> {
+              // If a JFrame or JDialog is showing, dispose splash window
+              try {
+                for (Window window : (Window[]) Window.class.getMethod("getWindows").invoke(null)) {
+                  if ((window instanceof JFrame || window instanceof JDialog)
+                          && window.isShowing()) {
+                    splashScreenWindow.dispose();
+                    break;
+                  }
                 }
-              });
-            };
+              } catch (Exception ex) {
+                // Even if splash screen will disappear quicker,
+                // use Frame#getFrames under Java 1.5 where Window#getWindows doesn't exist
+                for (Frame frame : Frame.getFrames()) {
+                  if (frame.isShowing()) {
+                    splashScreenWindow.dispose();
+                    break;
+                  }
+                }
+              }
+            });
+            Thread.sleep(200);
           }
-        });
+        } catch (InterruptedException ex) {
+          EventQueue.invokeLater(splashScreenWindow::dispose);
+        };
+      });
     } catch (IOException ex) {
       // Ignore splash screen
     }
@@ -688,22 +613,20 @@ public class SwingTools {
    * that updates view tool tip when its vertical scroll bar is adjusted.
    */
   public static AdjustmentListener createAdjustmentListenerUpdatingScrollPaneViewToolTip(final JScrollPane scrollPane) {
-    return new AdjustmentListener() {
-        public void adjustmentValueChanged(AdjustmentEvent ev) {
-          Point screenLocation = MouseInfo.getPointerInfo().getLocation();
-          Point point = new Point(screenLocation);
-          Component view = scrollPane.getViewport().getView();
-          SwingUtilities.convertPointFromScreen(point, view);
-          if (scrollPane.isShowing()
-              && scrollPane.getViewport().getViewRect().contains(point)) {
-            MouseEvent mouseEvent = new MouseEvent(view, MouseEvent.MOUSE_MOVED, System.currentTimeMillis(),
-                0, point.x, point.y, 0, false, MouseEvent.NOBUTTON);
-            if (isToolTipShowing()) {
-              ToolTipManager.sharedInstance().mouseMoved(mouseEvent);
-            }
-          }
+    return ev -> {
+      Point screenLocation = MouseInfo.getPointerInfo().getLocation();
+      Point point = new Point(screenLocation);
+      Component view = scrollPane.getViewport().getView();
+      SwingUtilities.convertPointFromScreen(point, view);
+      if (scrollPane.isShowing()
+          && scrollPane.getViewport().getViewRect().contains(point)) {
+        MouseEvent mouseEvent = new MouseEvent(view, MouseEvent.MOUSE_MOVED, System.currentTimeMillis(),
+            0, point.x, point.y, 0, false, MouseEvent.NOBUTTON);
+        if (isToolTipShowing()) {
+          ToolTipManager.sharedInstance().mouseMoved(mouseEvent);
         }
-      };
+      }
+    };
   }
 
   /**
@@ -886,7 +809,7 @@ public class SwingTools {
    * Returns the children of a component of the given class.
    */
   public static <T extends Component> List<T> findChildren(JComponent parent, Class<T> childrenClass) {
-    List<T> children = new ArrayList<T>();
+    List<T> children = new ArrayList<>();
     findChildren(parent, childrenClass, children);
     return children;
   }

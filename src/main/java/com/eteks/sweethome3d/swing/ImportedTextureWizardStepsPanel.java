@@ -215,9 +215,7 @@ public class ImportedTextureWizardStepsPanel extends JPanel implements View {
                 break;
               }
             }
-          } catch (UnsupportedFlavorException ex) {
-            // No success
-          } catch (IOException ex) {
+          } catch (UnsupportedFlavorException | IOException ex) {
             // No success
           }
           if (!success) {

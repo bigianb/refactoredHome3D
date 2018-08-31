@@ -194,7 +194,7 @@ public class LabelController implements Controller {
 
       Float elevation = firstLabel.getElevation();
       for (int i = 1; i < selectedLabels.size(); i++) {
-        if (elevation.floatValue() != selectedLabels.get(i).getElevation()) {
+        if (elevation != selectedLabels.get(i).getElevation()) {
           elevation = null;
           break;
         }
@@ -462,7 +462,7 @@ public class LabelController implements Controller {
                                  boolean basePlanLocked) {
     home.addLabel(label);
     home.setBasePlanLocked(basePlanLocked);
-    home.setSelectedItems(Arrays.asList(new Selectable [] {label}));
+    home.setSelectedItems(Arrays.asList(label));
     home.setAllLevelsSelection(false);
   }
 

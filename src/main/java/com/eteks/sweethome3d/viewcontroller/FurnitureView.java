@@ -30,21 +30,21 @@ public interface FurnitureView extends TransferableView, ExportableView {
   /**
    * Sets the filter applied to the furniture.
    */
-  public void setFurnitureFilter(FurnitureFilter furnitureFilter);
+  void setFurnitureFilter(FurnitureFilter furnitureFilter);
 
   /**
    * Returns the filter applied to the furniture.
    */
-  public FurnitureFilter getFurnitureFilter();
+  FurnitureFilter getFurnitureFilter();
 
   /**
    * The super type used to specify how furniture should be filtered in viewed furniture.
    */
-  public static interface FurnitureFilter {
+  interface FurnitureFilter {
     /**
      * Returns <code>true</code> if the given <code>piece</code> should be shown,
      * otherwise returns <code>false</code> if the <code>piece</code> should be hidden.
      */
-    public abstract boolean include(Home home, HomePieceOfFurniture piece);
+    boolean include(Home home, HomePieceOfFurniture piece);
   }
 }

@@ -27,5 +27,5 @@ public interface DialogView extends View {
   /**
    * Displays this wizard view in a modal dialog.
    */
-  public abstract void displayView(View parentView);
+  void displayView(View parentView);
 }

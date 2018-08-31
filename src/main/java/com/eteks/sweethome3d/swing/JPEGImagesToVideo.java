@@ -48,9 +48,9 @@ import java.io.InterruptedIOException;
  * QuickTime movie.
  */
 public class JPEGImagesToVideo {
-  private Object  waitSync;
+  private final Object waitSync = new Object();
+  private final Object  waitFileSync = new Object();
   private boolean stateTransitionOK;
-  private Object  waitFileSync;
   private boolean fileDone;
   private String  fileError;
 
@@ -58,9 +58,7 @@ public class JPEGImagesToVideo {
    * Creates a video file at the given size and frame rate. 
    */
   public void createVideoFile(int width, int height, int frameRate, DataSource dataSource, File file) throws IOException {
-    this.waitSync = new Object();
     this.stateTransitionOK = true;
-    this.waitFileSync = new Object();
     this.fileDone = false;
     this.fileError = null;
     
@@ -150,13 +148,9 @@ public class JPEGImagesToVideo {
         throw new IOException(this.fileError);
       }
     } catch (NoProcessorException ex) {
-      IOException ex2 = new IOException(ex.getMessage());
-      ex2.initCause(ex);
-      throw ex2;
+        throw new IOException(ex.getMessage(), ex);
     } catch (NoDataSinkException ex) {
-      IOException ex2 = new IOException("Failed to create a DataSink for the given output MediaLocator");
-      ex2.initCause(ex);
-      throw ex2;
+        throw new IOException("Failed to create a DataSink for the given output MediaLocator", ex);
     } catch (InterruptedException ex) {
       if (dataSink != null) {
         dataSink.stop();

@@ -419,11 +419,11 @@ public class HomeXMLHandler extends DefaultHandler {
   private Home               home;
 
   private final StringBuilder     buffer  = new StringBuilder();
-  private final Stack<String>     elements = new Stack<String>();
-  private final Stack<Map<String, String>> attributes = new Stack<Map<String, String>>();
-  private final Stack<List<HomePieceOfFurniture>> groupsFurniture = new Stack<List<HomePieceOfFurniture>>();
-  private final Map<String, Level>      levels = new HashMap<String, Level>();
-  private final Map<String, JoinedWall> joinedWalls  = new HashMap<String, JoinedWall>();
+  private final Stack<String>     elements = new Stack<>();
+  private final Stack<Map<String, String>> attributes = new Stack<>();
+  private final Stack<List<HomePieceOfFurniture>> groupsFurniture = new Stack<>();
+  private final Map<String, Level>      levels = new HashMap<>();
+  private final Map<String, JoinedWall> joinedWalls  = new HashMap<>();
 
   private String homeElementName;
   private String labelText;
@@ -431,17 +431,17 @@ public class HomeXMLHandler extends DefaultHandler {
   private Baseboard rightSideBaseboard;
   private BackgroundImage homeBackgroundImage;
   private BackgroundImage backgroundImage;
-  private final Map<String, String> homeProperties = new HashMap<String, String>();
-  private final Map<String, String> properties = new HashMap<String, String>();
-  private final Map<String, TextStyle>    textStyles = new HashMap<String, TextStyle>();
-  private final Map<String, HomeTexture>  textures = new HashMap<String, HomeTexture>();
-  private final List<HomeMaterial>        materials = new ArrayList<HomeMaterial>();
-  private final List<Transformation>      transformations = new ArrayList<Transformation>();
+  private final Map<String, String> homeProperties = new HashMap<>();
+  private final Map<String, String> properties = new HashMap<>();
+  private final Map<String, TextStyle>    textStyles = new HashMap<>();
+  private final Map<String, HomeTexture>  textures = new HashMap<>();
+  private final List<HomeMaterial>        materials = new ArrayList<>();
+  private final List<Transformation>      transformations = new ArrayList<>();
   private HomeTexture materialTexture;
-  private final List<Sash>         sashes = new ArrayList<Sash>();
-  private final List<LightSource>  lightSources = new ArrayList<LightSource>();
-  private final List<float[]>      points = new ArrayList<float[]>();
-  private final List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
+  private final List<Sash>         sashes = new ArrayList<>();
+  private final List<LightSource>  lightSources = new ArrayList<>();
+  private final List<float[]>      points = new ArrayList<>();
+  private final List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties = new ArrayList<>();
 
   private static final String UNIQUE_ATTRIBUTE = "@&unique&@";
 
@@ -474,7 +474,7 @@ public class HomeXMLHandler extends DefaultHandler {
   public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
     this.buffer.setLength(0);
     this.elements.push(name);
-    Map<String, String> attributesMap = new HashMap<String, String>();
+    Map<String, String> attributesMap = new HashMap<>();
     for (int i = 0; i < attributes.getLength(); i++) {
       attributesMap.put(attributes.getQName(i), attributes.getValue(i));
     }
@@ -504,7 +504,7 @@ public class HomeXMLHandler extends DefaultHandler {
       this.sashes.clear();
       this.lightSources.clear();
       if ("furnitureGroup".equals(name)) {
-        this.groupsFurniture.push(new ArrayList<HomePieceOfFurniture>());
+        this.groupsFurniture.push(new ArrayList<>());
       }
     } else if ("camera".equals(name)
         || "observerCamera".equals(name)) {
@@ -575,7 +575,7 @@ public class HomeXMLHandler extends DefaultHandler {
       String attribute = attributesMap.get("attribute");
       if ("cameraPath".equals(attribute)) {
         // Update camera path
-        List<Camera> cameraPath = new ArrayList<Camera>(this.home.getEnvironment().getVideoCameraPath());
+        List<Camera> cameraPath = new ArrayList<>(this.home.getEnvironment().getVideoCameraPath());
         cameraPath.add(camera);
         this.home.getEnvironment().setVideoCameraPath(cameraPath);
       } else if ("topCamera".equals(attribute)) {
@@ -590,7 +590,7 @@ public class HomeXMLHandler extends DefaultHandler {
         observerCamera.setLens(camera.getLens());
         observerCamera.setFixedSize(((ObserverCamera)camera).isFixedSize());
       } else if ("storedCamera".equals(attribute)) {
-        List<Camera> storedCameras = new ArrayList<Camera>(this.home.getStoredCameras());
+        List<Camera> storedCameras = new ArrayList<>(this.home.getStoredCameras());
         storedCameras.add(camera);
         this.home.setStoredCameras(storedCameras);
       }

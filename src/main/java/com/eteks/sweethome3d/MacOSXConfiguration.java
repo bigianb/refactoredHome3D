@@ -233,97 +233,85 @@ class MacOSXConfiguration {
       }
     }
     
-    homeApplication.addHomesListener(new CollectionListener<Home>() {
-      public void collectionChanged(CollectionEvent<Home> ev) {
-        if (ev.getType() == CollectionEvent.Type.ADD) {
-          final JFrame homeFrame = homeApplication.getHomeFrame(ev.getItem());
-          if (!Boolean.getBoolean("com.eteks.sweethome3d.no3D")
-              && !OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {
-            // To avoid a possible freeze of the program when the user requests a window enlargement 
-            // while the frame canvas 3D is instantiated, forbid window to be resized
-            homeFrame.setResizable(false);
-            Executors.newSingleThreadExecutor().submit(new Runnable() {                
-                public void run() {
-                  try {
-                    final AtomicBoolean canvas3D = new AtomicBoolean();
-                    do {
-                      Thread.sleep(50);
-                      EventQueue.invokeAndWait(new Runnable() {
-                          public void run() {
-                            canvas3D.set(homeFrame.isShowing()
-                                && isParentOfCanvas3D(homeFrame, Canvas3D.class, JCanvas3D.class));
-                          }
-                        });
-                    } while (!canvas3D.get());                  
-                  } catch (InterruptedException ex) {
-                  } catch (InvocationTargetException ex) {
-                    ex.printStackTrace();
-                  } finally {
-                    EventQueue.invokeLater(new Runnable() {
-                        public void run() {
-                          homeFrame.setResizable(true);
-                        }
-                      });
-                  }
+    homeApplication.addHomesListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        final JFrame homeFrame = homeApplication.getHomeFrame(ev.getItem());
+        if (!Boolean.getBoolean("com.eteks.sweethome3d.no3D")
+            && !OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {
+          // To avoid a possible freeze of the program when the user requests a window enlargement
+          // while the frame canvas 3D is instantiated, forbid window to be resized
+          homeFrame.setResizable(false);
+          Executors.newSingleThreadExecutor().submit(new Runnable() {
+              public void run() {
+                try {
+                  final AtomicBoolean canvas3D = new AtomicBoolean();
+                  do {
+                    Thread.sleep(50);
+                    EventQueue.invokeAndWait(() -> canvas3D.set(homeFrame.isShowing()
+                            && isParentOfCanvas3D(homeFrame, Canvas3D.class, JCanvas3D.class)));
+                  } while (!canvas3D.get());
+                } catch (InterruptedException ex) {
+                } catch (InvocationTargetException ex) {
+                  ex.printStackTrace();
+                } finally {
+                  EventQueue.invokeLater(() -> homeFrame.setResizable(true));
                 }
-                
-                private boolean isParentOfCanvas3D(Container parent, Class<?> ... canvas3DClasses) {
-                  // Search 3D canvas among children and child windows in case the 3D view was detached
-                  for (int i = 0; i < parent.getComponentCount(); i++) {
-                    Component child = parent.getComponent(i);
-                    for (Class<?> canvas3DClass : canvas3DClasses) {
-                      if (canvas3DClass.isInstance(child)
-                          || child instanceof Container
-                            && isParentOfCanvas3D((Container)child, canvas3DClasses)) {
-                        return true;
-                      }
-                    }
-                  }
-                  if (parent instanceof Window) {
-                    for (Window window : ((Window)parent).getOwnedWindows()) {
-                      if (isParentOfCanvas3D(window, canvas3DClasses)) {
-                        return true;
-                      }
-                    }
-                  } 
-                  return false;
-                }
-              });
-          }
-          // Add Mac OS X Window menu on new homes
-          MacOSXConfiguration.addWindowMenu(
-              homeFrame, homeFrame.getJMenuBar(), homeApplication, defaultHomeView, ev.getItem());
-          
-          if (OperatingSystem.isJavaVersionBetween("1.7", "1.7.0_60")) {
-            // Help system to understand it should display the main menu of one of the remaining windows when a window is closed
-            homeFrame.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent ev) {
-                  if (defaultFrame != null) {
-                    List<Home> homes = homeApplication.getHomes();
-                    defaultFrame.setVisible(false);
-                    defaultFrame.setVisible(true);
-                    if (homes.size() > 0) {
-                      homeApplication.getHomeFrame(homes.get(0)).toFront();
-                      defaultFrame.setVisible(false);
+              }
+
+              private boolean isParentOfCanvas3D(Container parent, Class<?> ... canvas3DClasses) {
+                // Search 3D canvas among children and child windows in case the 3D view was detached
+                for (int i = 0; i < parent.getComponentCount(); i++) {
+                  Component child = parent.getComponent(i);
+                  for (Class<?> canvas3DClass : canvas3DClasses) {
+                    if (canvas3DClass.isInstance(child)
+                        || child instanceof Container
+                          && isParentOfCanvas3D((Container)child, canvas3DClasses)) {
+                      return true;
                     }
                   }
                 }
-              });
-          }
-          homeFrame.addWindowStateListener(new WindowStateListener() {
-              public void windowStateChanged(WindowEvent ev) {
-                // Enable default actions if needed
-                enableDefaultActions(homeApplication, defaultHomeView);
+                if (parent instanceof Window) {
+                  for (Window window : ((Window)parent).getOwnedWindows()) {
+                    if (isParentOfCanvas3D(window, canvas3DClasses)) {
+                      return true;
+                    }
+                  }
+                }
+                return false;
               }
             });
-          // Don't enable actions in default menu bar (the menu bar might be displayed when file dialogs are displayed)
-          setDefaultActionsEnabled(defaultHomeView, false);
-        } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        }
+        // Add Mac OS X Window menu on new homes
+        MacOSXConfiguration.addWindowMenu(
+            homeFrame, homeFrame.getJMenuBar(), homeApplication, defaultHomeView, ev.getItem());
+
+        if (OperatingSystem.isJavaVersionBetween("1.7", "1.7.0_60")) {
+          // Help system to understand it should display the main menu of one of the remaining windows when a window is closed
+          homeFrame.addWindowListener(new WindowAdapter() {
+              @Override
+              public void windowClosed(WindowEvent ev) {
+                if (defaultFrame != null) {
+                  List<Home> homes = homeApplication.getHomes();
+                  defaultFrame.setVisible(false);
+                  defaultFrame.setVisible(true);
+                  if (homes.size() > 0) {
+                    homeApplication.getHomeFrame(homes.get(0)).toFront();
+                    defaultFrame.setVisible(false);
+                  }
+                }
+              }
+            });
+        }
+        homeFrame.addWindowStateListener(ev1 -> {
           // Enable default actions if needed
           enableDefaultActions(homeApplication, defaultHomeView);
-        }
-      };
+        });
+        // Don't enable actions in default menu bar (the menu bar might be displayed when file dialogs are displayed)
+        setDefaultActionsEnabled(defaultHomeView, false);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        // Enable default actions if needed
+        enableDefaultActions(homeApplication, defaultHomeView);
+      }
     });
     
     // Set application icon if program wasn't launch from bundle
@@ -358,22 +346,16 @@ class MacOSXConfiguration {
       // If only one home is modified, close it and exit if it was successfully closed
       homeApplication.getHomeFrame(modifiedHome).toFront();
       homeApplication.getHomeFrameController(modifiedHome).getHomeController().close(
-          new Runnable() {
-            public void run() {
-              for (Home home : homeApplication.getHomes()) {
-                if (home.isModified()) {
-                  return;
+              () -> {
+                for (Home home : homeApplication.getHomes()) {
+                  if (home.isModified()) {
+                    return;
+                  }
                 }
-              }
-              System.exit(0);
-            }
-          });
+                System.exit(0);
+              });
     } else {
-      handleApplicationMenuAction(new Runnable() {
-          public void run() {
-            getActiveHomeController(homeApplication, defaultController, defaultFrame).exit();
-          }
-        }, defaultFrame);
+      handleApplicationMenuAction(() -> getActiveHomeController(homeApplication, defaultController, defaultFrame).exit(), defaultFrame);
       if (homeApplication.getHomes().isEmpty()) {
         System.exit(0);
       }
@@ -386,11 +368,7 @@ class MacOSXConfiguration {
   protected static void handleAbout(final SweetHome3D homeApplication,
                                     final HomeController defaultController,
                                     final JFrame defaultFrame) {
-      handleApplicationMenuAction(new Runnable() {
-          public void run() {
-            getActiveHomeController(homeApplication, defaultController, defaultFrame).about();
-          }
-        }, defaultFrame); 
+      handleApplicationMenuAction(() -> getActiveHomeController(homeApplication, defaultController, defaultFrame).about(), defaultFrame);
   }
 
   /**
@@ -399,11 +377,7 @@ class MacOSXConfiguration {
   private static void handlePreferences(final SweetHome3D homeApplication, 
                                         final HomeController defaultController, 
                                         final JFrame defaultFrame) {
-    handleApplicationMenuAction(new Runnable() {
-        public void run() {
-          getActiveHomeController(homeApplication, defaultController, defaultFrame).editPreferences();
-        }
-      }, defaultFrame);
+    handleApplicationMenuAction(() -> getActiveHomeController(homeApplication, defaultController, defaultFrame).editPreferences(), defaultFrame);
   }
 
   /**
@@ -535,36 +509,30 @@ class MacOSXConfiguration {
                                                            final HomePane defaultHomeView, 
                                                            final JMenuBar defaultMenuBar) {
     final JFrame frame = new JFrame();
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          // Create a default undecorated frame out of sight 
-          // and attach the application menu bar of empty view to it
-          frame.setLocation(-10, 0);
-          frame.setUndecorated(true);
-          frame.setBackground(new Color(0, 0, 0, 0));
-          frame.setVisible(true);
-          frame.setJMenuBar(defaultMenuBar);
-          frame.setContentPane(defaultHomeView);
-          addWindowMenu(frame, defaultMenuBar, homeApplication, defaultHomeView, null);
-        }
-      });
-    homeApplication.addHomesListener(new CollectionListener<Home>() {
-        public void collectionChanged(CollectionEvent<Home> ev) {
-          if (ev.getType() == CollectionEvent.Type.DELETE) {
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  if (frame.isActive()) {
-                    List<Home> homes = homeApplication.getHomes();
-                    if (homes.size() >= 1) {
-                      // Request focus in a remaining home if the dummy frame is active 
-                      homeApplication.getHomeFrame(homes.get(homes.size() - 1)).requestFocus();
-                    }
-                  }
-                }
-              });
+    EventQueue.invokeLater(() -> {
+      // Create a default undecorated frame out of sight
+      // and attach the application menu bar of empty view to it
+      frame.setLocation(-10, 0);
+      frame.setUndecorated(true);
+      frame.setBackground(new Color(0, 0, 0, 0));
+      frame.setVisible(true);
+      frame.setJMenuBar(defaultMenuBar);
+      frame.setContentPane(defaultHomeView);
+      addWindowMenu(frame, defaultMenuBar, homeApplication, defaultHomeView, null);
+    });
+    homeApplication.addHomesListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.DELETE) {
+        EventQueue.invokeLater(() -> {
+          if (frame.isActive()) {
+            List<Home> homes = homeApplication.getHomes();
+            if (homes.size() >= 1) {
+              // Request focus in a remaining home if the dummy frame is active
+              homeApplication.getHomeFrame(homes.get(homes.size() - 1)).requestFocus();
+            }
           }
-        }
-      });
+        });
+      }
+    });
     return frame;
   }
   
@@ -629,21 +597,23 @@ class MacOSXConfiguration {
     for (int i = 0; i < homes.size(); i++) {
       windowMenu.add(createWindowCheckBoxMenuItem(homeApplication, i));
     }
-    homeApplication.addHomesListener(new CollectionListener<Home>() {
-        public void collectionChanged(CollectionEvent<Home> ev) {
-          switch (ev.getType()) {
-            case ADD :
-              windowMenu.add(createWindowCheckBoxMenuItem(homeApplication, homeApplication.getHomes().size() - 1));
-              break;
-            case DELETE :
-              windowMenu.remove(windowMenu.getMenuComponentCount() - 1);
-              if (home == ev.getItem()) {
-                homeApplication.removeHomesListener(this);
-              }
-              break;
-          } 
+    homeApplication.addHomesListener(new CollectionListener<>()
+    {
+      public void collectionChanged(CollectionEvent<Home> ev)
+      {
+        switch (ev.getType()) {
+          case ADD:
+            windowMenu.add(createWindowCheckBoxMenuItem(homeApplication, homeApplication.getHomes().size() - 1));
+            break;
+          case DELETE:
+            windowMenu.remove(windowMenu.getMenuComponentCount() - 1);
+            if (home == ev.getItem()) {
+              homeApplication.removeHomesListener(this);
+            }
+            break;
         }
-      });
+      }
+    });
 
     windowMenu.addMenuListener(new MenuListener() {
         public void menuSelected(MenuEvent ev) {

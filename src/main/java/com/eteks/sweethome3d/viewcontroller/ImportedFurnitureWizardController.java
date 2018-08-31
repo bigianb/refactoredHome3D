@@ -19,29 +19,15 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
+import com.eteks.sweethome3d.model.*;
+
+import javax.swing.undo.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.CatalogDoorOrWindow;
-import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
-import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.FurnitureCatalog;
-import com.eteks.sweethome3d.model.FurnitureCategory;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
-import com.eteks.sweethome3d.model.Sash;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.UserPreferences;
 
 /**
  * Wizard controller to manage furniture importation.
@@ -231,7 +217,7 @@ public class ImportedFurnitureWizardController extends WizardController
     int pieceIndex = this.home.getFurniture().size();
     
     this.home.addPieceOfFurniture(piece, pieceIndex);
-    this.home.setSelectedItems(Arrays.asList(piece)); 
+    this.home.setSelectedItems(Collections.singletonList(piece));
     if (!piece.isMovable() && basePlanLocked) {
       this.home.setBasePlanLocked(false);
     }
@@ -286,7 +272,7 @@ public class ImportedFurnitureWizardController extends WizardController
     public void redo() throws CannotRedoException {
       super.redo();
       this.home.addPieceOfFurniture(this.piece, this.pieceIndex);
-      this.home.setSelectedItems(Arrays.asList(this.piece)); 
+      this.home.setSelectedItems(Collections.singletonList(this.piece));
       if (!piece.isMovable() && this.oldBasePlanLocked) {
         this.home.setBasePlanLocked(false);
       }

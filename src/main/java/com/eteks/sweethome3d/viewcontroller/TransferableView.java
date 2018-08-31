@@ -28,7 +28,7 @@ public interface TransferableView extends View {
   /**
    * Data types.
    */
-  public static class DataType {
+  class DataType {
     // Don't qualify DataType as an enumeration to be able to extend DataType class
     public static final DataType PLAN_IMAGE      = new DataType("PLAN_IMAGE");
     public static final DataType FURNITURE_LIST  = new DataType("FURNITURE_LIST");
@@ -52,13 +52,13 @@ public interface TransferableView extends View {
   /**
    * An observer to follow the data created for transfer.
    */
-  public static interface TransferObserver {
-    public void dataReady(Object [] data);
+  interface TransferObserver {
+    void dataReady(Object[] data);
   }
 
   /**
    * Returns data at given types for transfer purpose.
    * Caution : this method can be called from a separate thread.
    */
-  public abstract Object createTransferData(DataType dataType);
+  Object createTransferData(DataType dataType);
 }

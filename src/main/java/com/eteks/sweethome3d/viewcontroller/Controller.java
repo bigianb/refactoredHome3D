@@ -24,5 +24,5 @@ package com.eteks.sweethome3d.viewcontroller;
  * @author Emmanuel Puybaret
  */
 public interface Controller {
-  public abstract View getView();
+  View getView();
 }

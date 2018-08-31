@@ -19,40 +19,13 @@
  */
 package com.eteks.sweethome3d.viewcontroller;
 
-import java.awt.geom.Line2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
-
-import com.eteks.sweethome3d.model.CollectionEvent;
-import com.eteks.sweethome3d.model.CollectionListener;
-import com.eteks.sweethome3d.model.DoorOrWindow;
-import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeDoorOrWindow;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
-import com.eteks.sweethome3d.model.HomeLight;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
+import com.eteks.sweethome3d.model.*;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture.SortableProperty;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.Light;
-import com.eteks.sweethome3d.model.PieceOfFurniture;
-import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.SelectionEvent;
-import com.eteks.sweethome3d.model.SelectionListener;
-import com.eteks.sweethome3d.model.UserPreferences;
+
+import javax.swing.undo.*;
+import java.awt.geom.Line2D;
+import java.beans.PropertyChangeListener;
+import java.util.*;
 
 /**
  * A MVC controller for the home furniture table.
@@ -109,50 +82,44 @@ public class FurnitureController implements Controller {
 
   private void addModelListeners() {
     // Add a selection listener that gets the lead selected piece in home
-    this.home.addSelectionListener(new SelectionListener() {
-        public void selectionChanged(SelectionEvent ev) {
-          List<HomePieceOfFurniture> selectedFurniture =
-              Home.getFurnitureSubList(home.getSelectedItems());
-          if (selectedFurniture.isEmpty()) {
-            leadSelectedPieceOfFurniture = null;
-          } else if (leadSelectedPieceOfFurniture == null
-                     || selectedFurniture.size() == 1
-                     || selectedFurniture.indexOf(leadSelectedPieceOfFurniture) == -1) {
-            leadSelectedPieceOfFurniture = selectedFurniture.get(0);
-          }
-        }
-      });
+    this.home.addSelectionListener(ev -> {
+      List<HomePieceOfFurniture> selectedFurniture =
+          Home.getFurnitureSubList(home.getSelectedItems());
+      if (selectedFurniture.isEmpty()) {
+        leadSelectedPieceOfFurniture = null;
+      } else if (leadSelectedPieceOfFurniture == null
+                 || selectedFurniture.size() == 1
+                 || selectedFurniture.indexOf(leadSelectedPieceOfFurniture) == -1) {
+        leadSelectedPieceOfFurniture = selectedFurniture.get(0);
+      }
+    });
 
     // Add listener to update base plan lock when furniture movability changes
-    final PropertyChangeListener furnitureChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent ev) {
-          if (HomePieceOfFurniture.Property.MOVABLE.name().equals(ev.getPropertyName())) {
-            // Remove non movable pieces from selection when base plan is locked
-            HomePieceOfFurniture piece = (HomePieceOfFurniture)ev.getSource();
-            if (home.isBasePlanLocked()
-                && isPieceOfFurniturePartOfBasePlan(piece)) {
-              List<Selectable> selectedItems = home.getSelectedItems();
-              if (selectedItems.contains(piece)) {
-                selectedItems = new ArrayList<Selectable>(selectedItems);
-                selectedItems.remove(piece);
-                home.setSelectedItems(selectedItems);
-              }
-            }
+    final PropertyChangeListener furnitureChangeListener = ev -> {
+      if (HomePieceOfFurniture.Property.MOVABLE.name().equals(ev.getPropertyName())) {
+        // Remove non movable pieces from selection when base plan is locked
+        HomePieceOfFurniture piece = (HomePieceOfFurniture)ev.getSource();
+        if (home.isBasePlanLocked()
+            && isPieceOfFurniturePartOfBasePlan(piece)) {
+          List<Selectable> selectedItems = home.getSelectedItems();
+          if (selectedItems.contains(piece)) {
+            selectedItems = new ArrayList<>(selectedItems);
+            selectedItems.remove(piece);
+            home.setSelectedItems(selectedItems);
           }
         }
-      };
+      }
+    };
     for (HomePieceOfFurniture piece : home.getFurniture()) {
       piece.addPropertyChangeListener(furnitureChangeListener);
     }
-    this.home.addFurnitureListener(new CollectionListener<HomePieceOfFurniture> () {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev) {
-          if (ev.getType() == CollectionEvent.Type.ADD) {
-            ev.getItem().addPropertyChangeListener(furnitureChangeListener);
-          } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-            ev.getItem().removePropertyChangeListener(furnitureChangeListener);
-          }
-        }
-      });
+    this.home.addFurnitureListener(ev -> {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(furnitureChangeListener);
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(furnitureChangeListener);
+      }
+    });
   }
 
   /**
@@ -184,7 +151,7 @@ public class FurnitureController implements Controller {
     final boolean allLevelsSelection = this.home.isAllLevelsSelection();
     final List<Selectable> oldSelection = this.home.getSelectedItems();
     final HomePieceOfFurniture [] newFurniture =
-        furniture.toArray(new HomePieceOfFurniture [furniture.size()]);
+        furniture.toArray(new HomePieceOfFurniture[0]);
     // Get indices of added furniture
     final int [] furnitureIndex = new int [furniture.size()];
     final HomeFurnitureGroup [] furnitureGroups = group != null
@@ -272,8 +239,8 @@ public class FurnitureController implements Controller {
     List<HomePieceOfFurniture> homeFurniture = this.home.getFurniture();
 
     // Replace pieces by their group when they have to be all deleted
-    deletedFurniture = new ArrayList<HomePieceOfFurniture>(deletedFurniture);
-    List<HomeFurnitureGroup> homeGroups = new ArrayList<HomeFurnitureGroup>();
+    deletedFurniture = new ArrayList<>(deletedFurniture);
+    List<HomeFurnitureGroup> homeGroups = new ArrayList<>();
     searchGroups(homeFurniture, homeGroups);
     boolean updated;
     do {
@@ -290,7 +257,7 @@ public class FurnitureController implements Controller {
 
     // Sort the deletable furniture in the ascending order of their index in home or their group
     Map<HomeFurnitureGroup, Map<Integer, HomePieceOfFurniture>> deletedFurnitureMap =
-        new HashMap<HomeFurnitureGroup, Map<Integer, HomePieceOfFurniture>>();
+            new HashMap<>();
     int deletedFurnitureCount = 0;
     for (HomePieceOfFurniture piece : deletedFurniture) {
       // Check piece is deletable and doesn't belong to a group
@@ -298,7 +265,7 @@ public class FurnitureController implements Controller {
         HomeFurnitureGroup group = getPieceOfFurnitureGroup(piece, null, homeFurniture);
         Map<Integer, HomePieceOfFurniture> sortedMap = deletedFurnitureMap.get(group);
         if (sortedMap == null) {
-          sortedMap = new TreeMap<Integer, HomePieceOfFurniture>();
+          sortedMap = new TreeMap<>();
           deletedFurnitureMap.put(group, sortedMap);
         }
         if (group == null) {
@@ -449,7 +416,7 @@ public class FurnitureController implements Controller {
    * Returns the furniture among the given list that are not part of the base plan.
    */
   private List<HomePieceOfFurniture> getFurnitureNotPartOfBasePlan(List<HomePieceOfFurniture> furniture) {
-    List<HomePieceOfFurniture> furnitureNotPartOfBasePlan = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> furnitureNotPartOfBasePlan = new ArrayList<>();
     for (HomePieceOfFurniture piece : furniture) {
       if (!isPieceOfFurniturePartOfBasePlan(piece)) {
         furnitureNotPartOfBasePlan.add(piece);
@@ -517,7 +484,7 @@ public class FurnitureController implements Controller {
    */
   public void toggleFurnitureVisibleProperty(HomePieceOfFurniture.SortableProperty furnitureProperty) {
     List<SortableProperty> furnitureVisibleProperties =
-        new ArrayList<SortableProperty>(this.home.getFurnitureVisibleProperties());
+            new ArrayList<>(this.home.getFurnitureVisibleProperties());
     if (furnitureVisibleProperties.contains(furnitureProperty)) {
       furnitureVisibleProperties.remove(furnitureProperty);
       // Ensure at least one column is visible
@@ -604,13 +571,13 @@ public class FurnitureController implements Controller {
       List<HomePieceOfFurniture> homeFurniture = this.home.getFurniture();
       // Sort the grouped furniture in the ascending order of their index in home or their group
       Map<HomeFurnitureGroup, TreeMap<Integer, HomePieceOfFurniture>> groupedFurnitureMap =
-          new HashMap<HomeFurnitureGroup, TreeMap<Integer, HomePieceOfFurniture>>();
+              new HashMap<>();
       int groupedFurnitureCount = 0;
       for (HomePieceOfFurniture piece : selectedFurniture) {
         HomeFurnitureGroup group = getPieceOfFurnitureGroup(piece, null, homeFurniture);
         TreeMap<Integer, HomePieceOfFurniture> sortedMap = groupedFurnitureMap.get(group);
         if (sortedMap == null) {
-          sortedMap = new TreeMap<Integer, HomePieceOfFurniture>();
+          sortedMap = new TreeMap<>();
           groupedFurnitureMap.put(group, sortedMap);
         }
         if (group == null) {
@@ -761,7 +728,7 @@ public class FurnitureController implements Controller {
    * Ungroups the selected groups of furniture.
    */
   public void ungroupSelectedFurniture() {
-    List<HomeFurnitureGroup> movableSelectedFurnitureGroups = new ArrayList<HomeFurnitureGroup>();
+    List<HomeFurnitureGroup> movableSelectedFurnitureGroups = new ArrayList<>();
     for (Selectable item : this.home.getSelectedItems()) {
       if (item instanceof HomeFurnitureGroup) {
         HomeFurnitureGroup group = (HomeFurnitureGroup)item;
@@ -777,13 +744,13 @@ public class FurnitureController implements Controller {
       final List<Selectable> oldSelection = this.home.getSelectedItems();
       // Sort the groups in the ascending order of their index in home or their group
       Map<HomeFurnitureGroup, TreeMap<Integer, HomeFurnitureGroup>> groupsMap =
-          new HashMap<HomeFurnitureGroup, TreeMap<Integer, HomeFurnitureGroup>>();
+              new HashMap<>();
       int groupsCount = 0;
       for (HomeFurnitureGroup piece : movableSelectedFurnitureGroups) {
         HomeFurnitureGroup groupGroup = getPieceOfFurnitureGroup(piece, null, homeFurniture);
         TreeMap<Integer, HomeFurnitureGroup> sortedMap = groupsMap.get(groupGroup);
         if (sortedMap == null) {
-          sortedMap = new TreeMap<Integer, HomeFurnitureGroup>();
+          sortedMap = new TreeMap<>();
           groupsMap.put(groupGroup, sortedMap);
         }
         if (groupGroup == null) {
@@ -798,9 +765,9 @@ public class FurnitureController implements Controller {
       final int [] groupsIndex = new int [groups.length];
       final Level [] groupsLevels = new Level [groups.length];
       int i = 0;
-      List<HomePieceOfFurniture> ungroupedPiecesList = new ArrayList<HomePieceOfFurniture>();
-      List<Integer> ungroupedPiecesIndexList = new ArrayList<Integer>();
-      List<HomeFurnitureGroup> ungroupedPiecesGroupsList = new ArrayList<HomeFurnitureGroup>();
+      List<HomePieceOfFurniture> ungroupedPiecesList = new ArrayList<>();
+      List<Integer> ungroupedPiecesIndexList = new ArrayList<>();
+      List<HomeFurnitureGroup> ungroupedPiecesGroupsList = new ArrayList<>();
       for (Map.Entry<HomeFurnitureGroup, TreeMap<Integer, HomeFurnitureGroup>> sortedMapEntry : groupsMap.entrySet()) {
         TreeMap<Integer, HomeFurnitureGroup> sortedMap = sortedMapEntry.getValue();
         int endIndex = sortedMap.lastKey() + 1 - sortedMap.size();
@@ -818,9 +785,9 @@ public class FurnitureController implements Controller {
         }
       }
       final HomePieceOfFurniture [] ungroupedPieces =
-          ungroupedPiecesList.toArray(new HomePieceOfFurniture [ungroupedPiecesList.size()]);
+          ungroupedPiecesList.toArray(new HomePieceOfFurniture[0]);
       final HomeFurnitureGroup [] ungroupedPiecesGroups =
-          ungroupedPiecesGroupsList.toArray(new HomeFurnitureGroup [ungroupedPiecesGroupsList.size()]);
+          ungroupedPiecesGroupsList.toArray(new HomeFurnitureGroup[0]);
       final int [] ungroupedPiecesIndex = new int [ungroupedPieces.length];
       final Level [] ungroupedPiecesLevels = new Level [ungroupedPieces.length];
       boolean basePlanLocked = oldBasePlanLocked;
@@ -879,144 +846,115 @@ public class FurnitureController implements Controller {
    * Controls the alignment of selected furniture on top of the first selected piece.
    */
   public void alignSelectedFurnitureOnTop() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float minYLeadPiece = getMinY(leadPiece);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
-            float minY = getMinY(piece);
-            piece.setY(piece.getY() + minYLeadPiece - minY);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float minYLeadPiece = getMinY(leadPiece);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
+        float minY = getMinY(piece);
+        piece.setY(piece.getY() + minYLeadPiece - minY);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on bottom of the first selected piece.
    */
   public void alignSelectedFurnitureOnBottom() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float maxYLeadPiece = getMaxY(leadPiece);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
-            float maxY = getMaxY(piece);
-            piece.setY(piece.getY() + maxYLeadPiece - maxY);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float maxYLeadPiece = getMaxY(leadPiece);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
+        float maxY = getMaxY(piece);
+        piece.setY(piece.getY() + maxYLeadPiece - maxY);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on left of the first selected piece.
    */
   public void alignSelectedFurnitureOnLeft() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float minXLeadPiece = getMinX(leadPiece);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
-            float minX = getMinX(piece);
-            piece.setX(piece.getX() + minXLeadPiece - minX);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float minXLeadPiece = getMinX(leadPiece);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
+        float minX = getMinX(piece);
+        piece.setX(piece.getX() + minXLeadPiece - minX);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on right of the first selected piece.
    */
   public void alignSelectedFurnitureOnRight() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float maxXLeadPiece = getMaxX(leadPiece);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
-            float maxX = getMaxX(piece);
-            piece.setX(piece.getX() + maxXLeadPiece - maxX);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float maxXLeadPiece = getMaxX(leadPiece);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        HomePieceOfFurniture piece = alignedPiece.getPieceOfFurniture();
+        float maxX = getMaxX(piece);
+        piece.setX(piece.getX() + maxXLeadPiece - maxX);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on the front side of the first selected piece.
    */
   public void alignSelectedFurnitureOnFrontSide() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float [][] points = leadPiece.getPoints();
-          Line2D frontLine = new Line2D.Float(points [2][0], points [2][1], points [3][0], points [3][1]);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            alignPieceOfFurnitureAlongSides(alignedPiece.getPieceOfFurniture(), leadPiece, frontLine, true, null, 0);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float [][] points = leadPiece.getPoints();
+      Line2D frontLine = new Line2D.Float(points [2][0], points [2][1], points [3][0], points [3][1]);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        alignPieceOfFurnitureAlongSides(alignedPiece.getPieceOfFurniture(), leadPiece, frontLine, true, null, 0);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on the back side of the first selected piece.
    */
   public void alignSelectedFurnitureOnBackSide() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float [][] points = leadPiece.getPoints();
-          Line2D backLine = new Line2D.Float(points [0][0], points [0][1], points [1][0], points [1][1]);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            alignPieceOfFurnitureAlongSides(alignedPiece.getPieceOfFurniture(), leadPiece, backLine, false, null, 0);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float [][] points = leadPiece.getPoints();
+      Line2D backLine = new Line2D.Float(points [0][0], points [0][1], points [1][0], points [1][1]);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        alignPieceOfFurnitureAlongSides(alignedPiece.getPieceOfFurniture(), leadPiece, backLine, false, null, 0);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on the left side of the first selected piece.
    */
   public void alignSelectedFurnitureOnLeftSide() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float [][] points = leadPiece.getPoints();
-          Line2D leftLine = new Line2D.Float(points [3][0], points [3][1], points [0][0], points [0][1]);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            alignPieceOfFurnitureAlongLeftOrRightSides(alignedPiece.getPieceOfFurniture(), leadPiece, leftLine, false);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float [][] points = leadPiece.getPoints();
+      Line2D leftLine = new Line2D.Float(points [3][0], points [3][1], points [0][0], points [0][1]);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        alignPieceOfFurnitureAlongLeftOrRightSides(alignedPiece.getPieceOfFurniture(), leadPiece, leftLine, false);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on the right side of the first selected piece.
    */
   public void alignSelectedFurnitureOnRightSide() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          float [][] points = leadPiece.getPoints();
-          Line2D rightLine = new Line2D.Float(points [1][0], points [1][1], points [2][0], points [2][1]);
-          for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
-            alignPieceOfFurnitureAlongLeftOrRightSides(alignedPiece.getPieceOfFurniture(), leadPiece, rightLine, true);
-          }
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> {
+      float [][] points = leadPiece.getPoints();
+      Line2D rightLine = new Line2D.Float(points [1][0], points [1][1], points [2][0], points [2][1]);
+      for (AlignedPieceOfFurniture alignedPiece : alignedFurniture) {
+        alignPieceOfFurnitureAlongLeftOrRightSides(alignedPiece.getPieceOfFurniture(), leadPiece, rightLine, true);
+      }
+    });
   }
 
   /**
    * Controls the alignment of selected furniture on the sides of the first selected piece.
    */
   public void alignSelectedFurnitureSideBySide() {
-    alignSelectedFurniture(new AlignmentAction() {
-        public void alignFurniture(AlignedPieceOfFurniture [] alignedFurniture,
-                                   HomePieceOfFurniture leadPiece) {
-          alignFurnitureSideBySide(alignedFurniture, leadPiece);
-        }
-      });
+    alignSelectedFurniture((alignedFurniture, leadPiece) -> alignFurnitureSideBySide(alignedFurniture, leadPiece));
   }
 
   private void alignFurnitureSideBySide(AlignedPieceOfFurniture [] alignedFurniture,
@@ -1047,19 +985,15 @@ public class FurnitureController implements Controller {
   public List<HomePieceOfFurniture> sortFurniture(AlignedPieceOfFurniture [] furniture,
                                                   HomePieceOfFurniture leadPiece,
                                                   final Line2D orthogonalAxis) {
-    List<HomePieceOfFurniture> sortedFurniture = new ArrayList<HomePieceOfFurniture>(furniture.length + 1);
+    List<HomePieceOfFurniture> sortedFurniture = new ArrayList<>(furniture.length + 1);
     if (leadPiece != null) {
       sortedFurniture.add(leadPiece);
     }
     for (AlignedPieceOfFurniture piece : furniture) {
       sortedFurniture.add(piece.getPieceOfFurniture());
     }
-    Collections.sort(sortedFurniture, new Comparator<HomePieceOfFurniture>() {
-        public int compare(HomePieceOfFurniture p1, HomePieceOfFurniture p2) {
-          return Double.compare(orthogonalAxis.ptLineDistSq(p2.getX(), p2.getY()) * orthogonalAxis.relativeCCW(p2.getX(), p2.getY()),
-              orthogonalAxis.ptLineDistSq(p1.getX(), p1.getY()) * orthogonalAxis.relativeCCW(p1.getX(), p1.getY()));
-        }
-      });
+    Collections.sort(sortedFurniture, (p1, p2) -> Double.compare(orthogonalAxis.ptLineDistSq(p2.getX(), p2.getY()) * orthogonalAxis.relativeCCW(p2.getX(), p2.getY()),
+        orthogonalAxis.ptLineDistSq(p1.getX(), p1.getY()) * orthogonalAxis.relativeCCW(p1.getX(), p1.getY())));
     return sortedFurniture;
   }
 
@@ -1168,7 +1102,7 @@ public class FurnitureController implements Controller {
   }
 
   private List<HomePieceOfFurniture> getMovableSelectedFurniture() {
-    List<HomePieceOfFurniture> movableSelectedFurniture = new ArrayList<HomePieceOfFurniture>();
+    List<HomePieceOfFurniture> movableSelectedFurniture = new ArrayList<>();
     for (Selectable item : this.home.getSelectedItems()) {
       if (item instanceof HomePieceOfFurniture) {
         HomePieceOfFurniture piece = (HomePieceOfFurniture)item;

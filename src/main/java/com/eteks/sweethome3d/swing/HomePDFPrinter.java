@@ -109,14 +109,12 @@ public class HomePDFPrinter {
       }
       pdfDocument.close();
     } catch (DocumentException ex) {
-      IOException exception = new IOException("Couldn't print to PDF");
-      exception.initCause(ex);
+      IOException exception = new IOException("Couldn't print to PDF", ex);
       throw exception;
     } catch (InterruptedPrinterException ex) {
       throw new InterruptedIOException("Print to PDF interrupted");
     } catch (PrinterException ex) {
-      IOException exception = new IOException("Couldn't print to PDF");
-      exception.initCause(ex);
+      IOException exception = new IOException("Couldn't print to PDF", ex);
       throw exception;
     }
   }

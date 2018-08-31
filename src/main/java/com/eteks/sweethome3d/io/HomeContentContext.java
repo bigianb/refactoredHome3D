@@ -63,8 +63,8 @@ class HomeContentContext {
     this.homeUrl = homeSource;
     this.preferPreferencesContent = preferPreferencesContent;
     this.contentDigests = readContentDigests(homeSource);
-    this.invalidContents = new ArrayList<Content>();
-    this.validContentsNotInPreferences = new ArrayList<URLContent>();
+    this.invalidContents = new ArrayList<>();
+    this.validContentsNotInPreferences = new ArrayList<>();
     if (preferences != null 
         && this.preferencesContentsCache == null) {
       this.preferencesContentsCache = getUserPreferencesContent(preferences);
@@ -87,7 +87,7 @@ class HomeContentContext {
           String line = reader.readLine();
           if (line != null
               && line.trim().startsWith("ContentDigests-Version: 1")) {
-            Map<URLContent, byte []> contentDigests = new HashMap<URLContent, byte[]>();
+            Map<URLContent, byte []> contentDigests = new HashMap<>();
             // Read Name / SHA-1-Digest lines  
             String entryName = null;
             while ((line = reader.readLine()) != null) {
@@ -240,7 +240,7 @@ class HomeContentContext {
    * Returns the content in preferences that could be shared with read homes.
    */
   private Set<URLContent> getUserPreferencesContent(UserPreferences preferences) {
-    Set<URLContent> preferencesContent = new HashSet<URLContent>();
+    Set<URLContent> preferencesContent = new HashSet<>();
     for (FurnitureCategory category : preferences.getFurnitureCatalog().getCategories()) {
       for (CatalogPieceOfFurniture piece : category.getFurniture()) {
         addURLContent(piece.getIcon(), preferencesContent);

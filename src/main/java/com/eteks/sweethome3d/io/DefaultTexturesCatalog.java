@@ -100,7 +100,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
 
     private String keyPrefix;
 
-    private PropertyKey(String keyPrefix) {
+    PropertyKey(String keyPrefix) {
       this.keyPrefix = keyPrefix;
     }
     
@@ -119,7 +119,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
 
   private static final String ADDITIONAL_TEXTURES_CATALOG_FAMILY  = "AdditionalTexturesCatalog";
 
-  private List<Library> libraries = new ArrayList<Library>();
+  private List<Library> libraries = new ArrayList<>();
   
   /**
    * Creates a default textures catalog read from resources.
@@ -151,7 +151,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
    */
   public DefaultTexturesCatalog(final UserPreferences preferences, 
                                 File [] texturesPluginFolders) {
-    List<String> identifiedTextures = new ArrayList<String>();
+    List<String> identifiedTextures = new ArrayList<>();
 
     readDefaultTexturesCatalogs(preferences, identifiedTextures);
 
@@ -189,7 +189,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
    */
   public DefaultTexturesCatalog(URL [] pluginTexturesCatalogUrls,
                                 URL    texturesResourcesUrlBase) {
-    List<String> identifiedTextures = new ArrayList<String>();
+    List<String> identifiedTextures = new ArrayList<>();
     try {
       SecurityManager securityManager = System.getSecurityManager();
       if (securityManager != null) {
@@ -203,9 +203,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
           this.libraries.add(0, new DefaultLibrary(pluginTexturesCatalogUrl.toExternalForm(), 
               UserPreferences.TEXTURES_LIBRARY_TYPE, resource));
           readTextures(resource, pluginTexturesCatalogUrl, texturesResourcesUrlBase, identifiedTextures);
-        } catch (MissingResourceException ex) {
-          // Ignore malformed textures catalog
-        } catch (IllegalArgumentException ex) {
+        } catch (MissingResourceException | IllegalArgumentException ex) {
           // Ignore malformed textures catalog
         }
       }
@@ -224,7 +222,7 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
     return Collections.unmodifiableList(this.libraries);
   }
 
-  private static final Map<File,URL> pluginTexturesCatalogUrlUpdates = new HashMap<File,URL>(); 
+  private static final Map<File,URL> pluginTexturesCatalogUrlUpdates = new HashMap<>();
   
   /**
    * Reads plug-in textures catalog from the <code>pluginTexturesCatalogFile</code> file. 
@@ -255,12 +253,8 @@ public class DefaultTexturesCatalog extends TexturesCatalog {
       this.libraries.add(0, new DefaultLibrary(pluginTexturesCatalogFile.getCanonicalPath(), 
           UserPreferences.TEXTURES_LIBRARY_TYPE, resourceBundle));
       readTextures(resourceBundle, pluginTexturesCatalogUrl, null, identifiedTextures);
-    } catch (MissingResourceException ex) {
+    } catch (MissingResourceException | IOException | IllegalArgumentException ex) {
       // Ignore malformed textures catalog
-    } catch (IllegalArgumentException ex) {
-      // Ignore malformed textures catalog
-    } catch (IOException ex) {
-      // Ignore unaccessible catalog
     }
   }
   

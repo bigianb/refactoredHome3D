@@ -97,7 +97,7 @@ public class PhotoController extends AbstractPhotoController {
     private WeakReference<AbstractPhotoController> photoController;
     
     public CameraChangeListener(AbstractPhotoController photoController) {
-      this.photoController = new WeakReference<AbstractPhotoController>(photoController);
+      this.photoController = new WeakReference<>(photoController);
     }
     
     public void propertyChange(PropertyChangeEvent ev) {

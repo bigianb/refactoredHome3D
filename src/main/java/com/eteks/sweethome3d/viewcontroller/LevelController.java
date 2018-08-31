@@ -308,7 +308,7 @@ public class LevelController implements Controller {
       tempHome.addLevel(homeLevel);
     }
     List<Level> updatedLevels = tempHome.getLevels();
-    setLevels(updatedLevels.toArray(new Level [updatedLevels.size()]));
+    setLevels(updatedLevels.toArray(new Level[0]));
     setSelectedLevelIndex(updatedLevels.indexOf(selectedLevel));
   }
 
@@ -535,7 +535,7 @@ public class LevelController implements Controller {
    * Returns a sub list of <code>items</code> that are at a viewable level.
    */
   private static List<Selectable> getViewableSublist(List<? extends Selectable> items) {
-    List<Selectable> viewableItems = new ArrayList<Selectable>(items.size());
+    List<Selectable> viewableItems = new ArrayList<>(items.size());
     for (Selectable item : items) {
       if (!(item instanceof Elevatable)
           || ((Elevatable)item).getLevel().isViewable()) {

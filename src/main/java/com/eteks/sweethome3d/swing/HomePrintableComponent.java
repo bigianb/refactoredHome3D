@@ -56,7 +56,7 @@ public class HomePrintableComponent extends JComponent implements Printable {
     private final String userCode;
     private final String formatCode;
 
-    private Variable(String userCode, String formatCode) {
+    Variable(String userCode, String formatCode) {
       this.userCode = userCode;
       this.formatCode = formatCode;
     }
@@ -102,7 +102,7 @@ public class HomePrintableComponent extends JComponent implements Printable {
   private final Font           headerFooterFont;
   private int                  page;
   private int                  pageCount = -1;
-  private Set<Integer>         printablePages = new HashSet<Integer>();
+  private Set<Integer>         printablePages = new HashSet<>();
   private int                  furniturePageCount;
   private int                  planPageCount;
   private Date                 printDate;

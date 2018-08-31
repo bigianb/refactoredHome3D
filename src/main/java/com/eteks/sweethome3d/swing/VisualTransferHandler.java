@@ -93,7 +93,7 @@ public class VisualTransferHandler extends TransferHandler {
     @Override
     protected void unregisterListeners() {
     }
-  };
+  }
 
   /**
    * A drag listener that uses transfer handler visual representation for drag image.

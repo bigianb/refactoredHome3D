@@ -87,11 +87,7 @@ public class ThreadedTaskPanel extends JPanel implements ThreadedTaskView {
       this.taskProgressBar.setIndeterminate(true);
     } else {
       // Ensure modifications are done in EDT
-      invokeLater(new Runnable() {
-          public void run() {
-            setIndeterminateProgress();
-          }
-        });
+      invokeLater(() -> setIndeterminateProgress());
     }
   }
   
@@ -109,11 +105,7 @@ public class ThreadedTaskPanel extends JPanel implements ThreadedTaskView {
       this.taskProgressBar.setMaximum(maximum);
     } else {
       // Ensure modifications are done in EDT
-      invokeLater(new Runnable() {
-          public void run() {
-            setProgress(value, minimum, maximum);
-          }
-        });
+      invokeLater(() -> setProgress(value, minimum, maximum));
     }
   }
   
@@ -139,31 +131,25 @@ public class ThreadedTaskPanel extends JPanel implements ThreadedTaskView {
       
       final JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, 
           JOptionPane.DEFAULT_OPTION, null, new Object [] {cancelButton});
-      cancelButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            optionPane.setValue(cancelButton);
-          }
-        });
+      cancelButton.addActionListener(ev -> optionPane.setValue(cancelButton));
       this.dialog = optionPane.createDialog(SwingUtilities.getRootPane((JComponent)executingView), dialogTitle);
       
       // Wait 200 ms before showing dialog to avoid displaying it 
       // when the task doesn't last so long
-      new Timer(200, new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            ((Timer)ev.getSource()).stop();
-            if (controller.isTaskRunning()) {
-              dialog.setVisible(true);
-              
-              dialog.dispose();
-              if (ThreadedTaskPanel.this.taskRunning 
-                  && (cancelButton == optionPane.getValue() 
-                      || new Integer(JOptionPane.CLOSED_OPTION).equals(optionPane.getValue()))) {
-                dialog = null;
-                controller.cancelTask();
-              }
-            }
+      new Timer(200, ev -> {
+        ((Timer)ev.getSource()).stop();
+        if (controller.isTaskRunning()) {
+          dialog.setVisible(true);
+
+          dialog.dispose();
+          if (ThreadedTaskPanel.this.taskRunning
+              && (cancelButton == optionPane.getValue()
+                  || new Integer(JOptionPane.CLOSED_OPTION).equals(optionPane.getValue()))) {
+            dialog = null;
+            controller.cancelTask();
           }
-        }).start();
+        }
+      }).start();
     } else if (!taskRunning && this.dialog != null) {
       this.dialog.setVisible(false);
     }

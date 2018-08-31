@@ -33,5 +33,5 @@ public interface Object3DFactory {
    * @param item           a selectable item of a home
    * @param waitForLoading if <code>true</code> all resources used by the returned object should be available
    */
-  public abstract Object createObject3D(Home home, Selectable item, boolean waitForLoading);
+  Object createObject3D(Home home, Selectable item, boolean waitForLoading);
 }

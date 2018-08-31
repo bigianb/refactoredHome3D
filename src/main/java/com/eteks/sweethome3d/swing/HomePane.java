@@ -120,7 +120,7 @@ public class HomePane extends JRootPane implements HomeView {
     ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
 
     createActions(home, preferences, controller);
-    createMenuActions(preferences, controller);
+    createMenuActions(preferences);
     createPluginActions(controller instanceof HomePluginController
         ? ((HomePluginController)controller).getPlugins()
         : null);
@@ -473,8 +473,7 @@ public class HomePane extends JRootPane implements HomeView {
   /**
    * Create the actions map used to create menus of this component.
    */
-  private void createMenuActions(UserPreferences preferences,
-                                 HomeController controller) {
+  private void createMenuActions(UserPreferences preferences) {
     this.menuActionMap = new ActionMap();
     createMenuAction(preferences, MenuActionType.FILE_MENU);
     createMenuAction(preferences, MenuActionType.EDIT_MENU);
@@ -977,7 +976,7 @@ public class HomePane extends JRootPane implements HomeView {
     addActionToMenu(ActionType.MODIFY_ROOM, planMenu);
     addActionToMenu(ActionType.MODIFY_POLYLINE, planMenu);
     addActionToMenu(ActionType.MODIFY_LABEL, planMenu);
-    planMenu.add(createTextStyleMenu(home, preferences, false));
+    planMenu.add(createTextStyleMenu(false));
     planMenu.addSeparator();
     JMenuItem importModifyBackgroundImageMenuItem = createImportModifyBackgroundImageMenuItem(home, false);
     if (importModifyBackgroundImageMenuItem != null) {
@@ -1489,9 +1488,7 @@ public class HomePane extends JRootPane implements HomeView {
   /**
    * Returns text style menu.
    */
-  private JMenu createTextStyleMenu(final Home home,
-                                    final UserPreferences preferences,
-                                    boolean popup) {
+  private JMenu createTextStyleMenu(boolean popup) {
     JMenu modifyTextStyleMenu = new JMenu(this.menuActionMap.get(MenuActionType.MODIFY_TEXT_STYLE));
 
     addActionToMenu(ActionType.INCREASE_TEXT_SIZE, popup, modifyTextStyleMenu);
@@ -2634,7 +2631,7 @@ public class HomePane extends JRootPane implements HomeView {
       JMenuItem deleteRoomPointMenuItem = addActionToPopupMenu(ActionType.DELETE_ROOM_POINT, planViewPopup);
       addActionToPopupMenu(ActionType.MODIFY_POLYLINE, planViewPopup);
       addActionToPopupMenu(ActionType.MODIFY_LABEL, planViewPopup);
-      planViewPopup.add(createTextStyleMenu(home, preferences, true));
+      planViewPopup.add(createTextStyleMenu(true));
       planViewPopup.addSeparator();
       JMenuItem importModifyBackgroundImageMenuItem = createImportModifyBackgroundImageMenuItem(home, true);
       if (importModifyBackgroundImageMenuItem != null) {
@@ -4470,7 +4467,7 @@ public class HomePane extends JRootPane implements HomeView {
       for (int i = 0; i < storedCameraNames.length; i++) {
         storedCameraNames [i] = storedCameras.get(i).getName();
       }
-      JComboBox cameraNameComboBox = new JComboBox(storedCameraNames);
+      JComboBox<String> cameraNameComboBox = new JComboBox<>(storedCameraNames);
       cameraNameComboBox.setEditable(true);
       cameraNameComboBox.getEditor().setItem(cameraName);
       Component editorComponent = cameraNameComboBox.getEditor().getEditorComponent();

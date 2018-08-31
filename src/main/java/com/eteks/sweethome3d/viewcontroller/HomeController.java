@@ -3012,7 +3012,7 @@ public class HomeController implements Controller {
         }
       }
       if (recentUpdates) {
-        Collections.sort(availableUpdates, (update1, update2) -> -OperatingSystem.compareVersions(update1.getVersion(), update2.getVersion()));
+        availableUpdates.sort((update1, update2) -> -OperatingSystem.compareVersions(update1.getVersion(), update2.getVersion()));
         return availableUpdates;
       }
     }
@@ -3184,9 +3184,9 @@ public class HomeController implements Controller {
       checkCurrentThreadIsntInterrupted();
       if (this.inComment) {
         // Reproduce comment content
-        this.comment.append("<" + name);
+        this.comment.append("<").append(name);
         for (int i = 0; i < attributes.getLength(); i++) {
-          this.comment.append(" " + attributes.getQName(i) + "=\"" + attributes.getValue(i) + "\"");
+          this.comment.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
         }
         this.comment.append(">");
       } else if (this.inUpdate && "comment".equals(name)) {
@@ -3256,7 +3256,7 @@ public class HomeController implements Controller {
           String size = attributes.getValue("size");
           if (size != null) {
             try {
-              this.update.setSize(new Long (size));
+              this.update.setSize(Long.valueOf(size));
             } catch (NumberFormatException ex) {
               // Ignore malformed number
             }
@@ -3303,7 +3303,7 @@ public class HomeController implements Controller {
           this.inComment = false;
         } else {
           // Reproduce comment content
-          this.comment.append("</" + name + ">");
+          this.comment.append("</").append(name).append(">");
         }
       } else if (this.inUpdate && "update".equals(name)) {
         this.inUpdate = false;

@@ -125,8 +125,7 @@ public class HomeController3D implements Controller {
 
   private float getObserverCameraMinimumElevation(final Home home) {
     List<Level> levels = home.getLevels();
-    float minimumElevation = levels.size() == 0  ? 10  : 10 + levels.get(0).getElevation();
-    return minimumElevation;
+    return levels.size() == 0  ? 10  : 10 + levels.get(0).getElevation();
   }
 
   /**

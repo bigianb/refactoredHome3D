@@ -461,8 +461,7 @@ public class Component3DManager {
         if (this.timer == null) {
           this.timer = new Timer(100, new ActionListener() {
               public void actionPerformed(ActionEvent ev) {
-                // Graphics parameter isn't actually used by Canvas3D class
-                ObservedCanvas3D.super.paint(null);
+                ObservedCanvas3D.super.paint(g);
               }
             });
           this.timer.setRepeats(false);            

@@ -249,16 +249,9 @@ public class HomeComponent3D extends JComponent implements com.eteks.sweethome3d
             onscreenUniverse = createUniverse(displayShadowOnFloor, true, false);
             Canvas3D canvas3D;
             if (component3D instanceof Canvas3D) {
-              canvas3D = (Canvas3D)component3D;
+                canvas3D = (Canvas3D)component3D;
             } else {
-              try {
-                // Call JCanvas3D#getOffscreenCanvas3D by reflection to be able to run under Java 3D 1.3
-                canvas3D = (Canvas3D)Class.forName("com.sun.j3d.exp.swing.JCanvas3D").getMethod("getOffscreenCanvas3D").invoke(component3D);
-              } catch (Exception ex) {
-                UnsupportedOperationException ex2 = new UnsupportedOperationException();
-                ex2.initCause(ex);
-                throw ex2;
-              }
+                canvas3D = ((JCanvas3D)component3D).getOffscreenCanvas3D();
             }
             // Bind universe to canvas3D
             onscreenUniverse.getViewer().getView().addCanvas3D(canvas3D);
@@ -294,19 +287,8 @@ public class HomeComponent3D extends JComponent implements com.eteks.sweethome3d
     if (Boolean.valueOf(System.getProperty("com.eteks.sweethome3d.j3d.useOffScreen3DView", "false"))) {
       GraphicsConfigTemplate3D gc = new GraphicsConfigTemplate3D();
       gc.setSceneAntialiasing(GraphicsConfigTemplate3D.PREFERRED);
-      try {
-        // Instantiate JCanvas3DWithNavigationPanel inner class by reflection
-        // to be able to run under Java 3D 1.3
-        this.component3D = (Component)Class.forName(getClass().getName() + "$JCanvas3DWithNavigationPanel").
-            getConstructor(getClass(), GraphicsConfigTemplate3D.class).newInstance(this, gc);
-        this.component3D.setSize(1, 1);
-      } catch (ClassNotFoundException ex) {
-        throw new UnsupportedOperationException("Java 3D 1.5 required to display an offscreen 3D view");
-      } catch (Exception ex) {
-        UnsupportedOperationException ex2 = new UnsupportedOperationException();
-        ex2.initCause(ex);
-        throw ex2;
-      }
+      this.component3D = new JCanvas3DWithNavigationPanel(this, gc);
+      this.component3D.setSize(1, 1);
     } else {
       this.component3D = Component3DManager.getInstance().getOnscreenCanvas3D(configuration,
           new Component3DManager.RenderingObserver() {

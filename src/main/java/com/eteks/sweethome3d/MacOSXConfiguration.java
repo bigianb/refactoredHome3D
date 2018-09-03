@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.Canvas3D;
+import org.jogamp.java3d.Canvas3D;
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -81,7 +81,7 @@ import com.eteks.sweethome3d.swing.ResourceAction;
 import com.eteks.sweethome3d.swing.SwingTools;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
-import com.sun.j3d.exp.swing.JCanvas3D;
+import org.jogamp.java3d.exp.swing.JCanvas3D;
 
 /**
  * Configuration class that accesses to Mac OS X specifics.

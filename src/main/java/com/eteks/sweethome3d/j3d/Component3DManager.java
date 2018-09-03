@@ -36,22 +36,22 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.GraphicsConfigTemplate3D;
-import javax.media.j3d.IllegalRenderingStateException;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.RenderingError;
-import javax.media.j3d.RenderingErrorListener;
-import javax.media.j3d.Screen3D;
-import javax.media.j3d.View;
-import javax.media.j3d.VirtualUniverse;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.GraphicsConfigTemplate3D;
+import org.jogamp.java3d.IllegalRenderingStateException;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.RenderingError;
+import org.jogamp.java3d.RenderingErrorListener;
+import org.jogamp.java3d.Screen3D;
+import org.jogamp.java3d.View;
+import org.jogamp.java3d.VirtualUniverse;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.Viewer;
+import org.jogamp.java3d.utils.universe.ViewingPlatform;
 
 /**
  * Manager of <code>Canvas3D</code> instantiations and Java 3D error listeners.
@@ -126,7 +126,7 @@ public class Component3DManager {
    */
   public void setRenderingErrorObserver(RenderingErrorObserver observer) {
     try {
-      Class.forName("javax.media.j3d.RenderingErrorListener");
+      Class.forName("org.jogamp.java3d.RenderingErrorListener");
       this.renderingErrorListener = RenderingErrorListenerManager.setRenderingErrorObserver(
           observer, this.renderingErrorListener);
       this.renderingErrorObserver = observer;

@@ -21,12 +21,13 @@ package com.eteks.sweethome3d.junit;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Iterator;
 
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Group;
-import javax.media.j3d.Link;
-import javax.media.j3d.Node;
-import javax.media.j3d.Shape3D;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.Shape3D;
 
 import junit.framework.TestCase;
 
@@ -53,9 +54,9 @@ public class ModelManagerTest extends TestCase {
   private int getShapesCount(Node node) {
     if (node instanceof Group) {
       int shapesCount = 0;
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements ()) {
-        shapesCount += getShapesCount((Node)enumeration.nextElement());
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext ()) {
+        shapesCount += getShapesCount((Node)enumeration.next());
       }
       return shapesCount;
     } else if (node instanceof Link) {

@@ -35,63 +35,51 @@ import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.GeometryStripArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedGeometryStripArray;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.IndexedTriangleFanArray;
-import javax.media.j3d.IndexedTriangleStripArray;
-import javax.media.j3d.Light;
-import javax.media.j3d.LineAttributes;
-import javax.media.j3d.Link;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PointAttributes;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.SharedGroup;
-import javax.media.j3d.TexCoordGeneration;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.media.j3d.TriangleArray;
-import javax.media.j3d.TriangleFanArray;
-import javax.media.j3d.TriangleStripArray;
-import javax.vecmath.Color3f;
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingBox;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.GeometryStripArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedGeometryStripArray;
+import org.jogamp.java3d.IndexedQuadArray;
+import org.jogamp.java3d.IndexedTriangleArray;
+import org.jogamp.java3d.IndexedTriangleFanArray;
+import org.jogamp.java3d.IndexedTriangleStripArray;
+import org.jogamp.java3d.Light;
+import org.jogamp.java3d.LineAttributes;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PointAttributes;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.SharedGroup;
+import org.jogamp.java3d.TexCoordGeneration;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.TriangleFanArray;
+import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Matrix3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 import org.apache.batik.parser.AWTPathProducer;
 import org.apache.batik.parser.ParseException;
@@ -107,11 +95,11 @@ import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.tools.SimpleURLContent;
 import com.eteks.sweethome3d.tools.TemporaryURLContent;
 import com.eteks.sweethome3d.tools.URLContent;
-import com.sun.j3d.loaders.IncorrectFormatException;
-import com.sun.j3d.loaders.Loader;
-import com.sun.j3d.loaders.ParsingErrorException;
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.loaders.lw3d.Lw3dLoader;
+import org.jogamp.java3d.loaders.IncorrectFormatException;
+import org.jogamp.java3d.loaders.Loader;
+import org.jogamp.java3d.loaders.ParsingErrorException;
+import org.jogamp.java3d.loaders.Scene;
+import org.jogamp.java3d.loaders.lw3d.Lw3dLoader;
 
 /**
  * Singleton managing 3D models cache.
@@ -429,9 +417,9 @@ public class ModelManager {
          }
 
         // Compute the bounds of all the node children
-        Enumeration<?> enumeration = ((Group)node).getAllChildren();
-        while (enumeration.hasMoreElements ()) {
-          computeBounds((Node)enumeration.nextElement(), combinedBounds, parentTransformation,
+        Iterator<Node> enumeration = ((Group)node).getAllChildren();
+        while (enumeration.hasNext ()) {
+          computeBounds(enumeration.next(), combinedBounds, parentTransformation,
               transformShapeGeometry, deformedGeometry);
         }
 
@@ -996,7 +984,7 @@ public class ModelManager {
       } catch (RuntimeException ex) {
         // Take into account exceptions of Java 3D 1.5 ImageException class
         // in such a way program can run in Java 3D 1.3.1
-        if (ex.getClass().getName().equals("com.sun.j3d.utils.image.ImageException")) {
+        if (ex.getClass().getName().equals("org.jogamp.java3d.utils.image.ImageException")) {
           lastException = ex;
         } else {
           throw ex;
@@ -1288,9 +1276,9 @@ public class ModelManager {
         && ((String)node.getUserData()).endsWith(DEFORMABLE_TRANSFORM_GROUP_SUFFIX)) {
       return true;
     } else if (node instanceof Group) {
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        if (containsDeformableNode((Node)enumeration.nextElement())) {
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        if (containsDeformableNode(enumeration.next())) {
           return true;
         }
       }
@@ -1310,9 +1298,9 @@ public class ModelManager {
       ((TransformGroup)node).getTransform(transform);
       return (transform.getBestType() & Transform3D.IDENTITY) != Transform3D.IDENTITY;
     } else if (node instanceof Group) {
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        if (isDeformed((Node)enumeration.nextElement())) {
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        if (isDeformed(enumeration.next())) {
           return true;
         }
       }
@@ -1328,9 +1316,9 @@ public class ModelManager {
                                                      Map<Texture, Texture> replacedTextures) {
     if (node instanceof Group) {
       // Enumerate children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        turnOffLightsShareAndModulateTextures((Node)enumeration.nextElement(), replacedTextures);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        turnOffLightsShareAndModulateTextures(enumeration.next(), replacedTextures);
       }
     } else if (node instanceof Link) {
       turnOffLightsShareAndModulateTextures(((Link)node).getSharedGroup(), replacedTextures);
@@ -1477,9 +1465,9 @@ public class ModelManager {
   private void searchAppearances(Node node, Set<Appearance> appearances) {
     if (node instanceof Group) {
       // Enumerate children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        searchAppearances((Node)enumeration.nextElement(), appearances);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        searchAppearances(enumeration.next(), appearances);
       }
     } else if (node instanceof Link) {
       searchAppearances(((Link)node).getSharedGroup(), appearances);
@@ -1594,9 +1582,9 @@ public class ModelManager {
     int count = 0;
     if (node instanceof Group) {
       // Enumerate all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        count += getVertexCount((Node)enumeration.nextElement());
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        count += getVertexCount(enumeration.next());
       }
     } else if (node instanceof Link) {
       count = getVertexCount(((Link)node).getSharedGroup());
@@ -1634,9 +1622,9 @@ public class ModelManager {
         parentTransformations.mul(transform);
       }
       // Compute all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        computeBottomOrFrontArea((Node)enumeration.nextElement(), nodeArea, parentTransformations, ignoreTransparentShapes, bottom);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        computeBottomOrFrontArea(enumeration.next(), nodeArea, parentTransformations, ignoreTransparentShapes, bottom);
       }
     } else if (node instanceof Link) {
       computeBottomOrFrontArea(((Link)node).getSharedGroup(), nodeArea, parentTransformations, ignoreTransparentShapes, bottom);
@@ -1917,9 +1905,9 @@ public class ModelManager {
         parentTransformations.mul(transform);
       }
       // Compute all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        computeVerticesOnFloor((Node)enumeration.nextElement(), vertices, parentTransformations);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        computeVerticesOnFloor(enumeration.next(), vertices, parentTransformations);
       }
     } else if (node instanceof Link) {
       computeVerticesOnFloor(((Link)node).getSharedGroup(), vertices, parentTransformations);

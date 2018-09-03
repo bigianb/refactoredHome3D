@@ -60,20 +60,20 @@
             <version>2.3.2</version>
         </dependency>
         <dependency>
-            <groupId>javax.vecmath</groupId>
+            <groupId>org.jogamp.java3d</groupId>
             <artifactId>vecmath</artifactId>
-            <version>1.5.2</version>
+            <version>1.7.0</version>
         </dependency>
         
         <dependency>
-            <groupId>net.ijbrown</groupId>
+            <groupId>org.jogamp.java3d</groupId>
             <artifactId>j3dcore</artifactId>
-            <version>1.6</version>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
-            <groupId>net.ijbrown</groupId>
+            <groupId>org.jogamp.java3d</groupId>
             <artifactId>j3dutils</artifactId>
-            <version>1.6</version>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
             <groupId>net.ijbrown</groupId>

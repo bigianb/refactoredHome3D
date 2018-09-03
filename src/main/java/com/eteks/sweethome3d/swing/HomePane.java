@@ -33,8 +33,8 @@ import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.*;
 import com.eteks.sweethome3d.viewcontroller.PlanController.Mode;
 
-import javax.media.j3d.Node;
-import javax.media.j3d.VirtualUniverse;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.VirtualUniverse;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;

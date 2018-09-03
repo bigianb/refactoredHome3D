@@ -39,7 +39,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.vecmath.Point3f;
+import org.jogamp.vecmath.Point3f;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;

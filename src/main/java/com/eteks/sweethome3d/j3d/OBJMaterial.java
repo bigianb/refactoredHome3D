@@ -19,8 +19,8 @@
  */
 package com.eteks.sweethome3d.j3d;
 
-import javax.media.j3d.Material;
-import javax.media.j3d.NodeComponent;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.NodeComponent;
 
 /**
  * A material with additional parameters useful for raytracing rendering. 

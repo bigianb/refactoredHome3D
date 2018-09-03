@@ -28,16 +28,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.Node;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TransparencyAttributes;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
 
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeFurnitureGroup;
@@ -46,8 +46,8 @@ import com.eteks.sweethome3d.model.HomeTexture;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.Room;
 import com.eteks.sweethome3d.model.Wall;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
+import org.jogamp.java3d.utils.geometry.GeometryInfo;
+import org.jogamp.java3d.utils.geometry.NormalGenerator;
 
 /**
  * Root of room branch.

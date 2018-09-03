@@ -28,7 +28,7 @@ import com.eteks.sweethome3d.viewcontroller.ModelMaterialsController;
 import com.eteks.sweethome3d.viewcontroller.TextureChoiceController;
 import com.eteks.sweethome3d.viewcontroller.View;
 
-import javax.media.j3d.BranchGroup;
+import org.jogamp.java3d.BranchGroup;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;

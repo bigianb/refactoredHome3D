@@ -54,44 +54,44 @@ import java.util.zip.ZipOutputStream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.GeometryStripArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedGeometryStripArray;
-import javax.media.j3d.IndexedLineArray;
-import javax.media.j3d.IndexedLineStripArray;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.IndexedTriangleFanArray;
-import javax.media.j3d.IndexedTriangleStripArray;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.LineStripArray;
-import javax.media.j3d.Link;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TexCoordGeneration;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.media.j3d.TriangleArray;
-import javax.media.j3d.TriangleFanArray;
-import javax.media.j3d.TriangleStripArray;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.GeometryStripArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedGeometryStripArray;
+import org.jogamp.java3d.IndexedLineArray;
+import org.jogamp.java3d.IndexedLineStripArray;
+import org.jogamp.java3d.IndexedQuadArray;
+import org.jogamp.java3d.IndexedTriangleArray;
+import org.jogamp.java3d.IndexedTriangleFanArray;
+import org.jogamp.java3d.IndexedTriangleStripArray;
+import org.jogamp.java3d.LineArray;
+import org.jogamp.java3d.LineStripArray;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TexCoordGeneration;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.TriangleFanArray;
+import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector4f;
 
 /**
  * An output stream that writes Java 3D nodes at OBJ + MTL format.
@@ -341,9 +341,9 @@ public class OBJWriter extends FilterWriter {
         parentTransformations.mul(transform);
       }
       // Write all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren(); 
-      while (enumeration.hasMoreElements()) {
-        writeNode((Node)enumeration.nextElement(), nodeName, parentTransformations);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        writeNode(enumeration.next(), nodeName, parentTransformations);
       }
     } else if (node instanceof Link) {
       writeNode(((Link)node).getSharedGroup(), nodeName, parentTransformations);

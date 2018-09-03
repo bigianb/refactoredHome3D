@@ -54,26 +54,26 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.AmbientLight;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Background;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.GraphicsConfigTemplate3D;
-import javax.media.j3d.Group;
-import javax.media.j3d.Light;
-import javax.media.j3d.Link;
-import javax.media.j3d.Node;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
+import org.jogamp.java3d.AmbientLight;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Background;
+import org.jogamp.java3d.BoundingBox;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.DirectionalLight;
+import org.jogamp.java3d.GraphicsConfigTemplate3D;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Light;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.View;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -82,13 +82,13 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.MouseInputAdapter;
-import javax.vecmath.Color3f;
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Matrix3f;
+import org.jogamp.vecmath.Point2d;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 import com.eteks.sweethome3d.j3d.Component3DManager;
 import com.eteks.sweethome3d.j3d.HomePieceOfFurniture3D;
@@ -100,14 +100,14 @@ import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Transformation;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.tools.TemporaryURLContent;
-import com.sun.j3d.exp.swing.JCanvas3D;
-import com.sun.j3d.utils.geometry.Cone;
-import com.sun.j3d.utils.geometry.Cylinder;
-import com.sun.j3d.utils.picking.PickCanvas;
-import com.sun.j3d.utils.picking.PickResult;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.jogamp.java3d.exp.swing.JCanvas3D;
+import org.jogamp.java3d.utils.geometry.Cone;
+import org.jogamp.java3d.utils.geometry.Cylinder;
+import org.jogamp.java3d.utils.picking.PickCanvas;
+import org.jogamp.java3d.utils.picking.PickResult;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.Viewer;
+import org.jogamp.java3d.utils.universe.ViewingPlatform;
 
 /**
  * Super class of 3D preview component for model.
@@ -650,7 +650,7 @@ public class ModelPreviewComponent extends JComponent {
     } else {
       try {
         // Call JCanvas3D#getOffscreenCanvas3D by reflection to be able to run under Java 3D 1.3
-        canvas3D = (Canvas3D)Class.forName("com.sun.j3d.exp.swing.JCanvas3D").getMethod("getOffscreenCanvas3D").invoke(this.component3D);
+        canvas3D = (Canvas3D)Class.forName("org.jogamp.java3d.exp.swing.JCanvas3D").getMethod("getOffscreenCanvas3D").invoke(this.component3D);
       } catch (Exception ex) {
         throw new UnsupportedOperationException(ex);
       }
@@ -1160,9 +1160,9 @@ public class ModelPreviewComponent extends JComponent {
           && ((String)node.getUserData()).endsWith(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX)) {
         ((TransformGroup)node).setTransform(new Transform3D());
       }
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        resetTranformations((Node)enumeration.nextElement());
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        resetTranformations(enumeration.next());
       }
     }
   }
@@ -1226,9 +1226,9 @@ public class ModelPreviewComponent extends JComponent {
   private void cloneTextures(Node node, Map<Texture, Texture> replacedTextures) {
     if (node instanceof Group) {
       // Enumerate children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        cloneTextures((Node)enumeration.nextElement(), replacedTextures);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        cloneTextures(enumeration.next(), replacedTextures);
       }
     } else if (node instanceof Link) {
       cloneTextures(((Link)node).getSharedGroup(), replacedTextures);

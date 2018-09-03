@@ -30,62 +30,52 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.GeometryStripArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedGeometryStripArray;
-import javax.media.j3d.IndexedLineArray;
-import javax.media.j3d.IndexedLineStripArray;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.IndexedTriangleFanArray;
-import javax.media.j3d.IndexedTriangleStripArray;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.LineStripArray;
-import javax.media.j3d.Link;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TexCoordGeneration;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.media.j3d.TriangleArray;
-import javax.media.j3d.TriangleFanArray;
-import javax.media.j3d.TriangleStripArray;
-import javax.vecmath.Color3f;
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.GeometryStripArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedGeometryStripArray;
+import org.jogamp.java3d.IndexedLineArray;
+import org.jogamp.java3d.IndexedLineStripArray;
+import org.jogamp.java3d.IndexedQuadArray;
+import org.jogamp.java3d.IndexedTriangleArray;
+import org.jogamp.java3d.IndexedTriangleFanArray;
+import org.jogamp.java3d.IndexedTriangleStripArray;
+import org.jogamp.java3d.LineArray;
+import org.jogamp.java3d.LineStripArray;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TexCoordGeneration;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.TriangleFanArray;
+import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Matrix4f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector4f;
 
 import org.sunflow.PluginRegistry;
 import org.sunflow.SunflowAPI;
@@ -435,9 +425,9 @@ public class PhotoRenderer {
         transformMatrix.setRow(3, new float [] {0, 0, 0, 1});
         ((TransformGroup)node).setTransform(new Transform3D(transformMatrix));
       } else {
-        Enumeration<?> enumeration = ((Group)node).getAllChildren();
-        while (enumeration.hasMoreElements()) {
-          updateTransformation((Node)enumeration.nextElement(), transformGroupUserData, matrix);
+        Iterator<Node> enumeration = ((Group)node).getAllChildren();
+        while (enumeration.hasNext()) {
+          updateTransformation(enumeration.next(), transformGroupUserData, matrix);
         }
       }
     }
@@ -457,9 +447,9 @@ public class PhotoRenderer {
           return true;
         }
       }
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        if (intersectsDeformedNode((Node)enumeration.nextElement(), lightBounds, transformGroupUserData)) {
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        if (intersectsDeformedNode(enumeration.next(), lightBounds, transformGroupUserData)) {
           return true;
         }
       }
@@ -484,9 +474,9 @@ public class PhotoRenderer {
           return parentTransformation;
         }
       }
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        Transform3D transform = getDeformation((Node)enumeration.nextElement(), parentTransformation,
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        Transform3D transform = getDeformation(enumeration.next(), parentTransformation,
             transformGroupUserData);
         if (transform != null) {
           return transform;
@@ -776,9 +766,9 @@ public class PhotoRenderer {
         parentTransformations.mul(transform);
       }
       // Export all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        exportNode((Node)enumeration.nextElement(), ignoreTransparency, silk, nodeNames, parentTransformations);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        exportNode(enumeration.next(), ignoreTransparency, silk, nodeNames, parentTransformations);
       }
     } else if (node instanceof Link) {
       exportNode(((Link)node).getSharedGroup(), ignoreTransparency, silk, nodeNames, parentTransformations);

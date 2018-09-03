@@ -25,21 +25,21 @@ import com.eteks.sweethome3d.model.Label;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.HomeController3D;
 import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
-import com.sun.j3d.exp.swing.JCanvas3D;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.jogamp.java3d.exp.swing.JCanvas3D;
+import org.jogamp.java3d.utils.geometry.GeometryInfo;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.Viewer;
+import org.jogamp.java3d.utils.universe.ViewingPlatform;
 
-import javax.media.j3d.*;
-import javax.media.j3d.Light;
+import org.jogamp.java3d.*;
+import org.jogamp.java3d.Light;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.MouseInputAdapter;
-import javax.vecmath.*;
+import org.jogamp.vecmath.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Area;
@@ -778,8 +778,8 @@ public class HomeComponent3D extends JComponent implements com.eteks.sweethome3d
       // Replace textures by clones because Java 3D doesn't accept all the time
       // to share textures between offscreen and onscreen environments
       Map<Texture, Texture> replacedTextures = new HashMap<>();
-      for (Enumeration it = this.offscreenUniverse.getLocale().getAllBranchGraphs(); it.hasMoreElements(); ) {
-        cloneTexture((Node)it.nextElement(), replacedTextures);
+      for (Iterator<BranchGroup> it = this.offscreenUniverse.getLocale().getAllBranchGraphs(); it.hasNext(); ) {
+        cloneTexture((Node)it.next(), replacedTextures);
       }
     }
   }
@@ -798,8 +798,8 @@ public class HomeComponent3D extends JComponent implements com.eteks.sweethome3d
         // Replace textures by clones because Java 3D doesn't accept all the time
         // to share textures between offscreen and onscreen environments
         Map<Texture, Texture> replacedTextures = new HashMap<>();
-        for (Enumeration it = offScreenImageUniverse.getLocale().getAllBranchGraphs(); it.hasMoreElements(); ) {
-          cloneTexture((Node)it.nextElement(), replacedTextures);
+        for (Iterator<BranchGroup> it = offScreenImageUniverse.getLocale().getAllBranchGraphs(); it.hasNext(); ) {
+          cloneTexture((Node)it.next(), replacedTextures);
         }
       } else {
         view = this.offscreenUniverse.getViewer().getView();
@@ -826,9 +826,9 @@ public class HomeComponent3D extends JComponent implements com.eteks.sweethome3d
   private void cloneTexture(Node node, Map<Texture, Texture> replacedTextures) {
     if (node instanceof Group) {
       // Enumerate children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        cloneTexture((Node)enumeration.nextElement(), replacedTextures);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        cloneTexture((Node)enumeration.next(), replacedTextures);
       }
     } else if (node instanceof Link) {
       cloneTexture(((Link)node).getSharedGroup(), replacedTextures);

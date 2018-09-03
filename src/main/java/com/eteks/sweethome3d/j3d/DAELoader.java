@@ -30,40 +30,34 @@ import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.Group;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedLineArray;
-import javax.media.j3d.IndexedLineStripArray;
-import javax.media.j3d.Link;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.SharedGroup;
-import javax.media.j3d.Texture;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.vecmath.AxisAngle4f;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingBox;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedLineArray;
+import org.jogamp.java3d.IndexedLineStripArray;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.SharedGroup;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.AxisAngle4f;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -72,15 +66,15 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.sun.j3d.loaders.IncorrectFormatException;
-import com.sun.j3d.loaders.Loader;
-import com.sun.j3d.loaders.LoaderBase;
-import com.sun.j3d.loaders.ParsingErrorException;
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.loaders.SceneBase;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.image.TextureLoader;
+import org.jogamp.java3d.loaders.IncorrectFormatException;
+import org.jogamp.java3d.loaders.Loader;
+import org.jogamp.java3d.loaders.LoaderBase;
+import org.jogamp.java3d.loaders.ParsingErrorException;
+import org.jogamp.java3d.loaders.Scene;
+import org.jogamp.java3d.loaders.SceneBase;
+import org.jogamp.java3d.utils.geometry.GeometryInfo;
+import org.jogamp.java3d.utils.geometry.NormalGenerator;
+import org.jogamp.java3d.utils.image.TextureLoader;
 
 /**
  * A loader for DAE Collada 1.4.1 format as specified by
@@ -472,9 +466,9 @@ public class DAELoader extends LoaderBase implements Loader {
               
               private void updateShapeAppearance(Node node, Appearance appearance) {
                 if (node instanceof Group) {
-                  Enumeration<?> enumeration = ((Group)node).getAllChildren();
-                  while (enumeration.hasMoreElements ()) {
-                    updateShapeAppearance((Node)enumeration.nextElement(), appearance);
+                  Iterator<Node> enumeration = ((Group)node).getAllChildren();
+                  while (enumeration.hasNext ()) {
+                    updateShapeAppearance(enumeration.next(), appearance);
                   }
                 } else if (node instanceof Link) {
                   updateShapeAppearance(((Link)node).getSharedGroup(), appearance);
@@ -661,7 +655,7 @@ public class DAELoader extends LoaderBase implements Loader {
         } catch (RuntimeException ex) {
           // Take into account exceptions of Java 3D 1.5 ImageException class
           // in such a way program can run in Java 3D 1.3.1
-          if (ex.getClass().getName().equals("com.sun.j3d.utils.image.ImageException")) {
+          if (ex.getClass().getName().equals("org.jogamp.java3d.utils.image.ImageException")) {
             // Ignore images not supported by TextureLoader
           } else {
             throw ex;
@@ -1113,9 +1107,9 @@ public class DAELoader extends LoaderBase implements Loader {
           parentTransformations.mul(transform);
         }
         // Compute the bounds of all the node children
-        Enumeration<?> enumeration = ((Group)node).getAllChildren();
-        while (enumeration.hasMoreElements ()) {
-          computeBounds((Node)enumeration.nextElement(), bounds, parentTransformations);
+        Iterator<Node> enumeration = ((Group)node).getAllChildren();
+        while (enumeration.hasNext ()) {
+          computeBounds(enumeration.next(), bounds, parentTransformations);
         }
       } else if (node instanceof Link) {
         computeBounds(((Link)node).getSharedGroup(), bounds, parentTransformations);

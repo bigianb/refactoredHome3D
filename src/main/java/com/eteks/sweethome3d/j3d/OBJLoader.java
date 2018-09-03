@@ -42,35 +42,35 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.LineStripArray;
-import javax.media.j3d.Material;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TexCoordGeneration;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TransparencyAttributes;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.LineStripArray;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TexCoordGeneration;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Vector3f;
 
-import com.sun.j3d.loaders.IncorrectFormatException;
-import com.sun.j3d.loaders.Loader;
-import com.sun.j3d.loaders.LoaderBase;
-import com.sun.j3d.loaders.ParsingErrorException;
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.loaders.SceneBase;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.image.TextureLoader;
+import org.jogamp.java3d.loaders.IncorrectFormatException;
+import org.jogamp.java3d.loaders.Loader;
+import org.jogamp.java3d.loaders.LoaderBase;
+import org.jogamp.java3d.loaders.ParsingErrorException;
+import org.jogamp.java3d.loaders.Scene;
+import org.jogamp.java3d.loaders.SceneBase;
+import org.jogamp.java3d.utils.geometry.GeometryInfo;
+import org.jogamp.java3d.utils.geometry.NormalGenerator;
+import org.jogamp.java3d.utils.image.TextureLoader;
 
 /**
  * An OBJ + MTL loader.
- * It supports the same features as {@link com.sun.j3d.loaders.objectfile.ObjectFile ObjectFile}
+ * It supports the same features as {@link org.jogamp.java3d.loaders.objectfile.ObjectFile ObjectFile}
  * Java 3D class, expected for texture images format (supports only BMP, WBMP, GIF, JPEG and PNG format).
  * Compared to <code>ObjectFile</code>, this class supports transparency as defined in
  * <a href="http://local.wasp.uwa.edu.au/~pbourke/dataformats/mtl/">MTL file format</a>
@@ -84,7 +84,7 @@ import com.sun.j3d.utils.image.TextureLoader;
 public class OBJLoader extends LoaderBase implements Loader {
   /**
    * Description of the default Java 3D materials at MTL format
-   * (copied from com.sun.j3d.loaders.objectfile.DefaultMaterials class with inverse d transparency factor)
+   * (copied from org.jogamp.java3d.loaders.objectfile.DefaultMaterials class with inverse d transparency factor)
    */
   private static final String JAVA_3D_MATERIALS =
     "newmtl amber\n" +
@@ -1809,7 +1809,7 @@ public class OBJLoader extends LoaderBase implements Loader {
         } catch (RuntimeException ex) {
           // Take into account exceptions of Java 3D 1.5 ImageException class
           // in such a way program can run in Java 3D 1.3.1
-          if (ex.getClass().getName().equals("com.sun.j3d.utils.image.ImageException")) {
+          if (ex.getClass().getName().equals("org.jogamp.java3d.utils.image.ImageException")) {
             // Ignore images not supported by TextureLoader
           } else {
             throw ex;

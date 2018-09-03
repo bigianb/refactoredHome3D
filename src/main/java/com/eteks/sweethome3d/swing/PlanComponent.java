@@ -27,15 +27,15 @@ import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
 import com.eteks.sweethome3d.viewcontroller.PlanView;
 import com.eteks.sweethome3d.viewcontroller.View;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.Viewer;
+import org.jogamp.java3d.utils.universe.ViewingPlatform;
 import org.freehep.graphicsio.ImageConstants;
 import org.freehep.graphicsio.svg.SVGGraphics2D;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.*;
-import javax.media.j3d.Light;
+import org.jogamp.java3d.*;
+import org.jogamp.java3d.Light;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
@@ -43,10 +43,10 @@ import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 import java.awt.*;
 import java.awt.dnd.DragSource;
 import java.awt.event.*;
@@ -6259,8 +6259,8 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
         viewPlatformTransform.setTransform(transform);
         // Use parallel projection
         Viewer viewer = viewingPlatform.getViewers() [0];
-        javax.media.j3d.View view = viewer.getView();
-        view.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
+        org.jogamp.java3d.View view = viewer.getView();
+        view.setProjectionPolicy(org.jogamp.java3d.View.PARALLEL_PROJECTION);
         sceneRoot = new BranchGroup();
         // Prepare scene root
         sceneRoot.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
@@ -6350,9 +6350,9 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     private void cloneTexture(Node node, Map<Texture, Texture> replacedTextures) {
       if (node instanceof Group) {
         // Enumerate children
-        Enumeration<?> enumeration = ((Group)node).getAllChildren();
-        while (enumeration.hasMoreElements()) {
-          cloneTexture((Node)enumeration.nextElement(), replacedTextures);
+        Iterator<Node> enumeration = ((Group)node).getAllChildren();
+        while (enumeration.hasNext()) {
+          cloneTexture(enumeration.next(), replacedTextures);
         }
       } else if (node instanceof Link) {
         cloneTexture(((Link)node).getSharedGroup(), replacedTextures);

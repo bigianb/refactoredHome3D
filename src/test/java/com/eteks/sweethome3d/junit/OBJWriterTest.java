@@ -26,9 +26,9 @@ import java.io.LineNumberReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.vecmath.Vector3f;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.Vector3f;
 
 import junit.framework.TestCase;
 
@@ -44,8 +44,8 @@ import com.eteks.sweethome3d.model.Wall;
 import com.eteks.sweethome3d.swing.SwingViewFactory;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.ViewFactory;
-import com.sun.j3d.utils.geometry.Box;
-import com.sun.j3d.utils.geometry.Sphere;
+import org.jogamp.java3d.utils.geometry.Box;
+import org.jogamp.java3d.utils.geometry.Sphere;
 
 /**
  * Test {@link com.eteks.sweethome3d.j3d.OBJWriter OBJ writer} features.

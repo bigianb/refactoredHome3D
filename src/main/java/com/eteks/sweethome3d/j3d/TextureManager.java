@@ -41,14 +41,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.ImageComponent;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.Texture;
+import org.jogamp.java3d.ImageComponent;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.Texture;
 
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.HomeTexture;
 import com.eteks.sweethome3d.tools.URLContent;
-import com.sun.j3d.utils.image.TextureLoader;
+import org.jogamp.java3d.utils.image.TextureLoader;
 
 /**
  * Singleton managing texture image cache.
@@ -287,7 +287,7 @@ public class TextureManager {
     } catch (RuntimeException ex) {
       // Take into account exceptions of Java 3D 1.5 ImageException class
       // in such a way program can run in Java 3D 1.3.1
-      if (ex.getClass().getName().equals("com.sun.j3d.utils.image.ImageException")) {
+      if (ex.getClass().getName().equals("org.jogamp.java3d.utils.image.ImageException")) {
         // Images not supported by TextureLoader
         return this.errorTexture;
       } else {

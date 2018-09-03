@@ -23,41 +23,37 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.BoundingLeaf;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.CapabilityNotSetException;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.Link;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PointLight;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TexCoordGeneration;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.vecmath.Color3f;
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingBox;
+import org.jogamp.java3d.BoundingLeaf;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.CapabilityNotSetException;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PointLight;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TexCoordGeneration;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Matrix4f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector4f;
 
 import com.eteks.sweethome3d.j3d.TextureManager.TextureObserver;
 import com.eteks.sweethome3d.model.Content;
@@ -76,7 +72,7 @@ import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.SelectionEvent;
 import com.eteks.sweethome3d.model.SelectionListener;
 import com.eteks.sweethome3d.model.Transformation;
-import com.sun.j3d.utils.geometry.Box;
+import org.jogamp.java3d.utils.geometry.Box;
 
 /**
  * Root of piece of furniture branch.
@@ -188,9 +184,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
           private void cloneHomeTextures(Node node) {
             if (node instanceof Group) {
               // Enumerate children
-              Enumeration<?> enumeration = ((Group)node).getAllChildren();
-              while (enumeration.hasMoreElements()) {
-                cloneHomeTextures((Node)enumeration.nextElement());
+              Iterator<Node> enumeration = ((Group)node).getAllChildren();
+              while (enumeration.hasNext()) {
+                cloneHomeTextures((Node)enumeration.next());
               }
             } else if (node instanceof Link) {
               cloneHomeTextures(((Link)node).getSharedGroup());
@@ -468,9 +464,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
           modifiedTransformations = true;
         }
       } else {
-        Enumeration<?> enumeration = ((Group)node).getAllChildren();
-        while (enumeration.hasMoreElements()) {
-          modifiedTransformations |= updateTransformation((Node)enumeration.nextElement(), transformGroupUserData, matrix);
+        Iterator<Node> enumeration = ((Group)node).getAllChildren();
+        while (enumeration.hasNext()) {
+          modifiedTransformations |= updateTransformation((Node)enumeration.next(), transformGroupUserData, matrix);
         }
       }
     }
@@ -499,9 +495,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
           modifiedTransformations = true;
         }
       }
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        modifiedTransformations |= setNotUpdatedTranformationsToIdentity((Node)enumeration.nextElement(), updatedTransformations);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        modifiedTransformations |= setNotUpdatedTranformationsToIdentity((Node)enumeration.next(), updatedTransformations);
       }
     }
 
@@ -624,9 +620,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
    */
   private void setOutlineAppearance(Node node) {
     if (node instanceof Group) {
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setOutlineAppearance((Node)enumeration.nextElement());
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setOutlineAppearance((Node)enumeration.next());
       }
     } else if (node instanceof Link) {
       setOutlineAppearance(((Link)node).getSharedGroup());
@@ -653,9 +649,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
       if (node instanceof TransformGroup) {
         node.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       }
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setModelCapabilities((Node)enumeration.nextElement());
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setModelCapabilities((Node)enumeration.next());
       }
     } else if (node instanceof Link) {
       node.setCapability(Link.ALLOW_SHARED_GROUP_READ);
@@ -666,9 +662,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
       if (appearance != null) {
         setAppearanceCapabilities(appearance);
       }
-      Enumeration<?> enumeration = shape.getAllGeometries();
-      while (enumeration.hasMoreElements()) {
-        setGeometryCapabilities((Geometry)enumeration.nextElement());
+      Iterator<Geometry> enumeration = shape.getAllGeometries();
+      while (enumeration.hasNext()) {
+        setGeometryCapabilities((Geometry)enumeration.next());
       }
       node.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       node.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
@@ -686,9 +682,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
                                   Set<Appearance> modifiedAppearances) {
     if (node instanceof Group) {
       // Set material and texture of all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setColorAndTexture((Node)enumeration.nextElement(), color,
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setColorAndTexture((Node)enumeration.next(), color,
             texture, shininess, materials, waitTextureLoadingEnd, pieceSize,
             modelBounds, modifiedAppearances);
       }
@@ -925,9 +921,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
   private void setVisible(Node node, boolean visible, HomeMaterial [] materials) {
     if (node instanceof Group) {
       // Set visibility of all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setVisible((Node)enumeration.nextElement(), visible, materials);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setVisible((Node)enumeration.next(), visible, materials);
       }
     } else if (node instanceof Link) {
       setVisible(((Link)node).getSharedGroup(), visible, materials);
@@ -1014,9 +1010,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
   private void setCullFace(Node node, boolean mirrored, boolean backFaceShown) {
     if (node instanceof Group) {
       // Set cull face of all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setCullFace((Node)enumeration.nextElement(), mirrored, backFaceShown);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setCullFace((Node)enumeration.next(), mirrored, backFaceShown);
       }
     } else if (node instanceof Link) {
       setCullFace(((Link)node).getSharedGroup(), mirrored, backFaceShown);
@@ -1060,9 +1056,9 @@ public class HomePieceOfFurniture3D extends Object3DBranch {
   private void setBackFaceNormalFlip(Node node, boolean backFaceNormalFlip) {
     if (node instanceof Group) {
       // Set back face normal flip of all children
-      Enumeration<?> enumeration = ((Group)node).getAllChildren();
-      while (enumeration.hasMoreElements()) {
-        setBackFaceNormalFlip((Node)enumeration.nextElement(), backFaceNormalFlip);
+      Iterator<Node> enumeration = ((Group)node).getAllChildren();
+      while (enumeration.hasNext()) {
+        setBackFaceNormalFlip((Node)enumeration.next(), backFaceNormalFlip);
       }
     } else if (node instanceof Link) {
       setBackFaceNormalFlip(((Link)node).getSharedGroup(), backFaceNormalFlip);

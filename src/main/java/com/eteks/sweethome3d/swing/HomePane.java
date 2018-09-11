@@ -318,6 +318,8 @@ public class HomePane extends JRootPane implements HomeView {
       createAction(ActionType.DELETE_SELECTION, preferences, planController, "deleteSelection");
       createAction(ActionType.LOCK_BASE_PLAN, preferences, planController, "lockBasePlan");
       createAction(ActionType.UNLOCK_BASE_PLAN, preferences, planController, "unlockBasePlan");
+      createAction(ActionType.FLIP_HORIZONTALLY, preferences, planController, "flipHorizontally");
+      createAction(ActionType.FLIP_VERTICALLY, preferences, planController, "flipVertically");
       createAction(ActionType.MODIFY_COMPASS, preferences, planController, "modifyCompass");
       createAction(ActionType.MODIFY_WALL, preferences, planController, "modifySelectedWalls");
       createAction(ActionType.MODIFY_ROOM, preferences, planController, "modifySelectedRooms");
@@ -968,6 +970,8 @@ public class HomePane extends JRootPane implements HomeView {
     if (lockUnlockBasePlanMenuItem != null) {
       planMenu.add(lockUnlockBasePlanMenuItem);
     }
+    addActionToMenu(ActionType.FLIP_HORIZONTALLY, planMenu);
+    addActionToMenu(ActionType.FLIP_VERTICALLY, planMenu);
     addActionToMenu(ActionType.MODIFY_COMPASS, planMenu);
     addActionToMenu(ActionType.MODIFY_WALL, planMenu);
     addActionToMenu(ActionType.JOIN_WALLS, planMenu);
@@ -2616,6 +2620,8 @@ public class HomePane extends JRootPane implements HomeView {
       if (lockUnlockBasePlanMenuItem != null) {
         planViewPopup.add(lockUnlockBasePlanMenuItem);
       }
+      addActionToPopupMenu(ActionType.FLIP_HORIZONTALLY, planViewPopup);
+      addActionToPopupMenu(ActionType.FLIP_VERTICALLY, planViewPopup);
       addActionToPopupMenu(ActionType.MODIFY_FURNITURE, planViewPopup);
       addActionToPopupMenu(ActionType.GROUP_FURNITURE, planViewPopup);
       addActionToPopupMenu(ActionType.UNGROUP_FURNITURE, planViewPopup);

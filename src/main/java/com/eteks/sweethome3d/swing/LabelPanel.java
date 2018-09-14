@@ -19,18 +19,35 @@
  */
 package com.eteks.sweethome3d.swing;
 
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ItemListener;
+import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import com.eteks.sweethome3d.model.TextStyle;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.LabelController;
 import com.eteks.sweethome3d.viewcontroller.View;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import java.awt.*;
-import java.awt.event.ItemListener;
-import java.beans.PropertyChangeListener;
 
 /**
  * Label editing panel.
@@ -40,7 +57,11 @@ public class LabelPanel extends JPanel implements DialogView {
   private final boolean         labelModification;
   private final LabelController controller;
   private JLabel                textLabel;
-  private JTextField            textTextField;
+  private JTextArea             textTextArea;
+  private JLabel                alignmentLabel;
+  private JRadioButton          leftAlignmentRadioButton;
+  private JRadioButton          centerAlignmentRadioButton;
+  private JRadioButton          rightAlignmentRadioButton;
   private JLabel                fontNameLabel;
   private FontNameComboBox      fontNameComboBox;
   private JLabel                fontSizeLabel;
@@ -75,53 +96,104 @@ public class LabelPanel extends JPanel implements DialogView {
   /**
    * Creates and initializes components.
    */
-  private void createComponents(boolean modification, 
-                                UserPreferences preferences, 
+  private void createComponents(boolean modification,
+                                UserPreferences preferences,
                                 final LabelController controller) {
     // Create text label and its text field bound to NAME controller property
-    this.textLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "textLabel.text"));
-    this.textTextField = new AutoCompleteTextField(controller.getText(), 20, preferences.getAutoCompletionStrings("LabelText"));
-    if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      SwingTools.addAutoSelectionOnFocusGain(this.textTextField);
+    this.textLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "textLabel.text"));
+    this.textTextArea = new JTextArea(controller.getText(), 3, 20);
+    if (!OperatingSystem.isMacOSX()) {
+      this.textTextArea.setFont(UIManager.getFont("TextField.font"));
     }
-    final PropertyChangeListener textChangeListener = ev -> textTextField.setText(controller.getText());
+    this.textTextArea.setDocument(new AutoCompleteDocument(this.textTextArea, preferences.getAutoCompletionStrings("LabelText")));
+    // Set tab key as traversal keys
+    this.textTextArea.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+            new HashSet<>(Arrays.asList(KeyStroke.getKeyStroke("pressed TAB"))));
+    this.textTextArea.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+            new HashSet<>(Arrays.asList(KeyStroke.getKeyStroke("shift pressed TAB"))));
+    SwingTools.addAutoSelectionOnFocusGain(this.textTextArea);
+    final PropertyChangeListener textChangeListener = ev -> {
+      ((AutoCompleteDocument)textTextArea.getDocument()).setAutoCompletionEnabled(false);
+      textTextArea.setText(controller.getText());
+      ((AutoCompleteDocument)textTextArea.getDocument()).setAutoCompletionEnabled(true);
+    };
     controller.addPropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
-    this.textTextField.getDocument().addDocumentListener(new DocumentListener() {
-        public void changedUpdate(DocumentEvent ev) {
-          controller.removePropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
-          String text = textTextField.getText(); 
-          if (text == null || text.trim().length() == 0) {
-            controller.setText("");
-          } else {
-            controller.setText(text);
-          }
-          controller.addPropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
+    DocumentListener documentListener = new DocumentListener() {
+      public void changedUpdate(DocumentEvent ev) {
+        controller.removePropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
+        String text = textTextArea.getText();
+        if (text == null || text.trim().length() == 0) {
+          controller.setText("");
+        } else {
+          controller.setText(text);
         }
-  
-        public void insertUpdate(DocumentEvent ev) {
-          changedUpdate(ev);
-        }
-  
-        public void removeUpdate(DocumentEvent ev) {
-          changedUpdate(ev);
-        }
-      });
-    
+        controller.addPropertyChangeListener(LabelController.Property.TEXT, textChangeListener);
+      }
+
+      public void insertUpdate(DocumentEvent ev) {
+        changedUpdate(ev);
+      }
+
+      public void removeUpdate(DocumentEvent ev) {
+        changedUpdate(ev);
+      }
+    };
+    this.textTextArea.getDocument().addDocumentListener(documentListener);
+
+    // Create alignment label and radio buttons bound to controller ALIGNMENT property
+    this.alignmentLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "alignmentLabel.text"));
+    this.leftAlignmentRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "leftAlignmentRadioButton.text"));
+    this.centerAlignmentRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "centerAlignmentRadioButton.text"));
+    this.rightAlignmentRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "rightAlignmentRadioButton.text"));
+    ItemListener alignmentRadioButtonsItemListener = ev -> {
+      if (leftAlignmentRadioButton.isSelected()) {
+        controller.setAlignment(TextStyle.Alignment.LEFT);
+      } else if (centerAlignmentRadioButton.isSelected()) {
+        controller.setAlignment(TextStyle.Alignment.CENTER);
+      } else if (rightAlignmentRadioButton.isSelected()) {
+        controller.setAlignment(TextStyle.Alignment.RIGHT);
+      }
+    };
+    this.leftAlignmentRadioButton.addItemListener(alignmentRadioButtonsItemListener);
+    this.centerAlignmentRadioButton.addItemListener(alignmentRadioButtonsItemListener);
+    this.rightAlignmentRadioButton.addItemListener(alignmentRadioButtonsItemListener);
+    ButtonGroup alignmentGroup = new ButtonGroup();
+    alignmentGroup.add(this.leftAlignmentRadioButton);
+    alignmentGroup.add(this.centerAlignmentRadioButton);
+    alignmentGroup.add(this.rightAlignmentRadioButton);
+    PropertyChangeListener alignmentChangeListener = ev -> {
+      if (controller.getAlignment() == TextStyle.Alignment.LEFT) {
+        leftAlignmentRadioButton.setSelected(true);
+      } else if (controller.getAlignment() == TextStyle.Alignment.CENTER) {
+        centerAlignmentRadioButton.setSelected(true);
+      } else if (controller.getAlignment() == TextStyle.Alignment.RIGHT) {
+        rightAlignmentRadioButton.setSelected(true);
+      } else {
+        SwingTools.deselectAllRadioButtons(leftAlignmentRadioButton, centerAlignmentRadioButton, rightAlignmentRadioButton);
+      }
+    };
+    controller.addPropertyChangeListener(LabelController.Property.ALIGNMENT, alignmentChangeListener);
+    alignmentChangeListener.propertyChange(null);
+
     // Create font name label and combo box bound to controller FONT_NAME property
-    this.fontNameLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "fontNameLabel.text"));
+    this.fontNameLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "fontNameLabel.text"));
     this.fontNameComboBox = new FontNameComboBox(preferences);
     this.fontNameComboBox.addItemListener(ev -> {
       String selectedItem = (String)fontNameComboBox.getSelectedItem();
       controller.setFontName(selectedItem == FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME
-          ? null : selectedItem);
+              ? null : selectedItem);
     });
     PropertyChangeListener fontNameChangeListener = ev -> {
       if (controller.isFontNameSet()) {
         String fontName = controller.getFontName();
         fontNameComboBox.setSelectedItem(fontName == null
-            ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : fontName);
+                ? FontNameComboBox.DEFAULT_SYSTEM_FONT_NAME : fontName);
       } else {
         fontNameComboBox.setSelectedItem(null);
       }
@@ -132,9 +204,9 @@ public class LabelPanel extends JPanel implements DialogView {
     // Create font size label and its spinner bound to FONT_SIZE controller property
     String unitName = preferences.getLengthUnit().getName();
     this.fontSizeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, LabelPanel.class,
-        "fontSizeLabel.text", unitName));
+            "fontSizeLabel.text", unitName));
     final NullableSpinner.NullableSpinnerLengthModel fontSizeSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
-        preferences, 5, 999);
+            preferences, 5, 999);
     this.fontSizeSpinner = new NullableSpinner(fontSizeSpinnerModel);
     final PropertyChangeListener fontSizeChangeListener = ev -> {
       Float fontSize = controller.getFontSize();
@@ -150,16 +222,16 @@ public class LabelPanel extends JPanel implements DialogView {
     });
 
     // Create color label and button bound to controller COLOR property
-    this.colorLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "colorLabel.text"));
-    
+    this.colorLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "colorLabel.text"));
+
     this.colorButton = new ColorButton(preferences);
     if (OperatingSystem.isMacOSX()) {
       this.colorButton.putClientProperty("JButton.buttonType", "segmented");
       this.colorButton.putClientProperty("JButton.segmentPosition", "only");
     }
     this.colorButton.setColorDialogTitle(preferences
-        .getLocalizedString(LabelPanel.class, "colorDialog.title"));
+            .getLocalizedString(LabelPanel.class, "colorDialog.title"));
     this.colorButton.setColor(controller.getColor() != null ? controller.getColor() : getForeground().getRGB());
     this.colorButton.addPropertyChangeListener(ColorButton.COLOR_PROPERTY, ev -> controller.setColor(colorButton.getColor()));
     controller.addPropertyChangeListener(LabelController.Property.COLOR, ev -> colorButton.setColor(controller.getColor()));
@@ -167,8 +239,8 @@ public class LabelPanel extends JPanel implements DialogView {
     // Create pitch components bound to PITCH controller property
     final PropertyChangeListener pitchChangeListener = ev -> update3DViewComponents(controller);
     controller.addPropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
-    this.visibleIn3DViewCheckBox = new NullableCheckBox(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "visibleIn3DViewCheckBox.text"));
+    this.visibleIn3DViewCheckBox = new NullableCheckBox(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "visibleIn3DViewCheckBox.text"));
     if (controller.isPitchEnabled() != null) {
       this.visibleIn3DViewCheckBox.setValue(controller.isPitchEnabled());
     } else {
@@ -190,10 +262,11 @@ public class LabelPanel extends JPanel implements DialogView {
       update3DViewComponents(controller);
       controller.addPropertyChangeListener(LabelController.Property.PITCH, pitchChangeListener);
     });
-    this.pitchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "pitchLabel.text"));
-    this.pitch0DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "pitch0DegreeRadioButton.text"));
+
+    this.pitchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "pitchLabel.text"));
+    this.pitch0DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "pitch0DegreeRadioButton.text"));
     ItemListener pitchRadioButtonsItemListener = ev -> {
       if (pitch0DegreeRadioButton.isSelected()) {
         controller.setPitch(0f);
@@ -202,18 +275,18 @@ public class LabelPanel extends JPanel implements DialogView {
       }
     };
     this.pitch0DegreeRadioButton.addItemListener(pitchRadioButtonsItemListener);
-    this.pitch90DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "pitch90DegreeRadioButton.text"));
+    this.pitch90DegreeRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "pitch90DegreeRadioButton.text"));
     this.pitch90DegreeRadioButton.addItemListener(pitchRadioButtonsItemListener);
     ButtonGroup pitchGroup = new ButtonGroup();
     pitchGroup.add(this.pitch0DegreeRadioButton);
     pitchGroup.add(this.pitch90DegreeRadioButton);
-    
+
     // Create elevation label and its spinner bound to ELEVATION controller property
-    this.elevationLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, 
-        LabelPanel.class, "elevationLabel.text", unitName));
+    this.elevationLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+            LabelPanel.class, "elevationLabel.text", unitName));
     final NullableSpinner.NullableSpinnerLengthModel elevationSpinnerModel = new NullableSpinner.NullableSpinnerLengthModel(
-        preferences, 0f, preferences.getLengthUnit().getMaximumElevation());
+            preferences, 0f, preferences.getLengthUnit().getMaximumElevation());
     this.elevationSpinner = new NullableSpinner(elevationSpinnerModel);
     elevationSpinnerModel.setNullable(controller.getElevation() == null);
     elevationSpinnerModel.setLength(controller.getElevation());
@@ -229,11 +302,11 @@ public class LabelPanel extends JPanel implements DialogView {
     });
 
     update3DViewComponents(controller);
-    
-    this.dialogTitle = preferences.getLocalizedString(LabelPanel.class, 
-        modification 
-            ? "labelModification.title"
-            : "labelCreation.title");
+
+    this.dialogTitle = preferences.getLocalizedString(LabelPanel.class,
+            modification
+                    ? "labelModification.title"
+                    : "labelCreation.title");
   }
 
   private void update3DViewComponents(LabelController controller) {
@@ -249,107 +322,130 @@ public class LabelPanel extends JPanel implements DialogView {
       }
     }
   }
-  
+
   /**
    * Sets components mnemonics and label / component associations.
    */
   private void setMnemonics(UserPreferences preferences) {
     if (!OperatingSystem.isMacOSX()) {
       this.textLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          LabelPanel.class, "textLabel.mnemonic")).getKeyCode());
-      this.textLabel.setLabelFor(this.textTextField);
+              LabelPanel.class, "textLabel.mnemonic")).getKeyCode());
+      this.textLabel.setLabelFor(this.textTextArea);
+      this.leftAlignmentRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "leftAlignmentRadioButton.mnemonic")).getKeyCode());
+      this.centerAlignmentRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "centerAlignmentRadioButton.mnemonic")).getKeyCode());
+      this.rightAlignmentRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "rightAlignmentRadioButton.mnemonic")).getKeyCode());
       this.fontNameLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          LabelPanel.class, "fontNameLabel.mnemonic")).getKeyCode());
+              LabelPanel.class, "fontNameLabel.mnemonic")).getKeyCode());
       this.fontNameLabel.setLabelFor(this.fontNameComboBox);
       this.fontSizeLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(
-          preferences.getLocalizedString(LabelPanel.class, "fontSizeLabel.mnemonic")).getKeyCode());
+              preferences.getLocalizedString(LabelPanel.class, "fontSizeLabel.mnemonic")).getKeyCode());
       this.fontSizeLabel.setLabelFor(this.fontSizeSpinner);
-      this.visibleIn3DViewCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString( 
-          LabelPanel.class, "visibleIn3DViewCheckBox.mnemonic")).getKeyCode());
-      this.pitch0DegreeRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString( 
-          LabelPanel.class, "pitch0DegreeRadioButton.mnemonic")).getKeyCode());
-      this.pitch90DegreeRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString( 
-          LabelPanel.class, "pitch90DegreeRadioButton.mnemonic")).getKeyCode());
+      this.visibleIn3DViewCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "visibleIn3DViewCheckBox.mnemonic")).getKeyCode());
+      this.pitch0DegreeRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "pitch0DegreeRadioButton.mnemonic")).getKeyCode());
+      this.pitch90DegreeRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+              LabelPanel.class, "pitch90DegreeRadioButton.mnemonic")).getKeyCode());
       this.elevationLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          LabelPanel.class, "elevationLabel.mnemonic")).getKeyCode());
+              LabelPanel.class, "elevationLabel.mnemonic")).getKeyCode());
       this.elevationLabel.setLabelFor(this.elevationSpinner);
     }
   }
-  
+
   /**
-   * Layouts panel components in panel with their labels. 
+   * Layouts panel components in panel with their labels.
    */
   private void layoutComponents(final LabelController controller, UserPreferences preferences) {
-    int labelAlignment = OperatingSystem.isMacOSX() 
-        ? GridBagConstraints.LINE_END
-        : GridBagConstraints.LINE_START;
-    
+    int labelAlignment = OperatingSystem.isMacOSX()
+            ? GridBagConstraints.LINE_END
+            : GridBagConstraints.LINE_START;
+
     JPanel nameAndStylePanel = SwingTools.createTitledPanel(
-        preferences.getLocalizedString(LabelPanel.class, "textAndStylePanel.title"));
+            preferences.getLocalizedString(LabelPanel.class, "textAndStylePanel.title"));
     nameAndStylePanel.add(this.textLabel, new GridBagConstraints(
-        0, 0, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
-    nameAndStylePanel.add(this.textTextField, new GridBagConstraints(
-        1, 0, 3, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 5, 0), 0, 0));
+            0, 0, 1, 1, 0, 0, OperatingSystem.isMacOSX()  ? GridBagConstraints.NORTHEAST  : GridBagConstraints.NORTHWEST,
+            GridBagConstraints.NONE, new Insets(OperatingSystem.isMacOSX() ? 0 : 5, 0, 5, 5), 0, 0));
+    nameAndStylePanel.add(SwingTools.createScrollPane(this.textTextArea), new GridBagConstraints(
+            1, 0, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets(OperatingSystem.isMacOSX() ? 0 : 5, 0, 5, 0), 0, 0));
+    nameAndStylePanel.add(this.alignmentLabel, new GridBagConstraints(
+            0, 1, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
+    JPanel alignmentPanel = new JPanel(new GridBagLayout());
+    alignmentPanel.setOpaque(false);
+    alignmentPanel.add(this.leftAlignmentRadioButton, new GridBagConstraints(
+            0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+    alignmentPanel.add(this.centerAlignmentRadioButton, new GridBagConstraints(
+            1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+    alignmentPanel.add(this.rightAlignmentRadioButton, new GridBagConstraints(
+            2, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+    nameAndStylePanel.add(alignmentPanel, new GridBagConstraints(
+            1, 1, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 0), 0, 0));
     nameAndStylePanel.add(this.fontNameLabel, new GridBagConstraints(
-        0, 1, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
+            0, 2, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
     Dimension preferredSize = this.fontNameComboBox.getPreferredSize();
-    preferredSize.width = Math.min(preferredSize.width, this.textTextField.getPreferredSize().width);
+    preferredSize.width = Math.min(preferredSize.width, this.textTextArea.getPreferredSize().width);
     this.fontNameComboBox.setPreferredSize(preferredSize);
     nameAndStylePanel.add(this.fontNameComboBox, new GridBagConstraints(
-        1, 1, 3, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 5, 0), 0, 0));
+            1, 2, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 5, 0), 0, 0));
     nameAndStylePanel.add(this.fontSizeLabel, new GridBagConstraints(
-        0, 2, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+            0, 3, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
     nameAndStylePanel.add(this.fontSizeSpinner, new GridBagConstraints(
-        1, 2, 1, 1, 1, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 5, 0));
+            1, 3, 1, 1, 1, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 5, 0));
     nameAndStylePanel.add(this.colorLabel, new GridBagConstraints(
-        2, 2, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 10, 0, 5), 0, 0));
+            2, 3, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 10, 0, 5), 0, 0));
     nameAndStylePanel.add(this.colorButton, new GridBagConstraints(
-        3, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, 0, 0, OperatingSystem.isMacOSX()  ? 6  : 0), 0, 0));
+            3, 3, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, OperatingSystem.isMacOSX()  ? 6  : 0), 0, 0));
     int rowGap = OperatingSystem.isMacOSXLeopardOrSuperior() ? 0 : 5;
     add(nameAndStylePanel, new GridBagConstraints(
-        0, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.BOTH, new Insets(0, 0, rowGap, 0), 0, 0));
+            0, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.BOTH, new Insets(0, 0, rowGap, 0), 0, 0));
 
     JPanel rendering3DPanel = SwingTools.createTitledPanel(
-        preferences.getLocalizedString(LabelPanel.class, "rendering3DPanel.title"));
+            preferences.getLocalizedString(LabelPanel.class, "rendering3DPanel.title"));
     rendering3DPanel.add(this.visibleIn3DViewCheckBox, new GridBagConstraints(
-        0, 0, 3, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, OperatingSystem.isMacOSX() ? -8 : 0, 5, 0), 0, 0));
+            0, 0, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, OperatingSystem.isMacOSX() ? -8 : 0, 5, 0), 0, 0));
     rendering3DPanel.add(this.pitchLabel, new GridBagConstraints(
-        0, 1, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
+            0, 1, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
     rendering3DPanel.add(this.pitch0DegreeRadioButton, new GridBagConstraints(
-        1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
+            1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
     rendering3DPanel.add(this.pitch90DegreeRadioButton, new GridBagConstraints(
-        2, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, 0, 5, 0), 0, 0));
+            2, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 5, 0), 0, 0));
     rendering3DPanel.add(this.elevationLabel, new GridBagConstraints(
-        0, 3, 1, 1, 0, 0, labelAlignment, 
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+            0, 3, 1, 1, 0, 0, labelAlignment,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
     rendering3DPanel.add(this.elevationSpinner, new GridBagConstraints(
-        1, 3, 2, 1, 1, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+            1, 3, 2, 1, 1, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
     add(rendering3DPanel, new GridBagConstraints(
-        0, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START, 
-        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            0, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
   }
 
   /**
-   * Displays this panel in a modal dialog box. 
+   * Displays this panel in a modal dialog box.
    */
   public void displayView(View parentView) {
-    if (SwingTools.showConfirmDialog((JComponent)parentView, 
-            this, this.dialogTitle, this.textTextField) == JOptionPane.OK_OPTION
-        && this.controller != null) {
+    if (SwingTools.showConfirmDialog((JComponent)parentView,
+            this, this.dialogTitle, this.textTextArea) == JOptionPane.OK_OPTION
+            && this.controller != null) {
       if (this.labelModification) {
         this.controller.modifyLabels();
       } else {

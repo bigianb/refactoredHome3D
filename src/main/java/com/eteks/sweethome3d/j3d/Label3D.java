@@ -122,25 +122,35 @@ public class Label3D extends Object3DBranch {
         Graphics2D g2D = (Graphics2D)dummyImage.getGraphics();
         FontMetrics fontMetrics = g2D.getFontMetrics(font);
         g2D.dispose();
-        
-        Rectangle2D textBounds = fontMetrics.getStringBounds(text, g2D);
-        float textWidth = (float)textBounds.getWidth() + 2 * stroke.getLineWidth();
+
+        String [] lines = text.split("\n");
+        float [] lineWidths = new float [lines.length];
+        float textWidth = -Float.MAX_VALUE;
+        float baseLineShift = 0;
+        for (int i = 0; i < lines.length; i++) {
+          Rectangle2D lineBounds = fontMetrics.getStringBounds(lines [i], null);
+          if (i == 0) {
+            baseLineShift = -(float)lineBounds.getY() + fontMetrics.getHeight() * (lines.length - 1);
+          }
+          lineWidths [i] = (float)lineBounds.getWidth() + 2 * stroke.getLineWidth();
+          textWidth = Math.max(lineWidths [i], textWidth);
+        }
         if (style.isItalic()) {
           textWidth += fontMetrics.getAscent() * 0.2;
         }
-        float textHeight = (float)textBounds.getHeight() + 2 * stroke.getLineWidth();
-        float textRatio = (float)Math.sqrt((float)textWidth / textHeight);
+        float textHeight = (float)fontMetrics.getHeight() * lines.length + 2 * stroke.getLineWidth();
+        float textRatio = (float)Math.sqrt(textWidth / textHeight);
         int width;
         int height;
         float scale;
         // Ensure that text image size is between 256x256 and 512x512 pixels
         if (textRatio > 1) {
           width = (int)Math.ceil(Math.max(255 * textRatio, Math.min(textWidth, 511 * textRatio)));
-          scale = (float)(width / textWidth);
+          scale = width / textWidth;
           height = (int)Math.ceil(scale * textHeight);
         } else {
           height = (int)Math.ceil(Math.max(255 * textRatio, Math.min(textHeight, 511 / textRatio)));
-          scale = (float)(height / textHeight);
+          scale = height / textHeight;
           width = (int)Math.ceil(scale * textWidth);
         }
   
@@ -152,25 +162,48 @@ public class Label3D extends Object3DBranch {
           g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           g2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
           g2D.setTransform(AffineTransform.getScaleInstance(scale, scale));
-          g2D.translate(stroke.getLineWidth() / 2, -(float)(textBounds.getY()));
-          if (outlineColor != null) {
-            g2D.setColor(new Color(outlineColor));
-            g2D.setStroke(stroke);
-            if (text.length() > 0) {
-              TextLayout textLayout = new TextLayout(text, font, g2D.getFontRenderContext());
-              g2D.draw(textLayout.getOutline(null));
+          g2D.translate(0, baseLineShift);
+          for (int i = lines.length - 1; i >= 0; i--) {
+            String line = lines [i];
+            float translationX;
+            if (style.getAlignment() == TextStyle.Alignment.LEFT) {
+              translationX = 0;
+            } else if (style.getAlignment() == TextStyle.Alignment.RIGHT) {
+              translationX = textWidth - lineWidths [i];
+            } else { // CENTER
+              translationX = (textWidth - lineWidths [i]) / 2;
             }
+            translationX += stroke.getLineWidth() / 2;
+            g2D.translate(translationX, 0);
+            if (outlineColor != null) {
+              g2D.setColor(new Color(outlineColor));
+              g2D.setStroke(stroke);
+              if (line.length() > 0) {
+                TextLayout textLayout = new TextLayout(line, font, g2D.getFontRenderContext());
+                g2D.draw(textLayout.getOutline(null));
+              }
+            }
+            g2D.setFont(font);
+            g2D.setColor(color != null ?  new Color(color) : UIManager.getColor("TextField.foreground"));
+            g2D.drawString(line, 0f, 0f);
+            g2D.translate(-translationX, -fontMetrics.getHeight());
           }
-          g2D.setFont(font);
-          g2D.setColor(color != null ?  new Color(color) : UIManager.getColor("TextField.foreground"));
-          g2D.drawString(text, 0f, 0f);
+
           g2D.dispose();
   
           Transform3D scaleTransform = new Transform3D();
           scaleTransform.setScale(new Vector3d(textWidth, 1, textHeight));
           // Move to the middle of base line
           this.baseLineTransform = new Transform3D();
-          this.baseLineTransform.setTranslation(new Vector3d(0, 0, textHeight / 2 + textBounds.getY()));
+          float translationX;
+          if (style.getAlignment() == TextStyle.Alignment.LEFT) {
+            translationX = textWidth / 2;
+          } else if (style.getAlignment() == TextStyle.Alignment.RIGHT) {
+            translationX = -textWidth / 2;
+          } else { // CENTER
+            translationX = 0;
+          }
+          this.baseLineTransform.setTranslation(new Vector3d(translationX, 0, textHeight / 2 - baseLineShift));
           this.baseLineTransform.mul(scaleTransform);
           this.texture = new TextureLoader(textureImage).getTexture();
           this.text = text;

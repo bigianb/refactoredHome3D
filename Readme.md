@@ -8,7 +8,7 @@ That issue was fixed with a change to java3d.
 The changes in this repository are mainly refactoring (updating the code to use modern java such as lambdas) and
 moving the build system to maven (and this removing most of the external jar files in the repo).
 
-Fork current up until and including 1/9/18
+Fork current up until and including 2/9/18
 
 # Building
 

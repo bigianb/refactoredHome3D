@@ -27,17 +27,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The different attributes that defines a text style. 
+ * The different attributes that define a text style.
  * @author Emmanuel Puybaret
  */
 public class TextStyle implements Serializable {
   private static final long serialVersionUID = 1L;
-    
+
+  public enum Alignment {LEFT, CENTER, RIGHT}
+
   private final String  fontName;
   private final float   fontSize;
   private final boolean bold;
   private final boolean italic;
-  
+  private       Alignment alignment;
+
   private static final List<WeakReference<TextStyle>> textStylesCache = new ArrayList<WeakReference<TextStyle>>(); 
   
   public TextStyle(float fontSize) {
@@ -53,17 +56,27 @@ public class TextStyle implements Serializable {
    * @since 5.0
    */
   public TextStyle(String fontName, float fontSize, boolean bold, boolean italic) {
-    this(fontName, fontSize, bold, italic, true);
+    this(fontName, fontSize, bold, italic, Alignment.CENTER);
   }
-  
-  private TextStyle(String fontName, float fontSize, boolean bold, boolean italic, boolean cached) {
+
+  /**
+   * Creates a text style from its font's name, its size, style and alignment.
+   * @since 6.0
+   */
+  public TextStyle(String fontName, float fontSize, boolean bold, boolean italic, Alignment alignment) {
+    this(fontName, fontSize, bold, italic, alignment, true);
+  }
+
+  private TextStyle(String fontName, float fontSize, boolean bold, boolean italic,
+                    Alignment alignment, boolean cached) {
     this.fontName = fontName;
     this.fontSize = fontSize;
     this.bold = bold;
     this.italic = italic;
-    
+    this.alignment = alignment;
+
     if (cached) {
-      textStylesCache.add(new WeakReference<TextStyle>(this));
+      textStylesCache.add(new WeakReference<>(this));
     }
   }
   
@@ -72,15 +85,17 @@ public class TextStyle implements Serializable {
    */
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
-    
-    textStylesCache.add(new WeakReference<TextStyle>(this));
+    if (this.alignment == null) {
+      this.alignment = Alignment.CENTER;
+    }
+    textStylesCache.add(new WeakReference<>(this));
   }
   
   /**
    * Returns the text style instance matching the given parameters.
    */
-  private TextStyle getInstance(String fontName, float fontSize, boolean bold, boolean italic) {
-    TextStyle textStyle = new TextStyle(fontName, fontSize, bold, italic, false);
+  private TextStyle getInstance(String fontName, float fontSize, boolean bold, boolean italic, Alignment alignment) {
+    TextStyle textStyle = new TextStyle(fontName, fontSize, bold, italic, alignment, false);
     for (int i = textStylesCache.size() - 1; i >= 0; i--) {
       TextStyle cachedTextStyle = textStylesCache.get(i).get();
       if (cachedTextStyle == null) {
@@ -122,6 +137,14 @@ public class TextStyle implements Serializable {
   }
 
   /**
+   * Returns the alignment applied on text using this style.
+   * @since 6.0
+   */
+  public Alignment getAlignment() {
+    return this.alignment;
+  }
+
+  /**
    * Returns a derived style of this text style with a given font name.
    * @since 5.0
    */
@@ -130,7 +153,17 @@ public class TextStyle implements Serializable {
         || (fontName != null && fontName.equals(getFontName()))) {
       return this;
     } else {
-      return getInstance(fontName, getFontSize(), isBold(), isItalic());
+      return getInstance(getFontName(), fontSize, isBold(), isItalic(), getAlignment());
+    }
+  }
+  /**
+   * Returns a derived style of this text style with a given alignment.
+   */
+  public TextStyle deriveStyle(Alignment alignment) {
+    if (getAlignment() == alignment) {
+      return this;
+    } else {
+      return getInstance(getFontName(), getFontSize(), isBold(), isItalic(), alignment);
     }
   }
 
@@ -141,7 +174,7 @@ public class TextStyle implements Serializable {
     if (getFontSize() == fontSize) {
       return this;
     } else {
-      return getInstance(getFontName(), fontSize, isBold(), isItalic());
+      return getInstance(getFontName(), fontSize, isBold(), isItalic(), getAlignment());
     }
   }
 
@@ -152,7 +185,7 @@ public class TextStyle implements Serializable {
     if (isBold() == bold) {
       return this;
     } else {
-      return getInstance(getFontName(), getFontSize(), bold, isItalic());
+      return getInstance(getFontName(), getFontSize(), bold, isItalic(), getAlignment());
     }
   }
 
@@ -163,7 +196,7 @@ public class TextStyle implements Serializable {
     if (isItalic() == italic) {
       return this;
     } else {
-      return getInstance(getFontName(), getFontSize(), isBold(), italic);
+      return getInstance(getFontName(), getFontSize(), isBold(), italic, getAlignment());
     }
   }
 
@@ -178,7 +211,8 @@ public class TextStyle implements Serializable {
               || (textStyle.fontName != null && textStyle.fontName.equals(this.fontName)))
           && textStyle.fontSize == this.fontSize
           && textStyle.bold == this.bold
-          && textStyle.italic == this.italic;
+              && textStyle.italic == this.italic
+              && textStyle.alignment == this.alignment;
     }
     return false;
   }
@@ -198,6 +232,7 @@ public class TextStyle implements Serializable {
     if (this.italic) {
       hashCode++;
     }
+    hashCode += this.alignment.hashCode();
     return hashCode;
   }
 }

@@ -19,30 +19,30 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import com.eteks.sweethome3d.model.*;
-import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.tools.ResourceURLContent;
-import com.eteks.sweethome3d.viewcontroller.FurnitureController;
-import com.eteks.sweethome3d.viewcontroller.FurnitureView;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.*;
-import javax.swing.plaf.synth.SynthLookAndFeel;
-import javax.swing.table.*;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -50,8 +50,78 @@ import java.security.AccessControlException;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Currency;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JToolTip;
+import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.plaf.synth.SynthLookAndFeel;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+
+import com.eteks.sweethome3d.model.CollectionEvent;
+import com.eteks.sweethome3d.model.CollectionListener;
+import com.eteks.sweethome3d.model.Content;
+import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomeFurnitureGroup;
+import com.eteks.sweethome3d.model.HomeMaterial;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
+import com.eteks.sweethome3d.model.HomeTexture;
+import com.eteks.sweethome3d.model.LengthUnit;
+import com.eteks.sweethome3d.model.Level;
+import com.eteks.sweethome3d.model.Selectable;
+import com.eteks.sweethome3d.model.SelectionEvent;
+import com.eteks.sweethome3d.model.SelectionListener;
+import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.tools.ResourceURLContent;
+import com.eteks.sweethome3d.viewcontroller.FurnitureController;
+import com.eteks.sweethome3d.viewcontroller.FurnitureView;
 
 /**
  * A table displaying home furniture.
@@ -59,6 +129,7 @@ import java.util.List;
  */
 public class FurnitureTable extends JTable implements FurnitureView, Printable {
   private static final String EXPANDED_ROWS_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.ExpandedGroups";
+  private static final String COLUMN_WIDTHS_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.ColumnWidths";
 
   private UserPreferences        preferences;
   private ListSelectionListener  tableSelectionListener;
@@ -90,7 +161,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     }
     setModel(new FurnitureTreeTableModel(home));
     setColumnModel(new FurnitureTableColumnModel(home, preferences));
-    updateTableColumnsWidth(0);
+    updateTableColumnsWidth(home, 0);
     updateExpandedRows(home);
     updateTableSelectedFurniture(home);
     // Add listeners to model
@@ -185,11 +256,11 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           minIndex = Math.min(minIndex, rowIndex);
           maxIndex = Math.max(maxIndex, rowIndex);
           if (piece instanceof HomeFurnitureGroup
-             && tableModel.isRowExpanded(rowIndex)) {
+                  && tableModel.isRowExpanded(rowIndex)) {
             List<HomePieceOfFurniture> groupFurniture = ((HomeFurnitureGroup)piece).getAllFurniture();
             for (rowIndex++;
                  rowIndex < tableModel.getRowCount()
-                 && groupFurniture.contains(tableModel.getValueAt(rowIndex, 0));
+                         && groupFurniture.contains(tableModel.getValueAt(rowIndex, 0));
                  rowIndex++) {
               furnitureIndices [selectedFurnitureCount++] = rowIndex;
               minIndex = Math.min(minIndex, rowIndex);
@@ -209,7 +280,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     Arrays.sort(furnitureIndices);
 
     if (getSelectedRowCount() != selectedFurnitureCount
-        || !Arrays.equals(getSelectedRows(), furnitureIndices)) {
+            || !Arrays.equals(getSelectedRows(), furnitureIndices)) {
       deleteInformationPopup();
       // Update table selection if it differs from selected furniture
       clearSelection();
@@ -217,7 +288,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         // Search the interval of following indices
         int max = min;
         while (max + 1 < furnitureIndices.length
-            && furnitureIndices [max] + 1 == furnitureIndices [max + 1]) {
+                && furnitureIndices [max] + 1 == furnitureIndices [max + 1]) {
           max++;
         }
         // To avoid cycling in a group when up arrow is pressed, add selection interval with max index
@@ -241,24 +312,24 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       final String expandedRows = home.getProperty(EXPANDED_ROWS_VISUAL_PROPERTY);
       if (expandedRows != null && expandedRows.length() > 0) {
         addAncestorListener(new AncestorListener() {
-            public void ancestorAdded(AncestorEvent event) {
-              // Update expanded rows later in case rows are filtered in a subclass
-              FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
-              for (String row : expandedRows.split(",")) {
-                int rowIndex = Integer.parseInt(row);
-                if (rowIndex < tableModel.getRowCount() && !tableModel.isRowExpanded(rowIndex)) {
-                  tableModel.toggleRowExpandedState(rowIndex);
-                }
+          public void ancestorAdded(AncestorEvent event) {
+            // Update expanded rows later in case rows are filtered in a subclass
+            FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
+            for (String row : expandedRows.split(",")) {
+              int rowIndex = Integer.parseInt(row);
+              if (rowIndex < tableModel.getRowCount() && !tableModel.isRowExpanded(rowIndex)) {
+                tableModel.toggleRowExpandedState(rowIndex);
               }
-              removeAncestorListener(this);
             }
+            removeAncestorListener(this);
+          }
 
-            public void ancestorRemoved(AncestorEvent event) {
-            }
+          public void ancestorRemoved(AncestorEvent event) {
+          }
 
-            public void ancestorMoved(AncestorEvent event) {
-            }
-          });
+          public void ancestorMoved(AncestorEvent event) {
+          }
+        });
       }
     }
   }
@@ -278,7 +349,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       }
     }
     if (home.getProperty(EXPANDED_ROWS_VISUAL_PROPERTY) != null
-        || rows.length() > 0) {
+            || rows.length() > 0) {
       controller.setHomeProperty(EXPANDED_ROWS_VISUAL_PROPERTY, rows.toString());
     }
   }
@@ -286,28 +357,53 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
   /**
    * Updates table columns width from the content of its cells.
    */
-  private void updateTableColumnsWidth(int additionalSpacing) {
+  private void updateTableColumnsWidth(Home home, int additionalSpacing) {
+    final TableColumnModel columnModel = getColumnModel();
+    int [] preferredColumnWidths = null;
+    if (home != null
+            && home.getProperty(COLUMN_WIDTHS_VISUAL_PROPERTY) != null) {
+      // Retrieve column widths
+      String [] columWidths = home.getProperty(COLUMN_WIDTHS_VISUAL_PROPERTY).split(",");
+      if (columWidths.length == columnModel.getColumnCount()) {
+        preferredColumnWidths = new int [columWidths.length];
+        for (int columnIndex = 0, n = columnModel.getColumnCount(); columnIndex < n; columnIndex++) {
+          try {
+            int columnWidth = Integer.parseInt(columWidths [columnIndex]);
+            preferredColumnWidths [columnIndex] = columnWidth;
+          } catch (NumberFormatException ex) {
+            preferredColumnWidths = null;
+            break;
+          }
+        }
+      }
+    }
+
     int intercellWidth = getIntercellSpacing().width + additionalSpacing;
-    TableColumnModel columnModel = getColumnModel();
     TableModel tableModel = getModel();
     for (int columnIndex = 0, n = columnModel.getColumnCount(); columnIndex < n; columnIndex++) {
       TableColumn column = columnModel.getColumn(columnIndex);
       int modelColumnIndex = convertColumnIndexToModel(columnIndex);
-      int preferredWidth = column.getHeaderRenderer().getTableCellRendererComponent(
-          this, column.getHeaderValue(), false, false, -1, columnIndex).getPreferredSize().width;
-      int rowCount = tableModel.getRowCount();
-      if (rowCount > 0) {
-        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-          preferredWidth = Math.max(preferredWidth,
-              column.getCellRenderer().getTableCellRendererComponent(
-                  this, tableModel.getValueAt(rowIndex, modelColumnIndex), false, false, -1, columnIndex).
-                      getPreferredSize().width);
+      int preferredWidth;
+      if (preferredColumnWidths == null) {
+        preferredWidth = column.getHeaderRenderer().getTableCellRendererComponent(
+                this, column.getHeaderValue(), false, false, -1, columnIndex).getPreferredSize().width;
+        int rowCount = tableModel.getRowCount();
+        if (rowCount > 0) {
+          for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            preferredWidth = Math.max(preferredWidth,
+                    column.getCellRenderer().getTableCellRendererComponent(
+                            this, tableModel.getValueAt(rowIndex, modelColumnIndex), false, false, -1, columnIndex).
+                            getPreferredSize().width);
+          }
+        } else {
+          preferredWidth = Math.max(preferredWidth, column.getPreferredWidth());
         }
+        preferredWidth += intercellWidth;
       } else {
-        preferredWidth = Math.max(preferredWidth, column.getPreferredWidth());
+        preferredWidth = preferredColumnWidths [columnIndex];
       }
-      column.setPreferredWidth(preferredWidth + intercellWidth);
-      column.setWidth(preferredWidth + intercellWidth);
+      column.setPreferredWidth(preferredWidth);
+      column.setWidth(preferredWidth);
     }
   }
 
@@ -316,72 +412,71 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
    */
   private void addMouseListener(final Home home, final FurnitureController controller) {
     addMouseListener(new MouseAdapter () {
-        @Override
-        public void mouseClicked(MouseEvent ev) {
-          final int column = columnAtPoint(ev.getPoint());
-          final int row = rowAtPoint(ev.getPoint());
-          boolean isVisibleColumn = false;
-          boolean isGroupExpandIcon = false;
-          boolean isInformationIcon = false;
-          if (column >= 0
-              && row >= 0) {
-            Object columnId = getColumnModel().getColumn(column).getIdentifier();
-            if (columnId == HomePieceOfFurniture.SortableProperty.VISIBLE) {
-              Component visibilityComponent = getCellRenderer(row, column).
-                  getTableCellRendererComponent(FurnitureTable.this, getValueAt(row, column), false, false, row, column);
-              if (visibilityComponent.isEnabled()) {
-                Rectangle cellRect = getCellRect(row, column, false);
-                // Center visibilityComponent in cell rect
-                visibilityComponent.setSize(visibilityComponent.getPreferredSize());
-                visibilityComponent.setLocation(cellRect.x + (cellRect.width - visibilityComponent.getWidth()) / 2,
-                        cellRect.y + (cellRect.height - visibilityComponent.getHeight()) / 2);
-                // Check if mouse point is exactly on the visibility component
-                isVisibleColumn = visibilityComponent.getBounds().contains(ev.getPoint());
-              }
-            } else if (columnId == HomePieceOfFurniture.SortableProperty.NAME) {
-              TableCellRenderer cellRenderer = getCellRenderer(row, column);
-              if (cellRenderer instanceof TreeTableNameCellRenderer) {
-                Rectangle informationIconBounds = ((TreeTableNameCellRenderer)cellRenderer).
-                    getInformationIconBounds(FurnitureTable.this, row, column);
-                isInformationIcon = ev.getClickCount() == 1
-                    && informationIconBounds != null
-                    && informationIconBounds.contains(ev.getPoint());
-                if (!isInformationIcon
-                    && getValueAt(row, column) instanceof HomeFurnitureGroup) {
-                  Rectangle expandedStateBounds = ((TreeTableNameCellRenderer)cellRenderer).
-                      getExpandedStateBounds(FurnitureTable.this, row, column);
-                  isGroupExpandIcon = expandedStateBounds.contains(ev.getPoint());
-                }
-              }
+      @Override
+      public void mouseClicked(MouseEvent ev) {
+        final int column = columnAtPoint(ev.getPoint());
+        final int row = rowAtPoint(ev.getPoint());
+        boolean isVisibleColumn = false;
+        boolean isGroupExpandIcon = false;
+        boolean isInformationIcon = false;
+        if (column >= 0
+                && row >= 0) {
+          Object columnId = getColumnModel().getColumn(column).getIdentifier();
+          if (columnId == HomePieceOfFurniture.SortableProperty.VISIBLE) {
+            Component visibilityComponent = getCellRenderer(row, column).
+                    getTableCellRendererComponent(FurnitureTable.this, getValueAt(row, column), false, false, row, column);
+            if (visibilityComponent.isEnabled()) {
+              Rectangle cellRect = getCellRect(row, column, false);
+              // Center visibilityComponent in cell rect
+              visibilityComponent.setSize(visibilityComponent.getPreferredSize());
+              visibilityComponent.setLocation(cellRect.x + (cellRect.width - visibilityComponent.getWidth()) / 2,
+                      cellRect.y + (cellRect.height - visibilityComponent.getHeight()) / 2);
+              // Check if mouse point is exactly on the visibility component
+              isVisibleColumn = visibilityComponent.getBounds().contains(ev.getPoint());
             }
-            if (isVisibleColumn) {
-              controller.toggleSelectedFurnitureVisibility();
-            } else if (isInformationIcon) {
-              FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
-              String information = ((HomePieceOfFurniture)tableModel.getValueAt(row, 0)).getInformation();
-              if (furnitureInformationPopup != null
-                  && furnitureInformationRow == row) {
-                // Remove information when the user clicks again
-                deleteInformationPopup();
-              } else {
-                showInformationPopup(information, column, row);
+          } else if (columnId == HomePieceOfFurniture.SortableProperty.NAME) {
+            TableCellRenderer cellRenderer = getCellRenderer(row, column);
+            if (cellRenderer instanceof TreeTableNameCellRenderer) {
+              Rectangle informationIconBounds = ((TreeTableNameCellRenderer)cellRenderer).
+                      getInformationIconBounds(FurnitureTable.this, row, column);
+              isInformationIcon = ev.getClickCount() == 1
+                      && informationIconBounds != null
+                      && informationIconBounds.contains(ev.getPoint());
+              if (!isInformationIcon
+                      && getValueAt(row, column) instanceof HomeFurnitureGroup) {
+                Rectangle expandedStateBounds = ((TreeTableNameCellRenderer)cellRenderer).
+                        getExpandedStateBounds(FurnitureTable.this, row, column);
+                isGroupExpandIcon = expandedStateBounds.contains(ev.getPoint());
               }
-            } else if (isGroupExpandIcon) {
-              FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
-              tableModel.toggleRowExpandedState(row);
-              controller.setSelectedFurniture(Arrays.asList(new HomePieceOfFurniture [] {
-                  (HomePieceOfFurniture)tableModel.getValueAt(row, 0)}));
-            } else if (ev.getClickCount() == 2) {
-              deleteInformationPopup();
-              controller.modifySelectedFurniture();
             }
           }
-
-          if (!isInformationIcon) {
+          if (isVisibleColumn) {
+            controller.toggleSelectedFurnitureVisibility();
+          } else if (isInformationIcon) {
+            FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
+            String information = ((HomePieceOfFurniture)tableModel.getValueAt(row, 0)).getInformation();
+            if (furnitureInformationPopup != null
+                    && furnitureInformationRow == row) {
+              // Remove information when the user clicks again
+              deleteInformationPopup();
+            } else {
+              showInformationPopup(information, column, row);
+            }
+          } else if (isGroupExpandIcon) {
+            FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)getModel();
+            tableModel.toggleRowExpandedState(row);
+            controller.setSelectedFurniture(Arrays.asList((HomePieceOfFurniture)tableModel.getValueAt(row, 0)));
+          } else if (ev.getClickCount() == 2) {
             deleteInformationPopup();
+            controller.modifySelectedFurniture();
           }
         }
-      });
+
+        if (!isInformationIcon) {
+          deleteInformationPopup();
+        }
+      }
+    });
   }
 
   /**
@@ -389,7 +484,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
    */
   private void showInformationPopup(String information, int column, int row) {
     if (this.furnitureInformationPopup == null
-        || this.furnitureInformationRow != row) {
+            || this.furnitureInformationRow != row) {
       deleteInformationPopup();
 
       final JEditorPane informationPane = new JEditorPane("text/html", information);
@@ -397,8 +492,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       informationPane.setFocusable(false);
       Font font = getFont();
       String bodyRule = "body { font-family: " + font.getFamily() + "; "
-          + "font-size: " + font.getSize() + "pt; "
-          + "text-align: center; }";
+              + "font-size: " + font.getSize() + "pt; "
+              + "text-align: center; }";
       ((HTMLDocument)informationPane.getDocument()).getStyleSheet().addRule(bodyRule);
       informationPane.addHyperlinkListener(ev -> {
         if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -410,7 +505,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       // Reuse tool tip look
       Border border = UIManager.getBorder("ToolTip.border");
       if (!OperatingSystem.isMacOSX()
-          || OperatingSystem.isMacOSXLeopardOrSuperior()) {
+              || OperatingSystem.isMacOSXLeopardOrSuperior()) {
         border = BorderFactory.createCompoundBorder(border, BorderFactory.createEmptyBorder(0, 3, 0, 2));
       }
       informationPane.setBorder(border);
@@ -418,8 +513,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       JToolTip toolTip = new JToolTip();
       toolTip.setComponent(this);
       informationPane.setBackground(toolTip.getBackground().getRGB() == 0 && getBackground().getRGB() != 0
-          ? Color.WHITE
-          : toolTip.getBackground());
+              ? Color.WHITE
+              : toolTip.getBackground());
       informationPane.setForeground(toolTip.getForeground());
       informationPane.setSize(informationPane.getPreferredSize());
 
@@ -435,19 +530,19 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
               ((KeyEvent)ev).consume();
             }
           } else if (ev.getID() != WindowEvent.WINDOW_OPENED  // Fired at first popup instantiation
-                     && (!(ev instanceof MouseEvent)
-                         || (ev.getSource() != FurnitureTable.this
-                             && ev.getSource() != informationPane))) {
+                  && (!(ev instanceof MouseEvent)
+                  || (ev.getSource() != FurnitureTable.this
+                  && ev.getSource() != informationPane))) {
             deleteInformationPopup();
           }
         };
         // Add a listener that will delete information popup for events outside of table
         getToolkit().addAWTEventListener(this.informationPopupRemovalListener,
-            AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK
-            | AWTEvent.KEY_EVENT_MASK | AWTEvent.FOCUS_EVENT_MASK
-            | AWTEvent.WINDOW_EVENT_MASK | AWTEvent.WINDOW_FOCUS_EVENT_MASK | AWTEvent.WINDOW_STATE_EVENT_MASK);
+                AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK
+                        | AWTEvent.KEY_EVENT_MASK | AWTEvent.FOCUS_EVENT_MASK
+                        | AWTEvent.WINDOW_EVENT_MASK | AWTEvent.WINDOW_FOCUS_EVENT_MASK | AWTEvent.WINDOW_STATE_EVENT_MASK);
         this.furnitureInformationPopup =
-            PopupFactory.getSharedInstance().getPopup(this, informationPane,  p.x, p.y);
+                PopupFactory.getSharedInstance().getPopup(this, informationPane,  p.x, p.y);
         this.furnitureInformationPopup.show();
         this.furnitureInformationRow = row;
       } catch (SecurityException ex) {
@@ -494,7 +589,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       FurnitureTable furnitureTable = this.furnitureTable.get();
       if (furnitureTable == null) {
         ((UserPreferences)ev.getSource()).removePropertyChangeListener(
-            UserPreferences.Property.valueOf(ev.getPropertyName()), this);
+                UserPreferences.Property.valueOf(ev.getPropertyName()), this);
       } else {
         furnitureTable.repaint();
         furnitureTable.getTableHeader().repaint();
@@ -537,23 +632,23 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       }
     }
     home.addFurnitureListener(ev -> {
-        HomePieceOfFurniture piece = ev.getItem();
-        if (ev.getType() == CollectionEvent.Type.ADD) {
-          piece.addPropertyChangeListener(changeListener);
-          if (piece instanceof HomeFurnitureGroup) {
-            for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-              childPiece.addPropertyChangeListener(changeListener);
-            }
-          }
-        } else {
-          piece.removePropertyChangeListener(changeListener);
-          if (piece instanceof HomeFurnitureGroup) {
-            for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
-              childPiece.removePropertyChangeListener(changeListener);
-            }
+      HomePieceOfFurniture piece = ev.getItem();
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        piece.addPropertyChangeListener(changeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
+            childPiece.addPropertyChangeListener(changeListener);
           }
         }
-      });
+      } else {
+        piece.removePropertyChangeListener(changeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          for (HomePieceOfFurniture childPiece : ((HomeFurnitureGroup)piece).getAllFurniture()) {
+            childPiece.removePropertyChangeListener(changeListener);
+          }
+        }
+      }
+    });
     // Add listeners to levels to update furniture when levels change
     for (Level level : home.getLevels()) {
       level.addPropertyChangeListener(changeListener);
@@ -575,15 +670,15 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     Rectangle includingRectangle = getCellRect(minRow, 0, true);
     if (minRow != maxRow) {
       includingRectangle = includingRectangle.
-          union(getCellRect(maxRow, 0, true));
+              union(getCellRect(maxRow, 0, true));
     }
     if (getAutoResizeMode() == AUTO_RESIZE_OFF) {
       int lastColumn = getColumnCount() - 1;
       includingRectangle = includingRectangle.
-          union(getCellRect(minRow, lastColumn, true));
+              union(getCellRect(minRow, lastColumn, true));
       if (minRow != maxRow) {
         includingRectangle = includingRectangle.
-            union(getCellRect(maxRow, lastColumn, true));
+                union(getCellRect(maxRow, lastColumn, true));
       }
     }
     scrollRectToVisible(includingRectangle);
@@ -595,15 +690,15 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
   private void addTableHeaderListener(final FurnitureController controller) {
     // Sort on click in column header
     getTableHeader().addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent ev) {
-          int columnIndex = getTableHeader().columnAtPoint(ev.getPoint());
-          Object columnIdentifier = getColumnModel().getColumn(columnIndex).getIdentifier();
-          if (columnIdentifier instanceof HomePieceOfFurniture.SortableProperty) {
-            controller.sortFurniture((HomePieceOfFurniture.SortableProperty)columnIdentifier);
-          }
+      @Override
+      public void mouseClicked(MouseEvent ev) {
+        int columnIndex = getTableHeader().columnAtPoint(ev.getPoint());
+        Object columnIdentifier = getColumnModel().getColumn(columnIndex).getIdentifier();
+        if (columnIdentifier instanceof HomePieceOfFurniture.SortableProperty) {
+          controller.sortFurniture((HomePieceOfFurniture.SortableProperty)columnIdentifier);
         }
-      });
+      }
+    });
   }
 
   /**
@@ -613,33 +708,51 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
   private void addTableColumnModelListener(final FurnitureController controller) {
     // Update furniture visible properties when users move table columns
     getColumnModel().addColumnModelListener(new TableColumnModelListener() {
-        public void columnAdded(TableColumnModelEvent ev) {
-        }
+      public void columnAdded(TableColumnModelEvent ev) {
+      }
 
-        public void columnMarginChanged(ChangeEvent ev) {
-        }
+      public void columnMarginChanged(ChangeEvent ev) {
+      }
 
-        public void columnMoved(TableColumnModelEvent ev) {
-          getColumnModel().removeColumnModelListener(this);
-          // Build the list of furniture visible properties
-          List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties =
-                  new ArrayList<>();
-          for (Enumeration<TableColumn> it = getColumnModel().getColumns(); it.hasMoreElements(); ) {
-            Object columnIdentifier = it.nextElement().getIdentifier();
-            if (columnIdentifier instanceof HomePieceOfFurniture.SortableProperty) {
-              furnitureVisibleProperties.add((HomePieceOfFurniture.SortableProperty)columnIdentifier);
-            }
+      public void columnMoved(TableColumnModelEvent ev) {
+        getColumnModel().removeColumnModelListener(this);
+        // Build the list of furniture visible properties
+        List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties =
+                new ArrayList<>();
+        for (Enumeration<TableColumn> it = getColumnModel().getColumns(); it.hasMoreElements(); ) {
+          Object columnIdentifier = it.nextElement().getIdentifier();
+          if (columnIdentifier instanceof HomePieceOfFurniture.SortableProperty) {
+            furnitureVisibleProperties.add((HomePieceOfFurniture.SortableProperty)columnIdentifier);
           }
-          controller.setFurnitureVisibleProperties(furnitureVisibleProperties);
-          getColumnModel().addColumnModelListener(this);
         }
+        controller.setFurnitureVisibleProperties(furnitureVisibleProperties);
+        getColumnModel().addColumnModelListener(this);
+      }
 
-        public void columnRemoved(TableColumnModelEvent ev) {
-        }
+      public void columnRemoved(TableColumnModelEvent ev) {
+      }
 
-        public void columnSelectionChanged(ListSelectionEvent ev) {
+      public void columnSelectionChanged(ListSelectionEvent ev) {
+      }
+    });
+
+    // Track column width changes
+    PropertyChangeListener columnWidthListener = ev -> {
+      if ("width".equals(ev.getPropertyName())) {
+        StringBuilder columnWidths = new StringBuilder();
+        for (int i = 0, n = getColumnModel().getColumnCount(); i < n; i++) {
+          if (columnWidths.length() != 0) {
+            columnWidths.append(',');
+          }
+          columnWidths.append(getColumnModel().getColumn(i).getWidth());
         }
-      });
+        controller.setHomeProperty(COLUMN_WIDTHS_VISUAL_PROPERTY, columnWidths.toString());
+      }
+    };
+    for (int columnIndex = 0, n = columnModel.getColumnCount(); columnIndex < n; columnIndex++) {
+      TableColumn column = getColumnModel().getColumn(columnIndex);
+      column.addPropertyChangeListener(columnWidthListener);
+    }
   }
 
   /**
@@ -655,15 +768,15 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     TableCellRenderer printableHeaderRenderer = (table, value, isSelected, hasFocus, row, column) -> {
       // Delegate rendering to default cell renderer
       JLabel headerRendererLabel = (JLabel)defaultRenderer.getTableCellRendererComponent(table, value,
-          isSelected, hasFocus, row, column);
+              isSelected, hasFocus, row, column);
       // Don't display sort icon
       headerRendererLabel.setIcon(null);
       // Change header background and foreground
       headerRendererLabel.setBackground(Color.LIGHT_GRAY);
       headerRendererLabel.setForeground(Color.BLACK);
       headerRendererLabel.setBorder(BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(Color.BLACK),
-          headerRendererLabel.getBorder()));
+              BorderFactory.createLineBorder(Color.BLACK),
+              headerRendererLabel.getBorder()));
       return headerRendererLabel;
     };
     for (int columnIndex = 0, n = columnModel.getColumnCount(); columnIndex < n; columnIndex++) {
@@ -676,11 +789,11 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         // Delegate rendering to existing cell renderer
         TableCellRenderer cellRenderer = tableColumn.getCellRenderer();
         Component rendererComponent = cellRenderer.getTableCellRendererComponent(table, value,
-            isSelected, hasFocus, row, column);
+                isSelected, hasFocus, row, column);
         if (rendererComponent instanceof JCheckBox) {
           // Prefer a x sign for boolean values instead of check boxes
           rendererComponent = defaultRenderer.getTableCellRendererComponent(table,
-              ((JCheckBox)rendererComponent).isSelected() ? "x" : "", false, false, row, column);
+                  ((JCheckBox)rendererComponent).isSelected() ? "x" : "", false, false, row, column);
         }
         rendererComponent.setBackground(Color.WHITE);
         rendererComponent.setForeground(Color.BLACK);
@@ -697,7 +810,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
   /**
    * Prints this table in Event Dispatch Thread.
-  */
+   */
   private int print(final Graphics g,
                     final PageFormat pageFormat,
                     final int pageIndex,
@@ -709,9 +822,9 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       setColumnModel(printableColumnModel);
       if (OperatingSystem.isWindows()) {
         // Add 3 pixels to columns to get a correct rendering
-        updateTableColumnsWidth(3);
+        updateTableColumnsWidth(null, 3);
       } else {
-        updateTableColumnsWidth(0);
+        updateTableColumnsWidth(null, 0);
       }
       setGridColor(gridColor);
       Printable printable = getPrintable(PrintMode.FIT_WIDTH, null, null);
@@ -778,11 +891,11 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         csvEncoding = "UTF-8";
       }
       OutputStreamWriter writer = csvEncoding != null
-          ? new OutputStreamWriter(out, csvEncoding)
-          : new OutputStreamWriter(out);
+              ? new OutputStreamWriter(out, csvEncoding)
+              : new OutputStreamWriter(out);
       char fieldSeparator = settings != null
-          ? settings.getProperty("fieldSeparator", "\t").charAt(0)
-          : '\t';
+              ? settings.getProperty("fieldSeparator", "\t").charAt(0)
+              : '\t';
       exportToCSV(writer, fieldSeparator);
       writer.flush();
     } else {
@@ -843,7 +956,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           case CREATOR :
             // Copy piece creators
             String creators = ((JLabel)column.getCellRenderer().getTableCellRendererComponent(
-                this, copiedPiece, false, false, rowIndex, columnIndex)).getText();
+                    this, copiedPiece, false, false, rowIndex, columnIndex)).getText();
             if (creators != null) {
               writer.write(creators);
             }
@@ -851,8 +964,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           case LEVEL :
             // Copy level name
             writer.write(copiedPiece.getLevel() != null
-                ? copiedPiece.getLevel().getName()
-                : "");
+                    ? copiedPiece.getLevel().getName()
+                    : "");
             break;
           case COLOR :
             if (copiedPiece.getColor() != null) {
@@ -891,7 +1004,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           case PRICE_VALUE_ADDED_TAX_INCLUDED :
             // Copy numbers as they are displayed by their renderer
             String text = ((JLabel)column.getCellRenderer().getTableCellRendererComponent(
-                this, copiedPiece, false, false, rowIndex, columnIndex)).getText();
+                    this, copiedPiece, false, false, rowIndex, columnIndex)).getText();
             if (text != null) {
               writer.write(text);
             }
@@ -909,7 +1022,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         }
       } else {
         Component rendererComponent = column.getCellRenderer().getTableCellRendererComponent(
-            this, copiedPiece, false, false, rowIndex, columnIndex);
+                this, copiedPiece, false, false, rowIndex, columnIndex);
         if (rendererComponent instanceof JLabel) {
           String text = ((JLabel)rendererComponent).getText();
           if (text != null) {
@@ -1003,7 +1116,10 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     private void addHomeListener(final Home home) {
       home.addPropertyChangeListener(Home.Property.FURNITURE_VISIBLE_PROPERTIES,
-              ev -> updateModelColumns(home.getFurnitureVisibleProperties()));
+              ev -> {
+                updateModelColumns(home.getFurnitureVisibleProperties());
+                // Will implicitly change columns width and update COLUMN_WIDTHS_VISUAL_PROPERTY property
+              });
     }
 
     /**
@@ -1012,7 +1128,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     private void addLanguageListener(UserPreferences preferences) {
       preferences.addPropertyChangeListener(UserPreferences.Property.LANGUAGE,
-          new LanguageChangeListener(this));
+              new LanguageChangeListener(this));
     }
 
     /**
@@ -1032,12 +1148,12 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         UserPreferences preferences = (UserPreferences)ev.getSource();
         if (furnitureTableColumnModel == null) {
           preferences.removePropertyChangeListener(
-              UserPreferences.Property.LANGUAGE, this);
+                  UserPreferences.Property.LANGUAGE, this);
         } else {
           // Change column name and renderer from current locale
           for (TableColumn tableColumn : furnitureTableColumnModel.availableColumns.values()) {
             HomePieceOfFurniture.SortableProperty columnIdentifier =
-                (HomePieceOfFurniture.SortableProperty)tableColumn.getIdentifier();
+                    (HomePieceOfFurniture.SortableProperty)tableColumn.getIdentifier();
             tableColumn.setHeaderValue(furnitureTableColumnModel.getColumnName(columnIdentifier, preferences));
             tableColumn.setCellRenderer(furnitureTableColumnModel.getColumnRenderer(columnIdentifier, preferences));
           }
@@ -1054,7 +1170,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         TableColumn tableColumn = this.tableColumns.get(i);
         Object columnIdentifier = tableColumn.getIdentifier();
         if ((columnIdentifier instanceof HomePieceOfFurniture.SortableProperty)
-            && !furnitureVisibleProperties.contains(columnIdentifier)) {
+                && !furnitureVisibleProperties.contains(columnIdentifier)) {
           removeColumn(tableColumn);
         }
       }
@@ -1227,11 +1343,11 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       return new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           return super.getTableCellRendererComponent(table,
-              value != null  ? ((HomePieceOfFurniture)value).getCatalogId()  : null,
-              isSelected, hasFocus, row, column);
+                  value != null  ? ((HomePieceOfFurniture)value).getCatalogId()  : null,
+                  isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1243,14 +1359,14 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       return new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
           Level level = value != null
-              ? piece.getLevel()
-              : null;
+                  ? piece.getLevel()
+                  : null;
           return super.getTableCellRendererComponent(
-              table, level != null  ? level.getName()  : null, isSelected, hasFocus, row, column);
+                  table, level != null  ? level.getName()  : null, isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1269,8 +1385,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       return new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
           String creator = piece.getCreator();
           if (creator != null) {
@@ -1278,7 +1394,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
             if (texture != null) {
               String textureCreator = texture.getCreator();
               if (textureCreator != null
-                  && !creator.equals(textureCreator)) {
+                      && !creator.equals(textureCreator)) {
                 creator += ", " + textureCreator;
               }
             } else {
@@ -1291,8 +1407,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
                     if (materialTexture != null) {
                       String textureCreator = materialTexture.getCreator();
                       if (textureCreator != null
-                          && !modelCreator.equals(textureCreator)
-                          && creator.indexOf(", " + textureCreator) == -1) {
+                              && !modelCreator.equals(textureCreator)
+                              && creator.indexOf(", " + textureCreator) == -1) {
                         creator += ", " + textureCreator;
                       }
                     }
@@ -1302,7 +1418,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
             }
           }
           return super.getTableCellRendererComponent(
-              table, creator, isSelected, hasFocus, row, column);
+                  table, creator, isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1316,78 +1432,78 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       // Renderer super class used to display sizes
       class SizeRenderer extends DefaultTableCellRenderer {
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           if (value != null) {
             value = preferences.getLengthUnit().getFormat().format(value);
           }
           setHorizontalAlignment(JLabel.RIGHT);
           return super.getTableCellRendererComponent(
-              table, value, isSelected, hasFocus, row, column);
+                  table, value, isSelected, hasFocus, row, column);
         }
-      }
+      };
 
       switch (property) {
         case WIDTH :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getWidth()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getWidth()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case DEPTH :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getDepth()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getDepth()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case HEIGHT :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getHeight()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getHeight()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case X :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getX()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getX()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case Y :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getY()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getY()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case ELEVATION :
           return new SizeRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).getElevation()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).getElevation()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         default :
           throw new IllegalArgumentException(property + " column not a size column");
       }
@@ -1402,8 +1518,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       // Renderer super class used to display sizes
       class PriceRenderer extends DefaultTableCellRenderer {
         public Component getTableCellRendererComponent(JTable table,
-             BigDecimal price, String currencyCode, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       BigDecimal price, String currencyCode, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           String value;
           if (price != null) {
             NumberFormat currencyFormat = DecimalFormat.getCurrencyInstance();
@@ -1423,68 +1539,68 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           }
           setHorizontalAlignment(JLabel.RIGHT);
           return super.getTableCellRendererComponent(
-              table, value, isSelected, hasFocus, row, column);
+                  table, value, isSelected, hasFocus, row, column);
         }
-      }
+      };
 
       switch (property) {
         case PRICE :
           return new PriceRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
-                BigDecimal price;
-                String currency;
-                if (value != null) {
-                  price = piece.getPrice();
-                  currency = piece.getCurrency();
-                } else {
-                  price = null;
-                  currency = null;
-                }
-                return super.getTableCellRendererComponent(table,
-                    price, currency, isSelected, hasFocus, row, column);
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
+              BigDecimal price;
+              String currency;
+              if (value != null) {
+                price = piece.getPrice();
+                currency = piece.getCurrency();
+              } else {
+                price = null;
+                currency = null;
               }
-            };
+              return super.getTableCellRendererComponent(table,
+                      price, currency, isSelected, hasFocus, row, column);
+            }
+          };
         case VALUE_ADDED_TAX :
           return new PriceRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
-                BigDecimal valueAddedTax;
-                String currency;
-                if (value != null) {
-                  valueAddedTax = piece.getValueAddedTax();
-                  currency = piece.getCurrency();
-                } else {
-                  valueAddedTax = null;
-                  currency = null;
-                }
-                return super.getTableCellRendererComponent(table,
-                    valueAddedTax, currency, isSelected, hasFocus, row, column);
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
+              BigDecimal valueAddedTax;
+              String currency;
+              if (value != null) {
+                valueAddedTax = piece.getValueAddedTax();
+                currency = piece.getCurrency();
+              } else {
+                valueAddedTax = null;
+                currency = null;
               }
-            };
+              return super.getTableCellRendererComponent(table,
+                      valueAddedTax, currency, isSelected, hasFocus, row, column);
+            }
+          };
         case PRICE_VALUE_ADDED_TAX_INCLUDED :
           return new PriceRenderer() {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
-                BigDecimal priceValueAddedTaxIncluded;
-                String currency;
-                if (value != null) {
-                  priceValueAddedTaxIncluded = piece.getPriceValueAddedTaxIncluded();
-                  currency = piece.getCurrency();
-                } else {
-                  priceValueAddedTaxIncluded = null;
-                  currency = null;
-                }
-                return super.getTableCellRendererComponent(table,
-                    priceValueAddedTaxIncluded, currency, isSelected, hasFocus, row, column);
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
+              BigDecimal priceValueAddedTaxIncluded;
+              String currency;
+              if (value != null) {
+                priceValueAddedTaxIncluded = piece.getPriceValueAddedTaxIncluded();
+                currency = piece.getCurrency();
+              } else {
+                priceValueAddedTaxIncluded = null;
+                currency = null;
               }
-            };
+              return super.getTableCellRendererComponent(table,
+                      priceValueAddedTaxIncluded, currency, isSelected, hasFocus, row, column);
+            }
+          };
         default :
           throw new IllegalArgumentException(property + " column not a price column");
       }
@@ -1499,16 +1615,16 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           if (this.integerRenderer == null) {
             this.integerRenderer = table.getDefaultRenderer(Integer.class);
           }
           Integer angle = value != null
-              ? (int)(Math.round(Math.toDegrees(((HomePieceOfFurniture)value).getAngle()) + 360) % 360)
-              : null;
+                  ? (int)(Math.round(Math.toDegrees(((HomePieceOfFurniture)value).getAngle()) + 360) % 360)
+                  : null;
           return this.integerRenderer.getTableCellRendererComponent(
-              table, angle, isSelected, hasFocus, row, column);
+                  table, angle, isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1522,16 +1638,16 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus, int row, int column) {
           if (this.integerRenderer == null) {
             this.integerRenderer = table.getDefaultRenderer(Integer.class);
           }
           HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
           Integer modelSize = piece != null && piece.getModelSize() != null && piece.getModelSize() > 0
-              ? Math.max(1, (int)Math.round(piece.getModelSize() / 1000.))
-              : null;
+                  ? Math.max(1, (int)Math.round(piece.getModelSize() / 1000.))
+                  : null;
           return this.integerRenderer.getTableCellRendererComponent(
-              table, modelSize, isSelected, hasFocus, row, column);
+                  table, modelSize, isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1543,11 +1659,11 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       return new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           BigDecimal valueAddedTaxPercentage = value != null
-              ? ((HomePieceOfFurniture)value).getValueAddedTaxPercentage()
-              : null;
+                  ? ((HomePieceOfFurniture)value).getValueAddedTaxPercentage()
+                  : null;
           if (valueAddedTaxPercentage != null) {
             NumberFormat percentInstance = DecimalFormat.getPercentInstance();
             percentInstance.setMinimumFractionDigits(valueAddedTaxPercentage.scale() - 2);
@@ -1557,7 +1673,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           }
           setHorizontalAlignment(JLabel.RIGHT);
           return super.getTableCellRendererComponent(
-              table, value, isSelected, hasFocus, row, column);
+                  table, value, isSelected, hasFocus, row, column);
         }
       };
     }
@@ -1590,13 +1706,13 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           Integer color = value != null
-              ? ((HomePieceOfFurniture)value).getColor()
-              : null;
+                  ? ((HomePieceOfFurniture)value).getColor()
+                  : null;
           JLabel label = (JLabel)super.getTableCellRendererComponent(
-              table, color, isSelected, hasFocus, row, column);
+                  table, color, isSelected, hasFocus, row, column);
           if (color != null) {
             label.setText(null);
             label.setIcon(this.squareIcon);
@@ -1625,18 +1741,18 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
         @Override
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus,
-             int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
           HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
           JLabel label = (JLabel)super.getTableCellRendererComponent(
-              table, null, isSelected, hasFocus, row, column);
+                  table, null, isSelected, hasFocus, row, column);
           HomeTexture texture = piece != null
-              ? piece.getTexture()
-              : null;
+                  ? piece.getTexture()
+                  : null;
           if (texture != null) {
             Content textureContent = texture.getImage();
             label.setIcon(IconManager.getInstance().getIcon(
-                textureContent, table.getRowHeight() - 2, table));
+                    textureContent, table.getRowHeight() - 2, table));
           } else {
             label.setIcon(null);
           }
@@ -1660,54 +1776,54 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         }
 
         public Component getTableCellRendererComponent(JTable table,
-             Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                                                       Object value, boolean isSelected, boolean hasFocus, int row, int column) {
           if (this.booleanRenderer == null) {
             this.booleanRenderer = table.getDefaultRenderer(Boolean.class);
           }
           Component component = this.booleanRenderer.getTableCellRendererComponent(
-              table, value, isSelected, hasFocus, row, column);
+                  table, value, isSelected, hasFocus, row, column);
           component.setEnabled(this.enabled);
           return component;
         }
-      }
+      };
 
       switch (property) {
         case MOVABLE :
           return new BooleanRenderer(false) {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).isMovable()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).isMovable()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case DOOR_OR_WINDOW :
           return new BooleanRenderer(false) {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).isDoorOrWindow()  : null,
-                    isSelected, hasFocus, row, column);
-              }
-            };
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              return super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).isDoorOrWindow()  : null,
+                      isSelected, hasFocus, row, column);
+            }
+          };
         case VISIBLE :
           return new BooleanRenderer(true) {
-              @Override
-              public Component getTableCellRendererComponent(JTable table,
-                  Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component component = super.getTableCellRendererComponent(table,
-                    value != null  ? ((HomePieceOfFurniture)value).isVisible()  : null,
-                    isSelected, hasFocus, row, column);
-                if (value != null) {
-                  // Enable component only for root children to avoid the complexity of managing partially visible groups
-                  FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)table.getModel();
-                  component.setEnabled(tableModel.getIndexOfChild(tableModel.getRoot(), value) != -1);
-                }
-                return component;
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+              Component component = super.getTableCellRendererComponent(table,
+                      value != null  ? ((HomePieceOfFurniture)value).isVisible()  : null,
+                      isSelected, hasFocus, row, column);
+              if (value != null) {
+                // Enable component only for root children to avoid the complexity of managing partially visible groups
+                FurnitureTreeTableModel tableModel = (FurnitureTreeTableModel)table.getModel();
+                component.setEnabled(tableModel.getIndexOfChild(tableModel.getRoot(), value) != -1);
               }
-            };
+              return component;
+            }
+          };
         default :
           throw new IllegalArgumentException(property + " column not a boolean column");
       }
@@ -1720,32 +1836,32 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     private TableCellRenderer getHeaderRenderer(final Home home) {
       // Return a table renderer that displays the icon matching current sort
       return new TableCellRenderer() {
-          private TableCellRenderer headerRenderer;
-          private ImageIcon ascendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/ascending.png"));
-          private ImageIcon descendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/descending.png"));
+        private TableCellRenderer headerRenderer;
+        private ImageIcon ascendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/ascending.png"));
+        private ImageIcon descendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/descending.png"));
 
-          public Component getTableCellRendererComponent(JTable table,
-               Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            if (this.headerRenderer == null) {
-              this.headerRenderer = table.getTableHeader().getDefaultRenderer();
-            }
-            // Get default tableCellRenderer
-            JLabel label = (JLabel)this.headerRenderer.getTableCellRendererComponent(
-                table, value, isSelected, hasFocus, row, column);
-            // Add to column an icon matching sort
-            if (getColumn(column).getIdentifier().equals(home.getFurnitureSortedProperty())) {
-              label.setHorizontalTextPosition(JLabel.LEADING);
-              if (home.isFurnitureDescendingSorted()) {
-                label.setIcon(this.descendingSortIcon);
-              } else {
-                label.setIcon(this.ascendingSortIcon);
-              }
-            } else {
-              label.setIcon(null);
-            }
-            return label;
+        public Component getTableCellRendererComponent(JTable table,
+                                                       Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+          if (this.headerRenderer == null) {
+            this.headerRenderer = table.getTableHeader().getDefaultRenderer();
           }
-        };
+          // Get default tableCellRenderer
+          JLabel label = (JLabel)this.headerRenderer.getTableCellRendererComponent(
+                  table, value, isSelected, hasFocus, row, column);
+          // Add to column an icon matching sort
+          if (getColumn(column).getIdentifier().equals(home.getFurnitureSortedProperty())) {
+            label.setHorizontalTextPosition(JLabel.LEADING);
+            if (home.isFurnitureDescendingSorted()) {
+              label.setIcon(this.descendingSortIcon);
+            } else {
+              label.setIcon(this.ascendingSortIcon);
+            }
+          } else {
+            label.setIcon(null);
+          }
+          return label;
+        }
+      };
     }
   }
 
@@ -1754,7 +1870,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
    */
   private static class TreeTableNameCellRenderer implements TableCellRenderer {
     private static final ResourceURLContent GROUP_ICON_CONTENT =
-        new ResourceURLContent(FurnitureTable.class, "resources/groupIcon.png");
+            new ResourceURLContent(FurnitureTable.class, "resources/groupIcon.png");
     private PanelWithInformationIcon groupRendererComponent;
     private JTree                    nameRendererTree;
     private int                      renderedRow;
@@ -1763,8 +1879,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     private Font                     defaultFont;
 
     public Component getTableCellRendererComponent(JTable table,
-         Object value, boolean isSelected, boolean hasFocus,
-         int row, int column) {
+                                                   Object value, boolean isSelected, boolean hasFocus,
+                                                   int row, int column) {
       if (this.defaultFont == null) {
         this.defaultFont = table.getFont();
       }
@@ -1807,7 +1923,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
         String pieceName = piece != null  ? piece.getName()  : null;
         this.nameRendererLabel.getTableCellRendererComponent(table,
-              pieceName, isSelected, hasFocus, row, column);
+                pieceName, isSelected, hasFocus, row, column);
         if (piece != null) {
           Content iconContent;
           if (piece instanceof HomeFurnitureGroup) {
@@ -1816,7 +1932,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
             iconContent = piece.getIcon();
           }
           this.nameRendererLabel.setIcon(IconManager.getInstance().getIcon(
-              iconContent, table.getRowHeight() - table.getRowMargin(), table));
+                  iconContent, table.getRowHeight() - table.getRowMargin(), table));
 
           this.noGroupRendererComponent.setInformationIconVisible(piece.getInformation() != null);
         } else {
@@ -1838,92 +1954,92 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         // Instantiate on the fly the tree, its renderer and its editor
         UIManager.put("Tree.rendererFillBackground", Boolean.TRUE);
         final DefaultTreeCellRenderer treeCellRenderer = new DefaultTreeCellRenderer() {
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected,
-                                                          boolean expanded, boolean leaf, int row, boolean hasFocus) {
-              if (value instanceof HomePieceOfFurniture) {
-                HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
-                // Don't use hasFocus in the overridden implementation to avoid focus ring
-                super.getTreeCellRendererComponent(tree, piece.getName(), isSelected, expanded, leaf, row, false);
-                Content iconContent;
-                if (piece instanceof HomeFurnitureGroup) {
-                  iconContent = GROUP_ICON_CONTENT;
-                } else {
-                  iconContent = piece.getIcon();
-                }
-                setIcon(IconManager.getInstance().getIcon(iconContent, table.getRowHeight() - table.getRowMargin(), table));
-                setBackgroundSelectionColor(table.getSelectionBackground());
-                setBackgroundNonSelectionColor(table.getBackground());
-                setTextSelectionColor(table.getSelectionForeground());
-                setTextNonSelectionColor(table.getForeground());
+          public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected,
+                                                        boolean expanded, boolean leaf, int row, boolean hasFocus) {
+            if (value instanceof HomePieceOfFurniture) {
+              HomePieceOfFurniture piece = (HomePieceOfFurniture)value;
+              // Don't use hasFocus in the overridden implementation to avoid focus ring
+              super.getTreeCellRendererComponent(tree, piece.getName(), isSelected, expanded, leaf, row, false);
+              Content iconContent;
+              if (piece instanceof HomeFurnitureGroup) {
+                iconContent = GROUP_ICON_CONTENT;
+              } else {
+                iconContent = piece.getIcon();
               }
-              return this;
+              setIcon(IconManager.getInstance().getIcon(iconContent, table.getRowHeight() - table.getRowMargin(), table));
+              setBackgroundSelectionColor(table.getSelectionBackground());
+              setBackgroundNonSelectionColor(table.getBackground());
+              setTextSelectionColor(table.getSelectionForeground());
+              setTextNonSelectionColor(table.getForeground());
             }
+            return this;
+          }
 
-            @Override
-            public void setBounds(int x, int y, int width, int height) {
-              // Avoid renderer component to be wider than the tree
-              // to ensure ellipsis is displayed if piece name is too long
-              super.setBounds(x, y, nameRendererTree.getWidth() - x, height);
-            }
-          };
+          @Override
+          public void setBounds(int x, int y, int width, int height) {
+            // Avoid renderer component to be wider than the tree
+            // to ensure ellipsis is displayed if piece name is too long
+            super.setBounds(x, y, nameRendererTree.getWidth() - x, height);
+          }
+        };
 
         final FurnitureTreeTableModel tableTreeModel = (FurnitureTreeTableModel)table.getModel();
         this.nameRendererTree = new JTree(tableTreeModel) {
-            boolean drawing = false;
+          boolean drawing = false;
 
-            public void setBounds(int x, int y, int width, int height) {
-              // Force tree height to be equal to table height
-              super.setBounds(x, 0, width, table.getHeight());
-            }
+          public void setBounds(int x, int y, int width, int height) {
+            // Force tree height to be equal to table height
+            super.setBounds(x, 0, width, table.getHeight());
+          }
 
-            public void paint(Graphics g) {
-              if (table.getRowMargin() > 0) {
-                // Remove one pixel to ensure cell won't overlap border line
-                Rectangle clipBounds = g.getClipBounds();
-                g.clipRect(clipBounds.x, clipBounds.y, clipBounds.width, getRowHeight() - table.getRowMargin());
-              }
-              // Translate graphics to the currently rendered row
-              g.translate(0, -renderedRow * getRowHeight());
-              this.drawing = true;
-              super.paint(g);
-              this.drawing = false;
+          public void paint(Graphics g) {
+            if (table.getRowMargin() > 0) {
+              // Remove one pixel to ensure cell won't overlap border line
+              Rectangle clipBounds = g.getClipBounds();
+              g.clipRect(clipBounds.x, clipBounds.y, clipBounds.width, getRowHeight() - table.getRowMargin());
             }
+            // Translate graphics to the currently rendered row
+            g.translate(0, -renderedRow * getRowHeight());
+            this.drawing = true;
+            super.paint(g);
+            this.drawing = false;
+          }
 
-            @Override
-            public TreeCellRenderer getCellRenderer() {
-              return treeCellRenderer;
-            }
+          @Override
+          public TreeCellRenderer getCellRenderer() {
+            return treeCellRenderer;
+          }
 
-            @Override
-            public boolean hasFocus() {
-              if (this.drawing
-                  && UIManager.getLookAndFeel() instanceof SynthLookAndFeel) {
-                // Always return true when drawing to ensure the background width is filled for selected items
-                return  true;
-              } else {
-                return super.hasFocus();
-              }
+          @Override
+          public boolean hasFocus() {
+            if (this.drawing
+                    && UIManager.getLookAndFeel() instanceof SynthLookAndFeel) {
+              // Always return true when drawing to ensure the background width is filled for selected items
+              return  true;
+            } else {
+              return super.hasFocus();
             }
-          };
+          }
+        };
         this.nameRendererTree.setOpaque(false);
         this.nameRendererTree.setRowHeight(table.getRowHeight());
         this.nameRendererTree.setRootVisible(false);
         this.nameRendererTree.setShowsRootHandles(true);
         updateExpandedRows(tableTreeModel);
         tableTreeModel.addTreeModelListener(new TreeModelListener() {
-            public void treeStructureChanged(TreeModelEvent ev) {
-              updateExpandedRows(tableTreeModel);
-            }
+          public void treeStructureChanged(TreeModelEvent ev) {
+            updateExpandedRows(tableTreeModel);
+          }
 
-            public void treeNodesRemoved(TreeModelEvent ev) {
-            }
+          public void treeNodesRemoved(TreeModelEvent ev) {
+          }
 
-            public void treeNodesInserted(TreeModelEvent ev) {
-            }
+          public void treeNodesInserted(TreeModelEvent ev) {
+          }
 
-            public void treeNodesChanged(TreeModelEvent ev) {
-            }
-          });
+          public void treeNodesChanged(TreeModelEvent ev) {
+          }
+        });
       }
     }
 
@@ -1977,7 +2093,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     private static class PanelWithInformationIcon extends JPanel {
       private static final ImageIcon INFORMATION_ICON =
-          SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/furnitureInformation.png"));
+              SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/furnitureInformation.png"));
       private JLabel informationLabel;
 
       public PanelWithInformationIcon() {
@@ -2049,101 +2165,101 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
     private void addHomeListener(final Home home) {
       home.addFurnitureListener(new CollectionListener<>()
       {
-        public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev)
-        {
-          HomePieceOfFurniture piece = ev.getItem();
-          int pieceIndex = ev.getIndex();
-          switch (ev.getType()) {
-            case ADD:
-              if (!expandedGroups.isEmpty()
-                      || containsNotViewableFurniture
-                      || pieceIndex < 0) {
-                filterAndSortFurniture();
-              } else {
-                int insertionIndex = getPieceOfFurnitureInsertionIndex(piece, home, pieceIndex);
-                if (insertionIndex != -1) {
-                  filteredAndSortedFurniture.add(insertionIndex, piece);
-                  fireTableRowsInserted(insertionIndex, insertionIndex);
-                  fireTreeModelChanged();
-                }
+          public void collectionChanged(CollectionEvent<HomePieceOfFurniture> ev)
+          {
+              HomePieceOfFurniture piece = ev.getItem();
+              int pieceIndex = ev.getIndex();
+              switch (ev.getType()) {
+                  case ADD:
+                      if (!expandedGroups.isEmpty()
+                              || containsNotViewableFurniture
+                              || pieceIndex < 0) {
+                          filterAndSortFurniture();
+                      } else {
+                          int insertionIndex = getPieceOfFurnitureInsertionIndex(piece, home, pieceIndex);
+                          if (insertionIndex != -1) {
+                              filteredAndSortedFurniture.add(insertionIndex, piece);
+                              fireTableRowsInserted(insertionIndex, insertionIndex);
+                              fireTreeModelChanged();
+                          }
+                      }
+                      break;
+                  case DELETE:
+                      if (furnitureFilter != null
+                              || pieceIndex < 0) {
+                          filterAndSortFurniture();
+                      } else {
+                          int deletionIndex = getPieceOfFurnitureDeletionIndex(piece, home, pieceIndex);
+                          if (deletionIndex != -1) {
+                              if (expandedGroups.contains(piece)) {
+                                  filterAndSortFurniture();
+                              } else {
+                                  filteredAndSortedFurniture.remove(deletionIndex);
+                                  fireTableRowsDeleted(deletionIndex, deletionIndex);
+                                  fireTreeModelChanged();
+                              }
+                          }
+                      }
+                      if (piece instanceof HomeFurnitureGroup) {
+                          expandedGroups.remove(piece);
+                      }
+                      break;
               }
-              break;
-            case DELETE:
-              if (furnitureFilter != null
-                      || pieceIndex < 0) {
-                filterAndSortFurniture();
-              } else {
-                int deletionIndex = getPieceOfFurnitureDeletionIndex(piece, home, pieceIndex);
-                if (deletionIndex != -1) {
-                  if (expandedGroups.contains(piece)) {
-                    filterAndSortFurniture();
-                  } else {
-                    filteredAndSortedFurniture.remove(deletionIndex);
-                    fireTableRowsDeleted(deletionIndex, deletionIndex);
-                    fireTreeModelChanged();
+          }
+
+          /**
+           * Returns the index of an added <code>piece</code> in furniture table, with a default index
+           * of <code>homePieceIndex</code> if <code>home</code> furniture isn't sorted.
+           * If <code>piece</code> isn't added to furniture table, the returned value is
+           * equals to the insertion index where piece should be added.
+           */
+          private int getPieceOfFurnitureInsertionIndex(HomePieceOfFurniture piece, Home home, int homePieceIndex)
+          {
+              if (furnitureFilter == null) {
+                  if (home.getFurnitureSortedProperty() == null) {
+                      return homePieceIndex;
                   }
-                }
+              } else if (!furnitureFilter.include(home, piece)) {
+                  return -1;
+              } else if (home.getFurnitureSortedProperty() == null) {
+                  if (homePieceIndex == 0
+                          || filteredAndSortedFurniture.size() == 0) {
+                      return 0;
+                  } else {
+                      // Find the index of the previous piece included in filteredAndSortedFurniture
+                      List<HomePieceOfFurniture> homeFurniture = home.getFurniture();
+                      int previousIncludedPieceIndex = homePieceIndex - 1;
+                      while (previousIncludedPieceIndex > 0
+                              && !furnitureFilter.include(home, homeFurniture.get(previousIncludedPieceIndex))) {
+                          previousIncludedPieceIndex--;
+                      }
+                      return getPieceOfFurnitureIndex(homeFurniture.get(previousIncludedPieceIndex)) + 1;
+                  }
               }
-              if (piece instanceof HomeFurnitureGroup) {
-                expandedGroups.remove(piece);
-              }
-              break;
-          }
-        }
 
-        /**
-         * Returns the index of an added <code>piece</code> in furniture table, with a default index
-         * of <code>homePieceIndex</code> if <code>home</code> furniture isn't sorted.
-         * If <code>piece</code> isn't added to furniture table, the returned value is
-         * equals to the insertion index where piece should be added.
-         */
-        private int getPieceOfFurnitureInsertionIndex(HomePieceOfFurniture piece, Home home, int homePieceIndex)
-        {
-          if (furnitureFilter == null) {
-            if (home.getFurnitureSortedProperty() == null) {
-              return homePieceIndex;
-            }
-          } else if (!furnitureFilter.include(home, piece)) {
-            return -1;
-          } else if (home.getFurnitureSortedProperty() == null) {
-            if (homePieceIndex == 0
-                    || filteredAndSortedFurniture.size() == 0) {
-              return 0;
-            } else {
-              // Find the index of the previous piece included in filteredAndSortedFurniture
-              List<HomePieceOfFurniture> homeFurniture = home.getFurniture();
-              int previousIncludedPieceIndex = homePieceIndex - 1;
-              while (previousIncludedPieceIndex > 0
-                      && !furnitureFilter.include(home, homeFurniture.get(previousIncludedPieceIndex))) {
-                previousIncludedPieceIndex--;
+              // Default case when piece is included and furniture is  sorted
+              int sortedIndex = Collections.binarySearch(filteredAndSortedFurniture, piece, getFurnitureComparator(home));
+              if (sortedIndex >= 0) {
+                  return sortedIndex;
+              } else {
+                  return -(sortedIndex + 1);
               }
-              return getPieceOfFurnitureIndex(homeFurniture.get(previousIncludedPieceIndex)) + 1;
-            }
           }
 
-          // Default case when piece is included and furniture is  sorted
-          int sortedIndex = Collections.binarySearch(filteredAndSortedFurniture, piece, getFurnitureComparator(home));
-          if (sortedIndex >= 0) {
-            return sortedIndex;
-          } else {
-            return -(sortedIndex + 1);
+          /**
+           * Returns the index of an existing <code>piece</code> in furniture table, with a default index
+           * of <code>homePieceIndex</code> if <code>home</code> furniture isn't sorted.
+           */
+          private int getPieceOfFurnitureDeletionIndex(HomePieceOfFurniture piece, Home home, int homePieceIndex)
+          {
+              if (furnitureFilter == null
+                      && home.getFurnitureSortedProperty() == null
+                      && expandedGroups.isEmpty()
+                      && !containsNotViewableFurniture) {
+                  return homePieceIndex;
+              }
+              return getPieceOfFurnitureIndex(piece);
           }
-        }
-
-        /**
-         * Returns the index of an existing <code>piece</code> in furniture table, with a default index
-         * of <code>homePieceIndex</code> if <code>home</code> furniture isn't sorted.
-         */
-        private int getPieceOfFurnitureDeletionIndex(HomePieceOfFurniture piece, Home home, int homePieceIndex)
-        {
-          if (furnitureFilter == null
-                  && home.getFurnitureSortedProperty() == null
-                  && expandedGroups.isEmpty()
-                  && !containsNotViewableFurniture) {
-            return homePieceIndex;
-          }
-          return getPieceOfFurnitureIndex(piece);
-        }
       });
       home.addPropertyChangeListener(Home.Property.FURNITURE_VISIBLE_PROPERTIES, ev -> {
         if (!home.getFurnitureVisibleProperties().contains(HomePieceOfFurniture.SortableProperty.NAME)) {
@@ -2185,8 +2301,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     public void filterAndSortFurniture() {
       int previousRowCount = this.filteredAndSortedFurniture != null
-          ? this.filteredAndSortedFurniture.size()
-          : 0;
+              ? this.filteredAndSortedFurniture.size()
+              : 0;
       List<HomePieceOfFurniture> furniture = this.home.getFurniture();
       // Search if home furniture contains some not viewable furniture (no need to explore
       // furniture in groups because all furniture in a group belong to the same level)
@@ -2217,7 +2333,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       List<HomePieceOfFurniture> viewableFurniture = new ArrayList<>(furniture.size());
       for (HomePieceOfFurniture homePiece : furniture) {
         if (homePiece.getLevel() == null
-            || homePiece.getLevel().isViewable()) {
+                || homePiece.getLevel().isViewable()) {
           viewableFurniture.add(homePiece);
         }
       }
@@ -2244,9 +2360,9 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
         for (int i = filteredAndSortedFurniture.size() - 1; i >= 0; i--) {
           HomePieceOfFurniture piece = filteredAndSortedFurniture.get(i);
           if (piece instanceof HomeFurnitureGroup
-              && this.expandedGroups.contains(piece)) {
+                  && this.expandedGroups.contains(piece)) {
             filteredAndSortedFurniture.addAll(i + 1,
-                getFilteredAndSortedFurniture(((HomeFurnitureGroup)piece).getFurniture(), true));
+                    getFilteredAndSortedFurniture(((HomeFurnitureGroup)piece).getFurniture(), true));
           }
         }
       }
@@ -2255,7 +2371,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
 
     private Comparator<HomePieceOfFurniture> getFurnitureComparator(Home home) {
       Comparator<HomePieceOfFurniture> furnitureComparator =
-        HomePieceOfFurniture.getFurnitureComparator(home.getFurnitureSortedProperty());
+              HomePieceOfFurniture.getFurnitureComparator(home.getFurnitureSortedProperty());
       if (home.isFurnitureDescendingSorted()) {
         furnitureComparator = Collections.reverseOrder(furnitureComparator);
       }
@@ -2327,7 +2443,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     public boolean isLeaf(Object node) {
       return node instanceof HomePieceOfFurniture
-          && !(node instanceof HomeFurnitureGroup);
+              && !(node instanceof HomeFurnitureGroup);
     }
 
     public void valueForPathChanged(TreePath path, Object newValue) {
@@ -2386,7 +2502,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       }
       for (HomePieceOfFurniture homePiece : furniture) {
         if (homePiece instanceof HomeFurnitureGroup
-            && expandPathToPieceOfFurniture(piece, (HomeFurnitureGroup)homePiece)) {
+                && expandPathToPieceOfFurniture(piece, (HomeFurnitureGroup)homePiece)) {
           filterAndSortFurniture();
           return;
         }
@@ -2397,7 +2513,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
                                                  HomeFurnitureGroup group) {
       for (HomePieceOfFurniture groupPiece : group.getFurniture()) {
         if (groupPiece == piece
-            || (groupPiece instanceof HomeFurnitureGroup
+                || (groupPiece instanceof HomeFurnitureGroup
                 && expandPathToPieceOfFurniture(piece, (HomeFurnitureGroup)groupPiece))) {
           this.expandedGroups.add(group);
           return true;

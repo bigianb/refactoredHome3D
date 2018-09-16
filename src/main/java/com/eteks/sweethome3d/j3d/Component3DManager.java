@@ -69,6 +69,7 @@ public class Component3DManager {
   private Object                 renderingErrorListener; 
   private Boolean                offScreenImageSupported;
   private GraphicsConfiguration  defaultScreenConfiguration;
+  private int                    depthSize;
 
   private Component3DManager() {
     if (!GraphicsEnvironment.isHeadless()) {
@@ -76,8 +77,10 @@ public class Component3DManager {
       GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
       this.defaultScreenConfiguration = defaultScreenDevice.getBestConfiguration(template);
       if (this.defaultScreenConfiguration == null) {
-        this.defaultScreenConfiguration = defaultScreenDevice.getBestConfiguration(new GraphicsConfigTemplate3D());
+        template = new GraphicsConfigTemplate3D();
+        this.defaultScreenConfiguration = defaultScreenDevice.getBestConfiguration(template);
       }
+      this.depthSize = template.getDepthSize();
     } else {
       this.offScreenImageSupported = Boolean.FALSE;
     }
@@ -92,12 +95,23 @@ public class Component3DManager {
     }
     // Retrieve graphics configuration once 
     GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+
+    // Request depth size equal to 24 if supported
+    int preferredDepthSize = 24;
+    try {
+      preferredDepthSize = Integer.valueOf(System.getProperty("com.eteks.sweethome3d.j3d.depthSize", "24"));
+    } catch (NumberFormatException ex) {
+      // Keep 24
+    }
+    int defaultDepthSize = template.getDepthSize();
+    template.setDepthSize(preferredDepthSize);
+    if (!template.isGraphicsConfigSupported(
+            GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration())) {
+      template.setDepthSize(defaultDepthSize);
+    }
+
     // Try to get antialiasing
     template.setSceneAntialiasing(GraphicsConfigTemplate3D.PREFERRED);
-    if (OperatingSystem.isMacOSX() && OperatingSystem.isJavaVersionGreaterOrEqual("1.7")) {
-      // Request depth size equal to 24 with Java 3D 1.6
-      template.setDepthSize(24);
-    }
     
     // From http://www.java.net/node/683852
     // Check if the user has set the Java 3D stereo option.
@@ -110,7 +124,16 @@ public class Component3DManager {
     }
     return template;
   }
-  
+
+  /**
+   * Returns the depth bits size of the Z-buffer.
+   */
+
+  public int getDepthSize()
+  {
+   return this.depthSize;
+  }
+
   /**
    * Returns an instance of this singleton. 
    */

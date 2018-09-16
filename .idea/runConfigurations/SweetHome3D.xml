@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SweetHome3D" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="com.eteks.sweethome3d.SweetHome3D" />
+    <module name="refactored-home-3d" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.eteks.sweethome3d.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <RunnerSettings RunnerId="Profile ">
+      <option name="myExternalizedOptions" value="force-bitness=64&#13;&#10;additional-options2=onexit\=snapshot&#13;&#10;startup=12" />
+    </RunnerSettings>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -50,7 +50,7 @@ public class PhotoSizeAndQualityPanel extends JPanel {
   private JLabel                        heightLabel;
   private JSpinner                      heightSpinner;
   private JCheckBox                     applyProportionsCheckBox;
-  private JComboBox                     aspectRatioComboBox;
+  private JComboBox<Object> aspectRatioComboBox;
   private JLabel                        qualityLabel;
   private JSlider                       qualitySlider;
   private JLabel                        fastQualityLabel;
@@ -99,13 +99,14 @@ public class PhotoSizeAndQualityPanel extends JPanel {
     this.applyProportionsCheckBox.addItemListener(ev -> controller.setAspectRatio(applyProportionsCheckBox.isSelected()
         ? (AspectRatio)aspectRatioComboBox.getSelectedItem()
         : AspectRatio.FREE_RATIO));
-    this.aspectRatioComboBox = new JComboBox(new Object [] {
+    this.aspectRatioComboBox = new JComboBox<>(new Object [] {
         AspectRatio.VIEW_3D_RATIO,
         AspectRatio.SQUARE_RATIO,
         AspectRatio.RATIO_4_3,
         AspectRatio.RATIO_3_2,
         AspectRatio.RATIO_16_9,
-        AspectRatio.RATIO_2_1});
+        AspectRatio.RATIO_2_1,
+        AspectRatio.RATIO_24_10});
     this.aspectRatioComboBox.setRenderer(new DefaultListCellRenderer() {
         @Override
         public Component getListCellRendererComponent(JList list, Object value, 
@@ -123,16 +124,24 @@ public class PhotoSizeAndQualityPanel extends JPanel {
                     PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.squareRatio.text");
                 break;
               case RATIO_4_3 :
-                displayedValue = "4/3";
+                  displayedValue = preferences.getLocalizedString(
+                          PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.4_3Ratio.text");
                 break;
               case RATIO_3_2 :
-                displayedValue = "3/2";
+                  displayedValue = preferences.getLocalizedString(
+                          PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.3_2Ratio.text");
                 break;
               case RATIO_16_9 :
-                displayedValue = "16/9";
+                  displayedValue = preferences.getLocalizedString(
+                          PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.16_9Ratio.text");
                 break;
               case RATIO_2_1 :
-                displayedValue = "2/1";
+                  displayedValue = preferences.getLocalizedString(
+                          PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.2_1Ratio.text");
+                  break;
+                case RATIO_24_10 :
+                    displayedValue = preferences.getLocalizedString(
+                            PhotoSizeAndQualityPanel.class, "aspectRatioComboBox.2.40_1Ratio.text");
                 break;
             }
           } 

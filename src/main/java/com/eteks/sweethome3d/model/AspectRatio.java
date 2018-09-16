@@ -29,7 +29,8 @@ public enum AspectRatio {
   RATIO_4_3(4f / 3), 
   RATIO_3_2(1.5f), 
   RATIO_16_9(16f / 9), 
-  RATIO_2_1(2f / 1f), 
+  RATIO_2_1(2f / 1f),
+  RATIO_24_10(2.4f),
   SQUARE_RATIO(1f);
   
   private final Float value;
